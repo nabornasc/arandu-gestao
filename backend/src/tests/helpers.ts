@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
+import { todayInBrazil } from '../services/orders.ts';
 
 export const PASSWORD = 'senha-de-teste-123';
 
@@ -96,4 +97,5 @@ export async function addMember(app: FastifyInstance, owner: Client, group: Defa
   });
 }
 
-export const today = () => new Date().toISOString().slice(0, 10);
+// Mesma data que o servidor usa: em UTC, das 21h à meia-noite de Brasília já seria o dia seguinte.
+export const today = todayInBrazil;
