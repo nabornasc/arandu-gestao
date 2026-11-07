@@ -10,7 +10,8 @@
       "!**/drizzle/meta",
       "!**/*.md",
       "!**/.vscode",
-      "!**/.omc"
+      "!**/.omc",
+      "!**/.vercel"
     ]
   },
   "formatter": {

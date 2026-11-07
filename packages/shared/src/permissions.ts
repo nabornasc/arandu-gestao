@@ -9,7 +9,7 @@ export const ACTION_LABELS = {
   send: 'Enviar',
   approve: 'Aprovar ou recusar',
   convert: 'Converter em pedido',
-  cancel: 'Cancelar ou reativar',
+  cancel: 'Cancelar',
   settle: 'Dar baixa (marcar como pago)',
   reverse: 'Estornar baixa',
   pay: 'Marcar como paga',
@@ -17,13 +17,15 @@ export const ACTION_LABELS = {
   assign: 'Definir vendedor da carteira',
   configure: 'Configurar etapas do funil',
 } as const;
-type ActionKey = keyof typeof ACTION_LABELS;
+export type ActionKey = keyof typeof ACTION_LABELS;
 
 interface AreaDefinition {
   label: string;
   actions: readonly ActionKey[];
   // Áreas em que o grupo pode ficar restrito aos registros que o próprio usuário criou.
   scoped?: boolean;
+  // Rótulo próprio da área, quando a mesma ação faz mais coisas nela.
+  actionLabels?: Partial<Record<ActionKey, string>>;
 }
 
 const CRUD = ['read', 'create', 'update', 'delete'] as const;
@@ -34,7 +36,12 @@ export const AREAS = {
     actions: ['read', 'create', 'update', 'send', 'approve', 'convert', 'cancel', 'delete'],
     scoped: true,
   },
-  orders: { label: 'Pedidos', actions: ['read', 'create', 'update', 'cancel', 'delete'], scoped: true },
+  orders: {
+    label: 'Pedidos',
+    actions: ['read', 'create', 'update', 'cancel', 'delete'],
+    scoped: true,
+    actionLabels: { cancel: 'Cancelar ou reativar' },
+  },
   opportunities: {
     label: 'CRM (oportunidades e atendimentos)',
     actions: [...CRUD, 'configure'],
@@ -57,6 +64,10 @@ export const AREAS = {
 
 export type Area = keyof typeof AREAS;
 export type Permission = { [A in Area]: `${A}.${(typeof AREAS)[A]['actions'][number]}` }[Area];
+
+// Nome da ação como aparece na matriz dos grupos: o da área, se houver, ou o comum.
+export const actionLabel = (area: Area, action: ActionKey): string =>
+  (AREAS[area] as AreaDefinition).actionLabels?.[action] ?? ACTION_LABELS[action];
 
 export const PERMISSIONS = (Object.keys(AREAS) as Area[]).flatMap((area) =>
   AREAS[area].actions.map((action) => `${area}.${action}` as Permission),

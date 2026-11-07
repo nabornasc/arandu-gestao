@@ -253,7 +253,8 @@ test('ficha do cliente reúne CRM e documentos, e o atendimento vai para o CRM',
   await page.getByRole('tab', { name: 'Histórico' }).click();
   await page.locator('.timeline li').filter({ hasText: description }).getByRole('link').click();
   await expect(page).toHaveURL(/\/crm\/\d+$/);
-  await expect(page.locator('.timeline').getByText(description)).toBeVisible();
+  // A ficha continua aberta em outra aba, escondida: só o texto visível conta.
+  await expect(page.locator('.timeline').getByText(description).filter({ visible: true })).toBeVisible();
   await page.getByRole('link', { name: 'Ver ficha do cliente' }).click();
   await expect(page).toHaveURL(/\/clientes\/\d+\/ficha$/);
 

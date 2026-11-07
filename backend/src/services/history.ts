@@ -1,4 +1,11 @@
-import { ACTION_LABELS, AREAS, type Area, can, type Permission } from '@arandue/shared/permissions';
+import {
+  type ActionKey,
+  AREAS,
+  type Area,
+  actionLabel,
+  can,
+  type Permission,
+} from '@arandue/shared/permissions';
 import { type HistoryFilterInput, historyFilterSchema } from '@arandue/shared/schemas';
 import { and, asc, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { db } from '../db/client.ts';
@@ -215,8 +222,8 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
 
 // Nome legível de uma permissão, como aparece na matriz dos grupos.
 export function permissionName(permission: Permission) {
-  const [area, action] = permission.split('.') as [Area, keyof typeof ACTION_LABELS];
-  return `${AREAS[area].label}: ${ACTION_LABELS[action]}`;
+  const [area, action] = permission.split('.') as [Area, ActionKey];
+  return `${AREAS[area].label}: ${actionLabel(area, action)}`;
 }
 
 const QUOTE_STATUS_SUMMARY: Record<string, string> = {

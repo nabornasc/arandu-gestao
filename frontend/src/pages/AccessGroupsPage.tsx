@@ -1,7 +1,7 @@
 import {
-  ACTION_LABELS,
   AREAS,
   type Area,
+  actionLabel,
   PERMISSIONS,
   type Permission,
   requirementsOf,
@@ -255,7 +255,7 @@ function GroupForm({ group, profile, onClose, onSaved }: GroupFormProps) {
                           disabled={!grantable(permission)}
                           onChange={(event) => toggle(permission, event.target.checked)}
                         />
-                        {ACTION_LABELS[action]}
+                        {actionLabel(area, action)}
                       </label>
                     );
                   })}
