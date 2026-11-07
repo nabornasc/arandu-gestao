@@ -32,7 +32,7 @@ Notebook atualizado com a seção 1 do alinhamento:
 | `npm run db:migrate` | OK, 16 de 16 migrações no banco local (`127.0.0.1`) |
 | `npm run typecheck` | Sem erros |
 
-Os planos guardados foram organizados em `PLANEJAMENTO_ETAPAS.md`, no PR #14 (branch `docs/etapas`). Ele só muda documentação e **ainda não foi mesclado**, porque o CI está vermelho.
+Os planos guardados foram organizados em `PLANEJAMENTO_ETAPAS.md` (PR #14).
 
 ## Problemas
 
@@ -42,4 +42,12 @@ Os planos guardados foram organizados em `PLANEJAMENTO_ETAPAS.md`, no PR #14 (br
 
 ## Decisões pendentes do usuário
 
-- Corrigir o teste agora, ou mesclar o PR #14 depois de repetir o CI a partir das 00h de Brasília.
+Nenhuma.
+
+## Atualização de 07/11/2026
+
+- **Teste corrigido** (PR #15): `today()` em `backend/src/tests/helpers.ts` passa a ser `todayInBrazil()`, a mesma data do servidor. Com o relógio simulado em 22h30 de Brasília, antes falhava 1 teste e depois passaram 175 de 175.
+- **PRs #14 e #15 na `main`** com `--ff-only`, depois do CI verde nos dois. `PLANEJAMENTO_ETAPAS.md` já está na `main`.
+- **Copilot:** não revisou os PRs por falta de cota.
+- **Para o Windows:** `git switch main` e `git pull --ff-only`. Não há migração nova.
+

@@ -53,7 +53,7 @@ Regras novas que valem para quem mexer nesse código:
 
 As decisões pendentes e a correspondência com os rótulos antigos de versão estão no mesmo arquivo.
 
-**Situação da publicação:** o arquivo está no PR #14, branch `docs/etapas`, ainda fora da `main`. Veja `handoff/resposta-arch.md`.
+**Situação da publicação:** `PLANEJAMENTO_ETAPAS.md` está na `main` desde 07/11/2026, junto com a correção do teste que falhava à noite. Veja `handoff/resposta-arch.md`.
 
 ## 4. Como trabalhamos
 
