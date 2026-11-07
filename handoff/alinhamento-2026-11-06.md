@@ -40,8 +40,8 @@ Regras novas que valem para quem mexer nesse código:
 
 | Etapa | Conteúdo |
 |---|---|
-| 1 (próxima) | Fechar o `[Não lançado]` em uma versão e resolver pendências pequenas |
-| 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto |
+| 1 (concluída, v2.5.0) | Fechar o `[Não lançado]` em uma versão e resolver pendências pequenas |
+| 2 (PR #18, aguarda produção) | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto |
 | 3 | Listas configuráveis e grupo do produto |
 | 4 | Central de relatórios com exportação em CSV |
 | 5 | Agenda |

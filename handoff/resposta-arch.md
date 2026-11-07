@@ -51,3 +51,43 @@ Nenhuma.
 - **Copilot:** não revisou os PRs por falta de cota.
 - **Para o Windows:** `git switch main` e `git pull --ff-only`. Não há migração nova.
 
+## Atualização de 07/11/2026, noite
+
+**Etapa 1 concluída: v2.5.0** (PR #17, tag `v2.5.0`).
+
+- Rótulo de permissão por área: "Cancelar" em orçamentos e "Cancelar ou reativar" em pedidos.
+- Biome ignora `.vercel`.
+- Dependências atualizadas dentro da versão principal. Sentry 11 e `postgres` 4 ficaram de fora.
+- Teste e2e da ficha do cliente estabilizado.
+- Lighthouse nos espelhos: 100 em acessibilidade.
+- Portfólio com o login novo e 11 capturas novas (commit `dc01a36` no repositório do portfólio).
+
+**Etapa 2, estoque: pronta no PR #18 (`feat/estoque`), sem merge.** A `main` faz deploy na Vercel, e o código novo lê `products.unit`, `products.min_stock` e `stock_movements`. A migração `0016_estoque.sql` só acrescenta colunas e uma tabela, então o código atual continua funcionando depois dela.
+
+## Para o Windows: produção antes do merge do PR #18
+
+Faça nesta ordem, no Windows, com a branch `feat/estoque`:
+
+1. **SQL Editor do Supabase:** `SELECT demo.reset();`. Volta a demonstração aos dados padrão, antes de mudar a lista de tabelas.
+2. **Migração, pelo Prompt de Comando:** `git fetch origin`, depois `git switch feat/estoque`, e então:
+   ```bat
+   set DATABASE_URL=<conexão do postgres>?sslmode=require
+   node backend/src/db/migrate.ts
+   set DATABASE_URL=
+   ```
+3. **SQL Editor:** rode `scripts/supabase-seguranca.sql`. Ele dá o `GRANT`, a RLS e a policy para `stock_movements`.
+4. **SQL Editor:** rode `scripts/supabase-demo.sql` desta branch, que inclui `stock_movements` em `demo.table_list()`.
+5. **SQL Editor, opcional:** estoque mínimo nos dados de exemplo, igual ao seed:
+   ```sql
+   UPDATE products SET min_stock = v.min FROM (VALUES
+     ('Cerveja Pilsen lata 350 ml', 60), ('Cerveja Puro Malte lata 350 ml', 24),
+     ('Água com gás 500 ml', 12), ('Vodka 1 L', 4), ('Gelo 5 kg', 15), ('Carvão 3 kg', 5)
+   ) AS v(name, min) WHERE products.name = v.name AND products.company_id = 1;
+   ```
+6. **SQL Editor:** `SELECT demo.capture();`, para a restauração das 00h e das 12h levar a tabela nova.
+7. Peça a qualquer uma das estações para mesclar o PR #18 com `--ff-only`, depois do CI verde.
+
+Se a restauração agendada rodar entre os passos 4 e 6, ela falha sem mudar nada, porque roda em uma transação.
+
+No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os novos exemplos, mas apaga os dados locais.
+
