@@ -8,8 +8,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 | Etapa | Conteúdo | Situação | Detalhes em |
 |---|---|---|---|
-| 1 | Fechar o que já está na `main` e resolver pendências pequenas | **Próxima** | Este arquivo |
-| 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | Sugerida em seguida | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
+| 1 | Fechar o que já está na `main` e resolver pendências pequenas | **Concluída em 07/11, v2.5.0** | Este arquivo |
+| 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Próxima** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
 | 3 | Listas configuráveis e grupo do produto | Planejada | [Listas](PLANEJAMENTO_LISTAS.md) |
 | 4 | Central de relatórios com exportação em CSV | Planejada | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
 | 5 | Agenda: dia, semana, mês e lista | Planejada | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
@@ -31,12 +31,12 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 ### Etapa 1: fechar o que já está na `main`
 
-- Fechar o `[Não lançado]` do `CHANGELOG.md` em uma versão com tag.
+- Feito: o `[Não lançado]` virou a v2.5.0.
 - Feito em 07/11/2026: a data dos testes segue o fuso de Brasília, como o servidor. `customerFile.test.ts` falhava das 21h à meia-noite.
-- Verificar o espelho no Lighthouse.
-- Revisar o rótulo da permissão "Cancelar ou reativar".
-- Atualizar as dependências, sem `npm audit fix --force`.
-- Tratar os erros falsos de `npm run lint` onde existe `.vercel/output`.
+- Feito: espelho do cliente e espelho interno com 100 em acessibilidade e boas práticas, no desktop e no celular. O SEO fica em 63 por causa do `noindex`, de propósito.
+- Feito: em orçamentos o rótulo é "Cancelar"; em pedidos continua "Cancelar ou reativar".
+- Feito: dependências atualizadas dentro da versão principal. Sentry 11 e `postgres` 4 mudam a versão principal e ficam para uma etapa própria.
+- Feito: o Biome ignora `.vercel`.
 - Portfólio: trocar `dono@atelie.test` por `dono@conveniencia.test` e refazer as capturas, que ainda mostram os dados antigos.
 - Apagar as branches já mescladas, só com pedido do dono do projeto.
 
@@ -112,7 +112,6 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 | Decisão | Quando responder |
 |---|---|
-| Número da versão que fecha a etapa 1 | Etapa 1 |
 | O campo de lista aceita valor digitado fora da lista, ou só permite escolher | Etapa 3 |
 | A exportação de relatórios tem permissão própria, separada da leitura | Etapa 4 |
 | Quais itens da etapa 9 ainda interessam | Ao chegar nela |

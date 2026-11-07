@@ -544,6 +544,7 @@ Cada avanço gera um evento no histórico ("Pedido #008 recebido → Ganho"). Pe
 | **v2.2** | Oportunidades e rastreio comercial (seção 9); menu ⋯ em grupos | **Concluída em 03/11** |
 | **v2.3** | **Publicação**: deploy (Supabase `sa-east-1` + Vercel `gru1`), Sentry, Playwright nos fluxos principais, demo no portfólio. A partir daqui, cada versão vai para produção | **Concluída em 05/11** |
 | **v2.4** | Espelho do cliente em A4 com dados da empresa e cópia guardada no envio, frete e outras despesas, reabrir orçamento, Sentry ligado e novo nome, Arandu Gestão | **Concluída em 05/11** |
+| **v2.5** | Espelho interno com margem, parcelas, grupos de itens e medidas no orçamento, contas a receber por parcela com baixa parcial e estorno, filtros de lista e ficha do cliente. Daqui em diante, a ordem está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md) | **Concluída em 07/11** |
 | Etapa 6 (antiga v2.5) | Navegação e produtividade: menu por módulos e páginas de módulo, cadastro rápido, filtros avançados e paginação, busca rápida e atalhos (seção 7) | Planejada |
 | Etapa 7 (antiga v2.6) | Documentos: orçamento em seções, condições de pagamento e parcelas no contas a receber, grupos de itens, biblioteca de textos, espelho interno e DOCX. Espelho do cliente, campos de entrega e observação interna já entraram na v2.4 | Planejada |
 | Etapa 8 (antiga v2.7) | Gestão: assistente de precificação, dashboard modular com KPIs e metas de venda | Planejada |

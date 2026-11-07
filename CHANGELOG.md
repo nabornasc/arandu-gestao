@@ -4,6 +4,8 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ## [Não lançado]
 
+## [2.5.0] — 2026-11-07
+
 ### Adicionado
 
 - **Espelho interno:** o orçamento ganha um documento só para a empresa, com custo por item, resumo por tipo, resultado e margem, e o aviso "Uso interno: não enviar ao cliente". Frete e outras despesas ficam fora da margem. Sem o custo de todos os itens, a margem não é calculada.
@@ -14,12 +16,24 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Grupos de itens:** cada item pode ter um grupo, como ambiente, etapa ou kit, com subtotal nos espelhos.
 - **Medidas opcionais:** ativadas em Configurações, com largura e comprimento em caixas separadas, digitados em mm, cm ou m. A quantidade é calculada em m².
 - **Custo fixado no envio:** mudar o custo do produto depois não altera a margem de um orçamento já enviado.
+- **Baixa parcial e em lote:** várias contas a receber de uma vez, com juros e desconto. O estorno exige a permissão `receivables.reverse`, a senha de login e o motivo, e o mesmo vale para cancelar, excluir ou voltar para pendente um pedido com baixa.
+- **Ficha do cliente:** CRM, documentos e financeiro do cliente em uma tela, com dívida, limite e pontualidade. Todo atendimento registrado nela fica em uma oportunidade do CRM.
+- **`PLANEJAMENTO_ETAPAS.md`:** a ordem de trabalho em etapas, fonte única para as duas estações.
 
 ### Alterado
 
 - **Permissão `costs.read`:** o custo dos produtos deixa de aparecer para quem só vê produtos. Na migração, a permissão vai para os grupos que já veem contas a pagar; os demais podem recebê-la em Grupos de acesso.
 
+- **Faturamento:** segue a data do pedido e só conta pedido quitado; juros e desconto da baixa ajustam o valor.
+- **Rótulo de permissão:** em orçamentos, a ação passa a se chamar "Cancelar", porque reabrir usa a permissão de editar. Em pedidos continua "Cancelar ou reativar".
+- **Dependências** atualizadas dentro da mesma versão principal, incluindo Fastify, Vite, Vitest, Playwright e Biome. Sentry 11 e `postgres` 4 ficam para depois, por mudarem a versão principal.
 - **Dados de demonstração:** a empresa padrão agora é uma mini conveniência de bebidas, com vendas, orçamentos em cada situação, oportunidades e financeiro de exemplo. O acesso de teste passa a ser `dono@conveniencia.test`.
+
+### Corrigido
+
+- A data dos testes segue o fuso de Brasília, como o servidor: um teste falhava das 21h à meia-noite.
+- Teste ponta a ponta da ficha do cliente procurava o texto também na aba escondida e falhava às vezes.
+- `npm run lint` ignora `.vercel/output`.
 
 ## [2.4.0] — 2026-11-05
 

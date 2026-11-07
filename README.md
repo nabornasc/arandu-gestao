@@ -97,6 +97,12 @@ O plano completo está em [PLANEJAMENTO_ORCAMENTOS_HISTORICO.md](PLANEJAMENTO_OR
 - **Reabrir orçamento** enviado, aprovado ou recusado, com motivo. Depois de reaberto, só o Proprietário pode excluí-lo.
 - **Monitoramento** com Sentry, sem dados pessoais, e novo nome: **Arandu Gestão**.
 
+**v2.5 — Orçamentos completos, títulos e ficha do cliente:**
+
+- **Espelho interno** com custo por item e margem; parcelas, grupos de itens e medidas no orçamento.
+- **Contas a receber por parcela**, com baixa parcial e em lote, juros, desconto e estorno com senha e motivo.
+- **Filtros, totais e impressão** nas listas, e **ficha do cliente** ligada ao CRM.
+
 **Próximos passos:** a sequência está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
 
 ## Tecnologias
