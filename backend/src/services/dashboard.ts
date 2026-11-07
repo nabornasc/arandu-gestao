@@ -1,6 +1,7 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { can } from '@arandue/shared/permissions';
+import { and, asc, desc, eq, isNotNull, lte, sql } from 'drizzle-orm';
 import { db } from '../db/client.ts';
-import { orders, people } from '../db/schema.ts';
+import { orders, people, products } from '../db/schema.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
 
 interface Summary extends Record<string, unknown> {
@@ -63,6 +64,28 @@ export async function getDashboard(ctx: Ctx) {
     .orderBy(desc(orders.orderDate), desc(orders.id))
     .limit(5);
 
+  // Produtos no estoque mínimo ou abaixo dele, para quem pode ver produtos.
+  const lowStock = can(ctx.permissions, 'products.read')
+    ? await db
+        .select({
+          id: products.id,
+          name: products.name,
+          stock: products.stock,
+          minStock: products.minStock,
+          unit: products.unit,
+        })
+        .from(products)
+        .where(
+          and(
+            eq(products.companyId, companyId),
+            eq(products.active, true),
+            isNotNull(products.minStock),
+            lte(products.stock, products.minStock),
+          ),
+        )
+        .orderBy(asc(products.name))
+    : [];
+
   return {
     revenueMonth: Number(summary?.revenue_month ?? 0),
     expensesMonth: Number(summary?.expenses_month ?? 0),
@@ -72,5 +95,6 @@ export async function getDashboard(ctx: Ctx) {
     revenueYear: Number(summary?.revenue_year ?? 0),
     meiAnnualLimit: summary?.mei_annual_limit == null ? null : Number(summary.mei_annual_limit),
     recentOrders,
+    lowStock,
   };
 }

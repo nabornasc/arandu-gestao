@@ -20,6 +20,7 @@ import * as people from '../services/people.ts';
 import * as pipeline from '../services/pipeline.ts';
 import * as products from '../services/products.ts';
 import * as quotes from '../services/quotes.ts';
+import * as stock from '../services/stock.ts';
 import * as suppliers from '../services/suppliers.ts';
 import * as trace from '../services/trace.ts';
 import * as transactions from '../services/transactions.ts';
@@ -102,6 +103,13 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       update: products.updateProduct,
       remove: products.deleteProduct,
     });
+    protectedApp.post(
+      '/products/:id/stock-adjustments',
+      created((request, id) => stock.adjustStock(ctxOf(request), id, request.body as never)),
+    );
+    protectedApp.get('/products/:id/stock-movements', (request) =>
+      stock.listStockMovements(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
     protectedApp.get('/bank-accounts/options', (request) =>
       bankAccounts.listBankAccountOptions(ctxOf(request)),
     );

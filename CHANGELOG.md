@@ -4,6 +4,17 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ## [Não lançado]
 
+### Adicionado
+
+- **Extrato do estoque:** cada mudança de saldo fica registrada, com tipo, quantidade, saldo depois, motivo, pedido e usuário. Vendas, cancelamentos, reativações e exclusões de pedido entram sozinhas.
+- **Ajuste de estoque** com entrada, saída ou contagem e motivo obrigatório, pela permissão nova `products.adjust`, concedida na migração a quem já edita produtos. O saldo nunca fica negativo.
+- **Estoque mínimo com aviso** na lista de produtos e na visão geral.
+- **Unidade no produto:** UN, CX, KG, L, M ou M2.
+
+### Alterado
+
+- No cadastro, o estoque só é informado na criação; depois, muda pelo ajuste. Pela API, alterar `stock` no cadastro continua possível e entra no extrato como edição do cadastro.
+
 ## [2.5.0] — 2026-11-07
 
 ### Adicionado

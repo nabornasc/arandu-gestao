@@ -59,7 +59,9 @@ export function FormModal({ config: fullConfig, initial, saving, onClose, onSubm
   const profile = useProfile();
   const config = {
     ...fullConfig,
-    fields: fullConfig.fields.filter((field) => !field.permission || can(profile, field.permission)),
+    fields: fullConfig.fields.filter(
+      (field) => (!field.permission || can(profile, field.permission)) && !(field.createOnly && initial),
+    ),
   };
   const [form, setForm] = useState(() => toFormState(config, initial));
   const [error, setError] = useState<string | null>(null);

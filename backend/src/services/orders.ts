@@ -42,6 +42,7 @@ import {
   winFromDocument,
 } from './opportunities.ts';
 import { assertActiveAccount, assertCustomer } from './ownership.ts';
+import { recordStock, type StockChange } from './stock.ts';
 
 type Order = typeof orders.$inferSelect;
 
@@ -60,11 +61,11 @@ async function moveStock(
   ctx: Ctx,
   items: { productId: number; quantity: number }[],
   sign: 1 | -1,
-): Promise<void> {
+): Promise<StockChange[]> {
   const totals = new Map<number, number>();
   for (const item of items) totals.set(item.productId, (totals.get(item.productId) ?? 0) + item.quantity);
   const ids = [...totals.keys()].sort((a, b) => a - b);
-  if (!ids.length) return;
+  if (!ids.length) return [];
 
   const locked = await tx
     .select({ id: products.id, name: products.name, type: products.type, stock: products.stock })
@@ -73,6 +74,8 @@ async function moveStock(
     .orderBy(asc(products.id))
     .for('update');
 
+  // Mudanças aplicadas, para o extrato do estoque.
+  const changes: StockChange[] = [];
   for (const product of locked) {
     if (product.type !== 'product' || product.stock === null) continue;
     const quantity = totals.get(product.id) ?? 0;
@@ -85,7 +88,13 @@ async function moveStock(
       .update(products)
       .set({ stock: sql`${products.stock} - ${sign * quantity}` })
       .where(eq(products.id, product.id));
+    changes.push({
+      productId: product.id,
+      quantity: -sign * quantity,
+      balance: round2(product.stock - sign * quantity),
+    });
   }
+  return changes;
 }
 
 async function defaultAccountId(tx: Transaction, ctx: Ctx): Promise<number | null> {
@@ -546,7 +555,7 @@ export async function insertOrder(tx: Transaction, ctx: Ctx, data: OrderData, li
   );
 
   // Estoque antes da numeração: a ordem dos bloqueios (produtos, depois empresa) é sempre a mesma.
-  await moveStock(tx, ctx, data.items, 1);
+  const stockChanges = await moveStock(tx, ctx, data.items, 1);
 
   const [order] = await tx
     .insert(orders)
@@ -570,6 +579,10 @@ export async function insertOrder(tx: Transaction, ctx: Ctx, data: OrderData, li
     })
     .returning();
   if (!order) throw new Error('Falha ao criar pedido.');
+  await recordStock(tx, ctx, stockChanges, 'sale', {
+    orderId: order.id,
+    reason: `Pedido ${formatCode(order.number)}`,
+  });
 
   await tx.insert(orderItems).values(lines.map((line) => ({ ...line, orderId: order.id })));
   await createReceivables(tx, ctx, order, data.installments);
@@ -674,8 +687,15 @@ export async function updateOrder(ctx: Ctx, id: number, input: OrderUpdateInput,
 
     const status = data.status ?? previous.status;
     // Reativar um pedido cancelado consome o estoque de novo (validando saldo); cancelar devolve.
-    if (previous.status === 'cancelled' && status !== 'cancelled') await moveStock(tx, ctx, items, 1);
-    if (previous.status !== 'cancelled' && status === 'cancelled') await moveStock(tx, ctx, items, -1);
+    const code = `Pedido ${formatCode(previous.number)}`;
+    if (previous.status === 'cancelled' && status !== 'cancelled') {
+      const changes = await moveStock(tx, ctx, items, 1);
+      await recordStock(tx, ctx, changes, 'sale', { orderId: id, reason: `${code} reativado` });
+    }
+    if (previous.status !== 'cancelled' && status === 'cancelled') {
+      const changes = await moveStock(tx, ctx, items, -1);
+      await recordStock(tx, ctx, changes, 'return', { orderId: id, reason: `${code} cancelado` });
+    }
 
     const discount = data.discount ?? previous.discount;
     const subtotal = round2(items.reduce((sum, item) => sum + item.subtotal, 0));
@@ -769,7 +789,13 @@ export async function deleteOrder(ctx: Ctx, id: number, confirmation?: { reason:
       .from(orderItems)
       .where(eq(orderItems.orderId, id))
       .orderBy(asc(orderItems.id));
-    if (order.status !== 'cancelled') await moveStock(tx, ctx, items, -1);
+    if (order.status !== 'cancelled') {
+      // O pedido some, então o extrato guarda só o número no motivo.
+      const changes = await moveStock(tx, ctx, items, -1);
+      await recordStock(tx, ctx, changes, 'return', {
+        reason: `Pedido ${formatCode(order.number)} excluído`,
+      });
+    }
 
     // Lê antes de excluir: a entrada no caixa sai em cascata.
     const customer = await personName(tx, order.customerId);

@@ -16,6 +16,7 @@ export const ACTION_LABELS = {
   manage: 'Gerenciar',
   assign: 'Definir vendedor da carteira',
   configure: 'Configurar etapas do funil',
+  adjust: 'Ajustar estoque',
 } as const;
 export type ActionKey = keyof typeof ACTION_LABELS;
 
@@ -53,7 +54,7 @@ export const AREAS = {
   bank_accounts: { label: 'Contas bancárias', actions: CRUD },
   customers: { label: 'Clientes', actions: [...CRUD, 'assign'] },
   suppliers: { label: 'Fornecedores, transportadoras e representantes', actions: CRUD },
-  products: { label: 'Produtos e serviços', actions: CRUD },
+  products: { label: 'Produtos e serviços', actions: [...CRUD, 'adjust'] },
   costs: { label: 'Custos e margem', actions: ['read'] },
   analytics: { label: 'Visão geral (indicadores)', actions: ['read'] },
   users: { label: 'Usuários', actions: ['read', 'manage'] },

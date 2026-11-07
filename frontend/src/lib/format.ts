@@ -85,6 +85,13 @@ export const LABELS: Record<string, string> = {
   sender: 'Por conta do remetente',
   recipient: 'Por conta do destinatário',
   none: 'Sem frete',
+  // Extrato do estoque.
+  initial: 'Saldo inicial',
+  adjustment: 'Ajuste',
+  count: 'Contagem',
+  sale: 'Venda',
+  return: 'Devolução',
+  edit: 'Edição do cadastro',
 };
 
 export const label = (value: string | null | undefined) => (value ? (LABELS[value] ?? value) : '—');

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Lock, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { type ComponentType, useState } from 'react';
 import { MONEY_COLUMNS, type ResourceConfig } from '../config/resources.ts';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
@@ -20,7 +20,10 @@ function formatCell(key: string, value: unknown): string {
   return label(String(value));
 }
 
-export function ResourcePage({ config }: { config: ResourceConfig }) {
+// Ação extra em cada linha, para telas com mais do que editar e excluir (ex.: estoque do produto).
+export type RowExtra = ComponentType<{ row: Row }>;
+
+export function ResourcePage({ config, RowExtra }: { config: ResourceConfig; RowExtra?: RowExtra }) {
   const profile = useProfile();
   const notify = useToast();
   const client = useQueryClient();
@@ -122,9 +125,15 @@ export function ResourcePage({ config }: { config: ResourceConfig }) {
                   const locked = config.isLocked?.(row) ?? false;
                   return (
                     <tr key={row.id}>
-                      {config.columns.map(([key]) => (
-                        <td key={key}>{formatCell(key, row[key])}</td>
-                      ))}
+                      {config.columns.map(([key]) => {
+                        const badge = config.badge?.(key, row);
+                        return (
+                          <td key={key}>
+                            {formatCell(key, row[key])}
+                            {badge && <span className="status pending cell-badge">{badge}</span>}
+                          </td>
+                        );
+                      })}
                       <td className="actions">
                         {locked ? (
                           <span title="Gerada automaticamente por um pedido ou despesa">
@@ -132,6 +141,7 @@ export function ResourcePage({ config }: { config: ResourceConfig }) {
                           </span>
                         ) : (
                           <>
+                            {RowExtra && <RowExtra row={row} />}
                             {allowed.update && (
                               <button type="button" onClick={() => openForm(row)}>
                                 Editar

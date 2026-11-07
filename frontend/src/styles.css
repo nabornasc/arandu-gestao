@@ -1979,3 +1979,29 @@ fieldset.view-switch {
     break-inside: avoid;
   }
 }
+
+/* Estoque */
+.cell-badge {
+  margin-left: 8px;
+}
+.stock-balance {
+  margin: 0 0 16px;
+}
+.low-stock {
+  margin-bottom: 20px;
+}
+.low-stock-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.low-stock-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 10px 0;
+  border-top: 1px solid #f1edf6;
+}

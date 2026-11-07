@@ -218,7 +218,7 @@ Os campos usam camelCase e as datas vêm no formato `AAAA-MM-DD`. Os erros retor
 
 ## Regras de negócio
 
-1. **Estoque:** criar um pedido baixa o estoque dos produtos físicos dentro de uma transação, com bloqueio de linha, para que vendas simultâneas não vendam a mesma unidade. Estoque insuficiente retorna 400 e nada é alterado. Cancelar ou excluir o pedido devolve o estoque, e reativar um pedido cancelado valida o saldo de novo.
+1. **Estoque:** criar um pedido baixa o estoque dos produtos físicos dentro de uma transação, com bloqueio de linha, para que vendas simultâneas não vendam a mesma unidade. Estoque insuficiente retorna 400 e nada é alterado. Cancelar ou excluir o pedido devolve o estoque, e reativar um pedido cancelado valida o saldo de novo. Cada mudança de saldo, de venda ou de ajuste com motivo, fica no extrato do produto, e o saldo nunca fica negativo.
 2. **Caixa:** pedido **pago** ou **concluído** gera uma única entrada no caixa, e despesa **paga** com conta gera uma única saída. Voltar o status a pendente remove a movimentação. Movimentações geradas automaticamente não podem ser editadas diretamente (409).
 3. **Saldo:** saldo inicial mais movimentações, considerando só contas ativas nos dois termos.
 4. **Histórico:** produto usado em pedido, orçamento ou oportunidade e conta com movimentação são **arquivados** em vez de excluídos.

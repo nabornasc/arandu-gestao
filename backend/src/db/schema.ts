@@ -136,6 +136,9 @@ export const products = pgTable(
     cost: money(),
     // NULL = não controla estoque (serviços).
     stock: quantity(),
+    unit: varchar({ length: 4 }).notNull().default('UN'),
+    // Aviso de estoque baixo quando o saldo chega neste valor. NULL = sem aviso.
+    minStock: quantity(),
     active: boolean().notNull().default(true),
     createdAt: createdAt(),
     updatedAt: timestamp({ withTimezone: true })
@@ -473,6 +476,37 @@ export const orderItems = pgTable(
 );
 
 // ---------- Financeiro ----------
+
+// Cada mudança no saldo de um produto: saldo inicial, ajuste com motivo, venda, devolução e edição
+// do cadastro. É o extrato do estoque.
+export const stockMovementKindEnum = pgEnum('stock_movement_kind', [
+  'initial',
+  'adjustment',
+  'count',
+  'sale',
+  'return',
+  'edit',
+]);
+
+export const stockMovements = pgTable(
+  'stock_movements',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    productId: integer()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    kind: stockMovementKindEnum().notNull(),
+    // Positivo entra, negativo sai.
+    quantity: quantity().notNull(),
+    balance: quantity().notNull(),
+    reason: varchar({ length: 255 }),
+    orderId: integer().references(() => orders.id, { onDelete: 'set null' }),
+    userId: integer().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.companyId, t.productId, t.createdAt)],
+);
 
 export const bankAccounts = pgTable(
   'bank_accounts',

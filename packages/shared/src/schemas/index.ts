@@ -219,6 +219,8 @@ export const personSchema = z
 export type PersonInput = z.input<typeof personSchema>;
 
 export const PRODUCT_TYPES = ['product', 'service'] as const;
+// Unidade em que o produto é vendido e contado no estoque.
+export const PRODUCT_UNITS = ['UN', 'CX', 'KG', 'L', 'M', 'M2'] as const;
 
 export const productSchema = z.object({
   name: requiredText(120, 'Informe o nome'),
@@ -226,8 +228,19 @@ export const productSchema = z.object({
   price: money,
   cost: money.nullish(),
   stock: z.number().nonnegative('O estoque não pode ser negativo').max(1e9).nullish(),
+  unit: z.enum(PRODUCT_UNITS).default('UN'),
+  minStock: z.number().nonnegative('O estoque mínimo não pode ser negativo').max(1e9).nullish(),
 });
 export type ProductInput = z.input<typeof productSchema>;
+
+// Ajuste de estoque: entrada, saída ou contagem (o saldo passa a ser a quantidade informada).
+export const STOCK_ADJUSTMENT_KINDS = ['in', 'out', 'count'] as const;
+export const stockAdjustmentSchema = z.object({
+  kind: z.enum(STOCK_ADJUSTMENT_KINDS),
+  quantity: z.number().nonnegative('A quantidade não pode ser negativa').max(1e9),
+  reason: requiredText(255, 'Informe o motivo do ajuste'),
+});
+export type StockAdjustmentInput = z.input<typeof stockAdjustmentSchema>;
 
 // ---------- Financeiro ----------
 

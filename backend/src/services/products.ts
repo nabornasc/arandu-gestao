@@ -8,15 +8,25 @@ import { authorize, type Ctx } from '../lib/context.ts';
 import { notFound } from '../lib/errors.ts';
 import { parse } from '../lib/validate.ts';
 import { audit } from './audit.ts';
+import { recordStock } from './stock.ts';
 
 const scoped = (ctx: Ctx, id: number) => and(eq(products.id, id), eq(products.companyId, ctx.companyId));
 
-const TRACKED = ['name', 'type', 'price', 'cost', 'stock'] as const;
+const TRACKED = ['name', 'type', 'price', 'cost', 'stock', 'unit', 'minStock'] as const;
 
-// Serviço não controla estoque.
+// Serviço não controla estoque nem tem estoque mínimo.
 const normalize = (data: ReturnType<typeof productSchema.parse>) => ({
   ...data,
   stock: data.type === 'service' ? null : (data.stock ?? null),
+  minStock: data.type === 'service' ? null : (data.minStock ?? null),
+});
+
+type ProductRow = typeof products.$inferSelect;
+
+// Aviso de estoque baixo: o saldo chegou no mínimo informado.
+const withStockStatus = (row: ProductRow) => ({
+  ...row,
+  lowStock: row.stock !== null && row.minStock !== null && row.stock <= row.minStock,
 });
 
 // O custo só sai da API para quem pode vê-lo.
@@ -30,7 +40,7 @@ export async function listProducts(ctx: Ctx) {
     .from(products)
     .where(and(eq(products.companyId, ctx.companyId), eq(products.active, true)))
     .orderBy(asc(products.name));
-  return rows.map((row) => showCost(ctx, row));
+  return rows.map((row) => withStockStatus(showCost(ctx, row)));
 }
 
 export async function getProduct(ctx: Ctx, id: number) {
@@ -40,7 +50,7 @@ export async function getProduct(ctx: Ctx, id: number) {
     .from(products)
     .where(and(scoped(ctx, id), eq(products.active, true)));
   if (!row) throw notFound();
-  return showCost(ctx, row);
+  return withStockStatus(showCost(ctx, row));
 }
 
 export async function createProduct(ctx: Ctx, input: ProductInput) {
@@ -54,17 +64,30 @@ export async function createProduct(ctx: Ctx, input: ProductInput) {
       .values({ ...data, cost, companyId: ctx.companyId })
       .returning();
     if (!row) throw new Error('Falha ao criar produto.');
+    if (row.stock !== null) {
+      await recordStock(
+        tx,
+        ctx,
+        [{ productId: row.id, quantity: row.stock, balance: row.stock }],
+        'initial',
+        {
+          reason: 'Saldo inicial no cadastro',
+        },
+      );
+    }
     await audit(tx, ctx, 'create', 'product', row.id, {
       label: row.name,
       changes: initialFields(pick(row, TRACKED)),
     });
-    return showCost(ctx, row);
+    return withStockStatus(showCost(ctx, row));
   });
 }
 
 export async function updateProduct(ctx: Ctx, id: number, input: ProductInput) {
   authorize(ctx, 'products.update');
   const data = normalize(parse(productSchema, input));
+  // Sem o campo, o saldo fica como está: a tela muda o estoque pelo ajuste, com motivo.
+  const keepStock = data.type === 'product' && (input as { stock?: unknown }).stock === undefined;
   return db.transaction(async (tx) => {
     const [previous] = await tx
       .select()
@@ -74,15 +97,22 @@ export async function updateProduct(ctx: Ctx, id: number, input: ProductInput) {
     if (!previous) throw notFound();
     // Quem não vê o custo edita o resto do cadastro sem apagá-lo.
     const cost = can(ctx.permissions, 'costs.read') ? data.cost : previous.cost;
+    const stock = keepStock ? previous.stock : data.stock;
     const [row] = await tx
       .update(products)
-      .set({ ...data, cost })
+      .set({ ...data, cost, stock })
       .where(and(scoped(ctx, id), eq(products.active, true)))
       .returning();
     if (!row) throw notFound();
+    if (row.stock !== null && row.stock !== previous.stock) {
+      const quantity = Math.round((row.stock - (previous.stock ?? 0)) * 100) / 100;
+      await recordStock(tx, ctx, [{ productId: id, quantity, balance: row.stock }], 'edit', {
+        reason: 'Alterado no cadastro',
+      });
+    }
     const changes = diffFields(pick(previous, TRACKED), pick(row, TRACKED));
     if (changes.length) await audit(tx, ctx, 'update', 'product', id, { label: row.name, changes });
-    return showCost(ctx, row);
+    return withStockStatus(showCost(ctx, row));
   });
 }
 

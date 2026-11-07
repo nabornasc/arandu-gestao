@@ -13,6 +13,7 @@ import { addInteraction, createOpportunity, setStatus } from '../services/opport
 import { createOrder, settleReceivable, settleReceivables } from '../services/orders.ts';
 import { createProduct } from '../services/products.ts';
 import { convertQuote, createQuote, transitionQuote } from '../services/quotes.ts';
+import { adjustStock } from '../services/stock.ts';
 import { createSupplier } from '../services/suppliers.ts';
 import { createUser } from '../services/users.ts';
 import { db, sql } from './client.ts';
@@ -26,7 +27,7 @@ const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISO
 async function truncateAll() {
   await db.execute(rawSql`
     TRUNCATE companies, users, sessions, people, person_contacts, person_addresses, products, opportunities, opportunity_items, pipeline_stages, interactions,
-             quotes, quote_items, orders, order_items, receivables, receivable_payments, bank_accounts, expenses, cash_transactions,
+             quotes, quote_items, orders, order_items, stock_movements, receivables, receivable_payments, bank_accounts, expenses, cash_transactions,
              audit_logs, events, access_groups, access_group_permissions RESTART IDENTITY CASCADE`);
 }
 
@@ -78,22 +79,25 @@ async function seedConvenience() {
       'Entrega em até 2 horas na região central. Pagamento em Pix, dinheiro ou cartão. Venda de bebida alcoólica proibida para menores de 18 anos.',
   });
 
-  const product = (name: string, price: number, cost: number, stock: number) =>
-    createProduct(owner, { name, type: 'product', price, cost, stock });
-  const pilsen = await product('Cerveja Pilsen lata 350 ml', 4.5, 2.9, 240);
+  const product = (name: string, price: number, cost: number, stock: number, minStock?: number) =>
+    createProduct(owner, { name, type: 'product', price, cost, stock, minStock });
+  const pilsen = await product('Cerveja Pilsen lata 350 ml', 4.5, 2.9, 240, 60);
   const longNeck = await product('Cerveja Pilsen long neck 330 ml', 6.5, 4.2, 120);
-  const pureMalt = await product('Cerveja Puro Malte lata 350 ml', 6, 3.8, 96);
+  const pureMalt = await product('Cerveja Puro Malte lata 350 ml', 6, 3.8, 96, 24);
   const cola = await product('Refrigerante cola 2 L', 11, 7.2, 48);
   const guarana = await product('Refrigerante guaraná 2 L', 9.5, 6, 36);
   const water = await product('Água mineral 500 ml', 3, 1.1, 120);
-  await product('Água com gás 500 ml', 3.5, 1.4, 48);
+  const sparkling = await product('Água com gás 500 ml', 3.5, 1.4, 48, 12);
   const energy = await product('Energético 250 ml', 12, 7.5, 40);
   const juice = await product('Suco de uva integral 1 L', 18, 11, 18);
   const wine = await product('Vinho tinto seco 750 ml', 45, 28, 12);
-  await product('Vodka 1 L', 49.9, 31, 10);
-  const ice = await product('Gelo 5 kg', 14, 6, 25);
-  const charcoal = await product('Carvão 3 kg', 22, 13, 15);
+  const vodka = await product('Vodka 1 L', 49.9, 31, 10, 4);
+  const ice = await product('Gelo 5 kg', 14, 6, 25, 15);
+  const charcoal = await product('Carvão 3 kg', 22, 13, 15, 5);
   const peanuts = await product('Amendoim salgado 150 g', 7, 3.8, 30);
+  // Ajustes com motivo, para o extrato do estoque ter mais do que vendas.
+  await adjustStock(owner, vodka.id, { kind: 'out', quantity: 1, reason: 'Garrafa quebrada no depósito' });
+  await adjustStock(owner, sparkling.id, { kind: 'count', quantity: 46, reason: 'Contagem do fim do mês' });
   const delivery = await createProduct(owner, {
     name: 'Entrega em domicílio',
     type: 'service',

@@ -12,6 +12,8 @@ export interface Field {
   required?: boolean;
   // Campo que só aparece para quem tem esta permissão.
   permission?: Permission;
+  // Só no cadastro novo; depois, muda por outra ação (ex.: estoque, pelo ajuste).
+  createOnly?: boolean;
 }
 
 export interface ResourceConfig {
@@ -22,6 +24,8 @@ export interface ResourceConfig {
   schema: z.ZodType;
   fields: Field[];
   columns: [string, string][];
+  // Aviso ao lado do valor de uma coluna (ex.: estoque baixo).
+  badge?: (key: string, row: Record<string, unknown>) => string | null;
   // Registros gerados automaticamente não podem ser editados nesta tela.
   isLocked?: (row: Record<string, unknown>) => boolean;
   // Filtros e totais da lista, nas telas com lançamentos por data.
@@ -61,14 +65,31 @@ export const resources = {
       },
       { key: 'price', label: 'Preço de venda (R$)', type: 'number', required: true },
       { key: 'cost', label: 'Custo unitário (R$)', type: 'number', permission: 'costs.read' },
-      { key: 'stock', label: 'Estoque (vazio para serviço)', type: 'number' },
+      {
+        key: 'unit',
+        label: 'Unidade',
+        type: 'select',
+        options: [
+          ['UN', 'Unidade (UN)'],
+          ['CX', 'Caixa (CX)'],
+          ['KG', 'Quilo (KG)'],
+          ['L', 'Litro (L)'],
+          ['M', 'Metro (M)'],
+          ['M2', 'Metro quadrado (M2)'],
+        ],
+      },
+      { key: 'stock', label: 'Estoque inicial (vazio para serviço)', type: 'number', createOnly: true },
+      { key: 'minStock', label: 'Estoque mínimo (aviso)', type: 'number' },
     ],
     columns: [
       ['name', 'Nome'],
       ['type', 'Tipo'],
       ['price', 'Preço'],
       ['stock', 'Estoque'],
+      ['unit', 'Unidade'],
+      ['minStock', 'Mínimo'],
     ],
+    badge: (key, row) => (key === 'stock' && row.lowStock ? 'Estoque baixo' : null),
   },
   expenses: {
     title: 'Contas a pagar (despesas)',

@@ -28,7 +28,10 @@ interface Dashboard {
     status: string;
     customerName: string | null;
   }[];
+  lowStock: { id: number; name: string; stock: number; minStock: number; unit: string }[];
 }
+
+const quantity = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
 
 export default function DashboardPage() {
   const profile = useProfile();
@@ -100,6 +103,30 @@ export default function DashboardPage() {
             tone="yellow"
             helper="Aguardando recebimento"
           />
+        </section>
+      )}
+
+      {data && data.lowStock.length > 0 && (
+        <section className="panel low-stock" aria-labelledby="titulo-estoque-baixo">
+          <div className="panel-heading">
+            <div>
+              <h3 id="titulo-estoque-baixo">Estoque baixo</h3>
+              <p>Produtos que chegaram no estoque mínimo. Reponha ou ajuste o mínimo no cadastro.</p>
+            </div>
+            <Link className="link-button" to="/produtos">
+              Ver produtos
+            </Link>
+          </div>
+          <ul className="low-stock-list">
+            {data.lowStock.map((product) => (
+              <li key={product.id}>
+                <strong>{product.name}</strong>
+                <span>
+                  {quantity.format(product.stock)} {product.unit} · mínimo {quantity.format(product.minStock)}
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

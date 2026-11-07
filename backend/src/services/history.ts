@@ -33,6 +33,7 @@ type AuditData = {
   orderNumber?: number;
   originKind?: string | null;
   quoteId?: number | null;
+  stockAdjustment?: string;
   opportunity?: unknown;
   order?: unknown;
 };
@@ -153,6 +154,8 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   price: { label: 'Preço', kind: 'money' },
   cost: { label: 'Custo', kind: 'money' },
   stock: { label: 'Estoque', kind: 'number' },
+  unit: { label: 'Unidade', kind: 'text' },
+  minStock: { label: 'Estoque mínimo', kind: 'number' },
   active: { label: 'Ativo', kind: 'boolean' },
   // Financeiro.
   description: { label: 'Descrição', kind: 'text' },
@@ -269,6 +272,7 @@ function updateSummary(data: AuditData) {
   // O total é consequência das outras mudanças: só aparece se for a única.
   const fields = (data.changes ?? []).map((change) => change.field);
   if (fields.includes('reversal')) return 'Estornou a baixa';
+  if (data.stockAdjustment) return `Ajustou o estoque (${data.stockAdjustment.toLowerCase()})`;
   const main = fields.filter((field) => field !== 'total');
   const names = (main.length ? main : fields).map((field) => FIELDS[field]?.label.toLowerCase() ?? field);
   if (data.items?.length) names.push('itens');
