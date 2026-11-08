@@ -17,6 +17,7 @@ import {
   Settings,
   ShieldCheck,
   SquareKanban,
+  Target,
   Truck,
   UserCog,
   Users,
@@ -163,6 +164,14 @@ export const navigation: NavItem[] = [
     module: 'cadastros',
     description: 'Quem faz as entregas.',
     create: { path: '/transportadoras/novo', label: 'Nova transportadora', permission: 'suppliers.create' },
+  },
+  {
+    path: '/metas',
+    label: 'Metas de venda',
+    icon: Target,
+    permission: 'analytics.read',
+    module: 'gestao',
+    description: 'Meta do mês para a empresa e cada vendedor, com o que já foi vendido.',
   },
   {
     path: '/precificacao',

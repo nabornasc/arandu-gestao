@@ -2792,3 +2792,52 @@ a.nav-label.active {
 .dashboard-panel .quick-actions .button {
   text-decoration: none;
 }
+
+/* Metas de venda */
+.goals {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .goals {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.goals-month {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.section-heading.page-heading .goals-month input {
+  border: 1px solid #e2ddea;
+  border-radius: 7px;
+  padding: 8px 10px;
+}
+.goal-progress {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.goal-progress-text {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+.goal-progress .goal-progress-text span {
+  color: #665d7a;
+  white-space: nowrap;
+}
+.goal-progress meter {
+  width: 100%;
+  height: 10px;
+}
+.goals-block {
+  display: grid;
+}
+.goals .panel .muted {
+  font-size: 13px;
+}

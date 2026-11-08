@@ -187,6 +187,21 @@ export const paymentConditions = pgTable(
   (t) => [uniqueIndex('payment_conditions_name_unique').on(t.companyId, sql`lower(${t.name})`)],
 );
 
+// Metas de venda por mês. Sem vendedor, é a meta da empresa.
+export const salesGoals = pgTable(
+  'sales_goals',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    // Primeiro dia do mês.
+    month: date({ mode: 'string' }).notNull(),
+    userId: integer().references(() => users.id, { onDelete: 'cascade' }),
+    amount: money().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('sales_goals_month_unique').on(t.companyId, t.month, sql`coalesce(${t.userId}, 0)`)],
+);
+
 // Preferências de cada usuário. Hoje, só o dashboard; vazio usa o padrão.
 export const userPreferences = pgTable('user_preferences', {
   userId: integer()

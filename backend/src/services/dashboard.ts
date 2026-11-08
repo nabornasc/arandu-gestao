@@ -3,6 +3,8 @@ import { and, asc, desc, eq, isNotNull, lte, sql } from 'drizzle-orm';
 import { db } from '../db/client.ts';
 import { orders, people, products } from '../db/schema.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
+import { getGoals } from './goals.ts';
+import { todayInBrazil } from './orders.ts';
 
 interface Summary extends Record<string, unknown> {
   revenue_month: string;
@@ -175,5 +177,8 @@ async function dashboardExtras(ctx: Ctx) {
     };
   }
 
-  return { receivables, quotesAwaiting, salesByMonth, topProducts, crm };
+  // Metas do mês corrente (fuso de Brasília), para o bloco de metas.
+  const goals = await getGoals(ctx, { month: todayInBrazil().slice(0, 7) });
+
+  return { receivables, quotesAwaiting, salesByMonth, topProducts, crm, goals };
 }

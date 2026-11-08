@@ -425,6 +425,22 @@ export const dashboardLayoutSchema = z.object({
 });
 export type DashboardLayout = z.output<typeof dashboardLayoutSchema>;
 
+// Metas de venda do mês: a da empresa e a de cada vendedor. Valor vazio apaga a meta.
+const goalMonth = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Mês inválido (use AAAA-MM)');
+const goalAmount = z.number().positive('A meta deve ser maior que zero').max(1e9).nullable();
+export const goalsQuerySchema = z.object({ month: goalMonth });
+export const goalsSchema = z.object({
+  month: goalMonth,
+  company: goalAmount,
+  sellers: z
+    .array(z.object({ userId: id, amount: goalAmount }))
+    .max(200)
+    .refine((rows) => new Set(rows.map((row) => row.userId)).size === rows.length, {
+      message: 'O mesmo vendedor aparece mais de uma vez',
+    }),
+});
+export type GoalsInput = z.input<typeof goalsSchema>;
+
 // Ajuste de estoque: entrada, saída ou contagem (o saldo passa a ser a quantidade informada).
 export const STOCK_ADJUSTMENT_KINDS = ['in', 'out', 'count'] as const;
 export const stockAdjustmentSchema = z.object({

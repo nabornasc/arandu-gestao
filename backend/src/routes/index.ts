@@ -13,6 +13,7 @@ import { getCustomerFile } from '../services/customerFile.ts';
 import * as customers from '../services/customers.ts';
 import { getDashboard } from '../services/dashboard.ts';
 import * as expenses from '../services/expenses.ts';
+import * as goals from '../services/goals.ts';
 import * as history from '../services/history.ts';
 import * as library from '../services/library.ts';
 import * as lists from '../services/lists.ts';
@@ -386,6 +387,8 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       library.updateTemplate(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
     );
     protectedApp.get('/pricing/base', (request) => pricing.getPricingBase(ctxOf(request)));
+    protectedApp.get('/goals', (request) => goals.getGoals(ctxOf(request), request.query));
+    protectedApp.put('/goals', (request) => goals.saveGoals(ctxOf(request), request.body as never));
     protectedApp.get('/preferences/dashboard', (request) => preferences.getDashboardLayout(ctxOf(request)));
     protectedApp.put('/preferences/dashboard', (request) =>
       preferences.saveDashboardLayout(

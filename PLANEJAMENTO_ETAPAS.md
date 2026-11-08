@@ -15,7 +15,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 5 | Agenda: dia, semana, mês e lista | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
 | 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
-| 8 | Gestão: precificação, dashboard modular e metas | **Em andamento** | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
+| 8 | Gestão: precificação, dashboard modular e metas | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | Só se ainda houver interesse | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
 | 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 10 |
 
@@ -93,7 +93,7 @@ Em quatro partes:
 
 - Assistente de precificação, com rateio de custos fixos. Feito em 08/11/2026: tela `/precificacao` (exige `costs.read`) com markup divisor, preço = custo ÷ (1 − rateio − custos da venda − margem). O servidor dá a média mensal dos três meses fechados de faturamento e de despesas pagas por categoria; a tela deixa marcar quais são fixas. Mostra lucro, margem de contribuição, ponto de equilíbrio e a comparação com o preço atual, e aplica o preço ao produto. Cálculo em `packages/shared/src/pricing.ts`.
 - Dashboard modular com KPIs. Feito em 08/11/2026: catálogo de 15 blocos no front (`frontend/src/dashboard/blocks.tsx`), cada um com permissão e tamanhos; "Personalizar" adiciona, remove, move com botões (acessível pelo teclado), muda o tamanho (P, M, G) e restaura o padrão. Layout por usuário em `user_preferences` (migração `0024`). O `/dashboard` passou a mandar a receber, orçamentos aguardando, vendas de 12 meses, mais vendidos e CRM, cada um só para quem lê o módulo. Gráficos em CSS, sem biblioteca nova. Arrastar e soltar e o padrão por empresa ficaram para depois.
-- Metas de venda.
+- Metas de venda. Feito em 08/11/2026: tabela `sales_goals` (migração `0025`), meta mensal da empresa e por vendedor, definida por quem altera as configurações e vista por quem tem a visão geral. O realizado soma os pedidos não cancelados do mês, por quem criou o pedido. Tela `/metas` com projeção do mês no ritmo atual e bloco "Metas do mês" na visão geral.
 
 ### Etapa 9: operações opcionais
 

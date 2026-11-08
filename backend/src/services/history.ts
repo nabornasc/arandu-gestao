@@ -85,6 +85,12 @@ const ENTITIES: Record<string, EntityInfo> = {
     path: listPath('/relatorios'),
     open: 'Abrir relatórios',
   },
+  sales_goal: {
+    noun: 'as metas de venda',
+    module: 'Gestão',
+    path: listPath('/metas'),
+    open: 'Abrir metas',
+  },
   payment_condition: {
     noun: 'a condição de pagamento',
     module: 'Configurações',
@@ -193,6 +199,7 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   time: { label: 'Hora', kind: 'text' },
   active: { label: 'Ativo', kind: 'boolean' },
   terms: { label: 'Entrada e prazos', kind: 'text' },
+  goal: { label: 'Meta da empresa', kind: 'money' },
   clauses: { label: 'Cláusulas', kind: 'text' },
   body: { label: 'Texto', kind: 'text' },
   templateItems: { label: 'Itens do modelo', kind: 'text' },

@@ -176,6 +176,13 @@
       "when": 1794169677004,
       "tag": "0024_preferencias_usuario",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794171335856,
+      "tag": "0025_metas_venda",
+      "breakpoints": true
     }
   ]
 }

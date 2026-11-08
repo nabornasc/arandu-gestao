@@ -12,10 +12,12 @@ import {
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { EmptyState } from '../components/EmptyState.tsx';
+import { GoalProgress } from '../components/GoalProgress.tsx';
 import { MetricCard } from '../components/MetricCard.tsx';
 import { navigation } from '../config/navigation.ts';
 import { can, type Profile } from '../lib/auth.ts';
 import { formatCode, formatDate, formatMoney, label } from '../lib/format.ts';
+import type { Goals } from '../lib/goals.ts';
 
 export interface DashboardData {
   revenueMonth: number;
@@ -39,6 +41,7 @@ export interface DashboardData {
   salesByMonth: { month: string; total: number }[] | null;
   topProducts: { name: string; quantity: number; total: number }[] | null;
   crm: { open: number; openValue: number; wonMonth: number; wonMonthValue: number } | null;
+  goals: Goals;
 }
 
 export interface BlockProps {
@@ -243,6 +246,20 @@ function QuickAccess({ profile }: BlockProps) {
   );
 }
 
+function GoalsBlock({ data }: BlockProps) {
+  const sellers = data.goals.sellers.filter((row) => row.target !== null);
+  return (
+    <Panel title="Metas do mês" link={['/metas', 'Ver metas']}>
+      <div className="goals-block">
+        <GoalProgress label="Empresa" row={data.goals.company} />
+        {sellers.map((row) => (
+          <GoalProgress key={row.userId} label={row.name} row={row} />
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
 function Impact({ data }: BlockProps) {
   const result = data.revenueMonth - data.expensesMonth;
   return (
@@ -386,6 +403,7 @@ export const BLOCKS: BlockDefinition[] = [
   { id: 'recent_orders', title: 'Últimos pedidos', sizes: WIDE, render: RecentOrders },
   { id: 'crm', title: 'CRM', sizes: WIDE, available: (data) => data.crm !== null, render: Crm },
   { id: 'mei_limit', title: 'Limite anual do MEI', sizes: WIDE, render: MeiLimit },
+  { id: 'goals', title: 'Metas do mês', sizes: WIDE, render: GoalsBlock },
   { id: 'quick_access', title: 'Acesso rápido', sizes: ['S', 'M', 'L'], render: QuickAccess },
   { id: 'impact', title: 'Resultado do mês e ODS', sizes: WIDE, render: Impact },
 ];
@@ -398,6 +416,7 @@ export const DEFAULT_LAYOUT: { id: string; size: DashboardSize }[] = [
   { id: 'low_stock', size: 'L' },
   { id: 'sales_chart', size: 'M' },
   { id: 'top_products', size: 'M' },
+  { id: 'goals', size: 'M' },
   { id: 'recent_orders', size: 'M' },
-  { id: 'impact', size: 'M' },
+  { id: 'impact', size: 'L' },
 ];
