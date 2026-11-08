@@ -1,10 +1,19 @@
-import { type TransactionInput, transactionSchema } from '@arandue/shared/schemas';
-import { and, desc, eq } from 'drizzle-orm';
+import { TRANSACTION_TYPES, type TransactionInput, transactionSchema } from '@arandue/shared/schemas';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { db, type Transaction } from '../db/client.ts';
 import { cashTransactions } from '../db/schema.ts';
 import { diffFields, initialFields, pick, removedFields } from '../lib/changes.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
 import { conflict, notFound } from '../lib/errors.ts';
+import {
+  money,
+  pageWindow,
+  parseListQuery,
+  periodFilter,
+  textFilter,
+  toPage,
+  wantsPage,
+} from '../lib/listing.ts';
 import { parse } from '../lib/validate.ts';
 import { accountName, audit } from './audit.ts';
 import { assertActiveAccount } from './ownership.ts';
@@ -28,14 +37,54 @@ async function getManual(tx: Transaction, ctx: Ctx, id: number) {
   return row;
 }
 
-export async function listTransactions(ctx: Ctx) {
+export async function listTransactions(ctx: Ctx, query?: unknown) {
   authorize(ctx, 'cash.read');
-  return db
+  const base = eq(cashTransactions.companyId, ctx.companyId);
+  const order = [desc(cashTransactions.transactionDate), desc(cashTransactions.id)];
+  if (!wantsPage(query)) {
+    return db
+      .select()
+      .from(cashTransactions)
+      .where(base)
+      .orderBy(...order)
+      .limit(500);
+  }
+
+  // O filtro de status desta lista é o tipo: entrada ou saída.
+  const filters = parseListQuery(query, TRANSACTION_TYPES);
+  const where = and(
+    base,
+    periodFilter(cashTransactions.transactionDate, filters),
+    filters.status
+      ? eq(cashTransactions.type, filters.status as (typeof TRANSACTION_TYPES)[number])
+      : undefined,
+    textFilter([cashTransactions.description, cashTransactions.category], filters.q),
+  );
+  const [summary] = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+      income: money(sql`sum(${cashTransactions.amount}) filter (where ${cashTransactions.type} = 'income')`),
+      outcome: money(
+        sql`sum(${cashTransactions.amount}) filter (where ${cashTransactions.type} = 'outcome')`,
+      ),
+    })
+    .from(cashTransactions)
+    .where(where);
+  const { limit, offset } = pageWindow(filters);
+  const rows = await db
     .select()
     .from(cashTransactions)
-    .where(eq(cashTransactions.companyId, ctx.companyId))
-    .orderBy(desc(cashTransactions.transactionDate), desc(cashTransactions.id))
-    .limit(500);
+    .where(where)
+    .orderBy(...order)
+    .limit(limit)
+    .offset(offset);
+  const income = summary?.income ?? 0;
+  const outcome = summary?.outcome ?? 0;
+  return toPage(filters, summary?.count ?? 0, rows, {
+    income,
+    outcome,
+    balance: Math.round((income - outcome) * 100) / 100,
+  });
 }
 
 export async function getTransaction(ctx: Ctx, id: number) {

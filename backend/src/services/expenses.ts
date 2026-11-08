@@ -1,10 +1,19 @@
-import { type ExpenseInput, expenseSchema } from '@arandue/shared/schemas';
-import { and, desc, eq, getTableColumns } from 'drizzle-orm';
+import { EXPENSE_STATUSES, type ExpenseInput, expenseSchema } from '@arandue/shared/schemas';
+import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
 import { db, type Transaction } from '../db/client.ts';
 import { cashTransactions, expenses, people } from '../db/schema.ts';
 import { diffFields, initialFields, pick, removedFields } from '../lib/changes.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
 import { notFound } from '../lib/errors.ts';
+import {
+  money,
+  pageWindow,
+  parseListQuery,
+  periodFilter,
+  textFilter,
+  toPage,
+  wantsPage,
+} from '../lib/listing.ts';
 import { parse } from '../lib/validate.ts';
 import { accountName, audit, personName } from './audit.ts';
 import { assertActiveAccount, assertSupplier } from './ownership.ts';
@@ -39,15 +48,51 @@ async function syncCash(tx: Transaction, ctx: Ctx, expense: Expense): Promise<vo
   }
 }
 
-export async function listExpenses(ctx: Ctx) {
-  authorize(ctx, 'payables.read');
-  return db
+const selectExpenses = () =>
+  db
     .select({ ...getTableColumns(expenses), supplierName: people.name })
     .from(expenses)
     .leftJoin(people, eq(people.id, expenses.supplierId))
-    .where(eq(expenses.companyId, ctx.companyId))
-    .orderBy(desc(expenses.expenseDate), desc(expenses.id))
-    .limit(500);
+    .$dynamic();
+
+export async function listExpenses(ctx: Ctx, query?: unknown) {
+  authorize(ctx, 'payables.read');
+  const base = eq(expenses.companyId, ctx.companyId);
+  const order = [desc(expenses.expenseDate), desc(expenses.id)];
+  if (!wantsPage(query))
+    return selectExpenses()
+      .where(base)
+      .orderBy(...order)
+      .limit(500);
+
+  const filters = parseListQuery(query, EXPENSE_STATUSES);
+  const where = and(
+    base,
+    periodFilter(expenses.expenseDate, filters),
+    filters.status ? eq(expenses.status, filters.status as (typeof EXPENSE_STATUSES)[number]) : undefined,
+    textFilter([expenses.description, expenses.category, people.name], filters.q),
+  );
+  const [summary] = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+      amount: money(sql`sum(${expenses.amount})`),
+      paid: money(sql`sum(${expenses.amount}) filter (where ${expenses.status} = 'paid')`),
+      pending: money(sql`sum(${expenses.amount}) filter (where ${expenses.status} = 'pending')`),
+    })
+    .from(expenses)
+    .leftJoin(people, eq(people.id, expenses.supplierId))
+    .where(where);
+  const { limit, offset } = pageWindow(filters);
+  const rows = await selectExpenses()
+    .where(where)
+    .orderBy(...order)
+    .limit(limit)
+    .offset(offset);
+  return toPage(filters, summary?.count ?? 0, rows, {
+    amount: summary?.amount ?? 0,
+    paid: summary?.paid ?? 0,
+    pending: summary?.pending ?? 0,
+  });
 }
 
 export async function getExpense(ctx: Ctx, id: number) {

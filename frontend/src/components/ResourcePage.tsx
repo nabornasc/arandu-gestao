@@ -5,10 +5,10 @@ import { MONEY_COLUMNS, type ResourceConfig } from '../config/resources.ts';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { formatDate, formatMoney, label } from '../lib/format.ts';
-import { applyListFilters, useListFilters } from '../lib/listFilters.ts';
+import { useListFilters, useServerList } from '../lib/listFilters.ts';
 import { EmptyState } from './EmptyState.tsx';
 import { FormModal } from './FormModal.tsx';
-import { ListFilters, ListTotals } from './ListFilters.tsx';
+import { ListFilters, ListTotals, Pagination } from './ListFilters.tsx';
 import { useToast } from './Toast.tsx';
 
 type Row = Record<string, unknown> & { id: number };
@@ -36,17 +36,19 @@ export function ResourcePage({ config, RowExtra }: { config: ResourceConfig; Row
     delete: can(profile, `${config.area}.delete`),
   };
 
-  const list = useQuery({ queryKey: [config.endpoint], queryFn: () => api<Row[]>(config.endpoint) });
-  const control = useListFilters();
+  // Telas com filtros (despesas, movimentações) paginam no servidor; as demais trazem tudo de uma vez.
   const listConfig = config.list;
-  const loaded = list.data?.length ?? 0;
-  const visible = listConfig
-    ? applyListFilters(list.data ?? [], control.filters, {
-        date: (row) => row[listConfig.dateKey] as string | null,
-        status: (row) => String(row[listConfig.statusKey ?? ''] ?? ''),
-        text: (row) => listConfig.textKeys.map((key) => row[key] as string | null),
-      })
-    : (list.data ?? []);
+  const control = useListFilters();
+  const paged = useServerList<Row>(config.endpoint, control, Boolean(listConfig));
+  const plain = useQuery({
+    queryKey: [config.endpoint],
+    queryFn: () => api<Row[]>(config.endpoint),
+    enabled: !listConfig,
+  });
+  const list = listConfig ? paged.query : plain;
+  const pageData = paged.query.data;
+  const visible: Row[] = (listConfig ? pageData?.rows : plain.data) ?? [];
+  const hasAny = control.active || (listConfig ? (pageData?.total ?? 0) : visible.length) > 0;
 
   // Alterar um registro pode mexer em outras telas (ex.: despesa paga cria movimentação),
   // então invalidamos tudo; só a tela visível é buscada de novo.
@@ -95,7 +97,7 @@ export function ResourcePage({ config, RowExtra }: { config: ResourceConfig; Row
         )}
       </div>
 
-      {listConfig && loaded > 0 && (
+      {listConfig && hasAny && (
         <ListFilters
           control={control}
           dateLabel={listConfig.dateLabel}
@@ -173,18 +175,27 @@ export function ResourcePage({ config, RowExtra }: { config: ResourceConfig; Row
         ) : (
           <EmptyState
             text={
-              loaded
+              hasAny
                 ? 'Nenhum registro com esses filtros.'
                 : 'Ainda não há registros cadastrados nesta seção.'
             }
-            action={allowed.create && !loaded ? 'Adicionar primeiro' : undefined}
+            action={allowed.create && !hasAny ? 'Adicionar primeiro' : undefined}
             onClick={() => openForm(null)}
           />
         )}
       </div>
 
-      {listConfig && loaded > 0 && (
-        <ListTotals count={visible.length} loaded={loaded} totals={listConfig.totals(visible)} />
+      {listConfig && pageData && hasAny && (
+        <>
+          <Pagination
+            page={paged.page}
+            pageSize={paged.pageSize}
+            total={pageData.total}
+            onPage={paged.setPage}
+            onPageSize={paged.setPageSize}
+          />
+          <ListTotals count={pageData.total} totals={listConfig.totals(pageData.totals)} />
+        </>
       )}
 
       {modalOpen && (

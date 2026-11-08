@@ -13,7 +13,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 3 | Listas configuráveis e grupo do produto | **Concluída em 07/11** | [Listas](PLANEJAMENTO_LISTAS.md) |
 | 4 | Central de relatórios com exportação em CSV | **Concluída em 08/11** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
 | 5 | Agenda: dia, semana, mês e lista | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
-| 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Em andamento** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
+| 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
 | 7 | Restante dos documentos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | Só se ainda houver interesse | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
@@ -76,7 +76,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 - Menu por módulos e páginas de módulo. Feito em 08/11/2026.
 - Busca rápida e atalhos de teclado. Feito em 08/11/2026: Ctrl+K ou F2 abre a busca de telas, ações, clientes, fornecedores, produtos, orçamentos, pedidos e oportunidades. F4 abre novo orçamento, F6 novo pedido, F7 novo cliente e F8 a tela de produtos. F9 ou Ctrl+Enter salva o formulário visível. Alt+setas trocam de aba e Alt+X fecha a aba ativa. A personalização dos atalhos por usuário (seção 7.6 do plano da v2) fica para depois.
 - Cadastro rápido de cliente e produto dentro do orçamento e do pedido. Feito em 08/11/2026: o cliente novo já fica escolhido e o produto novo entra na primeira linha vazia, com o preço. Cada botão exige a permissão de criar.
-- Paginação no servidor. Os filtros de lista atuais trabalham na tela, sobre os 500 registros mais recentes que a API devolve.
+- Paginação no servidor. Feito em 08/11/2026: orçamentos, pedidos, contas a receber, contas a pagar e movimentações filtram, paginam (25, 50 ou 100 por página) e somam os totais no servidor, sobre todo o filtro. Sem `page`, a API mantém a lista simples de até 500 registros, usada pelos campos de seleção. Produtos, pessoas e contas bancárias continuam com a lista completa, sem filtros de período.
 
 ### Etapa 7: restante dos documentos
 

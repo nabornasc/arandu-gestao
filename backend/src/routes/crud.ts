@@ -5,7 +5,8 @@ import { ctxOf } from '../plugins/auth.ts';
 
 // Rotas REST padrão para um recurso. Validação, permissão e empresa são verificadas no serviço.
 export interface CrudService {
-  list(ctx: Ctx): Promise<unknown>;
+  // A consulta vai junto: listas paginadas leem dela página e filtros.
+  list(ctx: Ctx, query?: unknown): Promise<unknown>;
   get(ctx: Ctx, id: number): Promise<unknown>;
   create(ctx: Ctx, input: never): Promise<unknown>;
   update(ctx: Ctx, id: number, input: never): Promise<unknown>;
@@ -13,7 +14,7 @@ export interface CrudService {
 }
 
 export function crudRoutes(app: FastifyInstance, path: string, service: CrudService): void {
-  app.get(path, (request) => service.list(ctxOf(request)));
+  app.get(path, (request) => service.list(ctxOf(request), request.query));
   app.get(`${path}/:id`, (request) => service.get(ctxOf(request), idParamSchema.parse(request.params).id));
   app.post(path, async (request, reply) => {
     reply.status(201);

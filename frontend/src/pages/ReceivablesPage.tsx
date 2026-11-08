@@ -1,14 +1,13 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { ReceivablesSettleModal, type SettleTarget } from '../actions/ReceivablesSettleModal.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
-import { ListFilters, ListTotals } from '../components/ListFilters.tsx';
+import { ListFilters, ListTotals, Pagination } from '../components/ListFilters.tsx';
 import { useToast } from '../components/Toast.tsx';
-import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { formatCode, formatDate, formatMoney, todayIso } from '../lib/format.ts';
-import { applyListFilters, useListFilters } from '../lib/listFilters.ts';
+import { useListFilters, useServerList } from '../lib/listFilters.ts';
 
 interface Receivable {
   id: number;
@@ -46,14 +45,12 @@ export default function ReceivablesPage() {
   const [settling, setSettling] = useState<Receivable[] | null>(null);
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<number>>(new Set());
   const canSettle = can(profile, 'receivables.settle');
-  const list = useQuery({ queryKey: ['/receivables'], queryFn: () => api<Receivable[]>('/receivables') });
   const control = useListFilters({ status: 'open' });
-  const loaded = list.data?.length ?? 0;
-  const visible = applyListFilters(list.data ?? [], control.filters, {
-    date: (item) => item.dueDate,
-    status: (item) => item.status,
-    text: (item) => [item.customerName, formatCode(item.number), item.number, item.method],
-  });
+  const list = useServerList<Receivable>('/receivables', control);
+  const data = list.query.data;
+  const visible = data?.rows ?? [];
+  // Abre filtrada em "em aberto": os filtros aparecem sempre, para dar para ver as recebidas.
+  const hasAny = control.active || (data?.total ?? 0) > 0 || Boolean(control.filters.status);
   const today = todayIso();
   const isOverdue = (item: Receivable) => item.status === 'open' && item.dueDate < today;
   const open = visible.filter((item) => item.status === 'open');
@@ -84,7 +81,7 @@ export default function ReceivablesPage() {
         </div>
       </div>
 
-      {loaded > 0 && (
+      {hasAny && (
         <ListFilters
           control={control}
           dateLabel="Vencimento"
@@ -106,10 +103,10 @@ export default function ReceivablesPage() {
       )}
 
       <div className="panel table-panel">
-        {list.isPending ? (
+        {list.query.isPending ? (
           <div className="loading">Carregando...</div>
-        ) : list.isError ? (
-          <EmptyState text={list.error.message} />
+        ) : list.query.isError ? (
+          <EmptyState text={list.query.error.message} />
         ) : visible.length ? (
           <div className="table-wrap">
             <table>
@@ -207,17 +204,25 @@ export default function ReceivablesPage() {
         )}
       </div>
 
-      {loaded > 0 && (
-        <ListTotals
-          count={visible.length}
-          loaded={loaded}
-          totals={[
-            { label: 'Valor total', value: sum(visible, (row) => row.amount) },
-            { label: 'Recebido', value: sum(visible, (row) => row.received) },
-            { label: 'Em aberto', value: sum(open, balanceOf) },
-            { label: 'Vencido', value: sum(open.filter(isOverdue), balanceOf) },
-          ]}
-        />
+      {data && hasAny && (
+        <>
+          <Pagination
+            page={list.page}
+            pageSize={list.pageSize}
+            total={data.total}
+            onPage={list.setPage}
+            onPageSize={list.setPageSize}
+          />
+          <ListTotals
+            count={data.total}
+            totals={[
+              { label: 'Valor total', value: data.totals.amount ?? 0 },
+              { label: 'Recebido', value: data.totals.received ?? 0 },
+              { label: 'Em aberto', value: data.totals.open ?? 0 },
+              { label: 'Vencido', value: data.totals.overdue ?? 0 },
+            ]}
+          />
+        </>
       )}
 
       {settling && (

@@ -3,6 +3,7 @@ import {
   areaInSquareMeters,
   type DocumentReasonInput,
   documentReasonSchema,
+  QUOTE_STATUSES,
   type QuoteConvertInput,
   type QuoteInput,
   type QuoteInstallment,
@@ -16,6 +17,16 @@ import { opportunities, orders, people, products, quoteItems, quotes, users } fr
 import { diffFields, diffItems, initialFields, removedFields } from '../lib/changes.ts';
 import { authorize, type Ctx, ownScope } from '../lib/context.ts';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors.ts';
+import {
+  localDay,
+  money,
+  pageWindow,
+  parseListQuery,
+  periodFilter,
+  textFilter,
+  toPage,
+  wantsPage,
+} from '../lib/listing.ts';
 import { round2 } from '../lib/money.ts';
 import { parse } from '../lib/validate.ts';
 import { audit, namedLines, personName } from './audit.ts';
@@ -91,7 +102,7 @@ const STATUS_LABEL: Record<QuoteStatus, string> = {
   cancelled: 'cancelado',
 };
 
-async function loadQuotes(ctx: Ctx, where: SQL | undefined) {
+async function loadQuotes(ctx: Ctx, where: SQL | undefined, window = { limit: 500, offset: 0 }) {
   const rows = await db
     .select({
       id: quotes.id,
@@ -130,7 +141,8 @@ async function loadQuotes(ctx: Ctx, where: SQL | undefined) {
     .leftJoin(users, eq(users.id, quotes.createdBy))
     .where(where)
     .orderBy(desc(quotes.createdAt), desc(quotes.id))
-    .limit(500);
+    .limit(window.limit)
+    .offset(window.offset);
   if (!rows.length) return [];
 
   const items = await db
@@ -190,9 +202,31 @@ async function lockQuote(tx: Transaction, ctx: Ctx, id: number) {
   return quote;
 }
 
-export async function listQuotes(ctx: Ctx) {
+export async function listQuotes(ctx: Ctx, query?: unknown) {
   authorize(ctx, 'quotes.read');
-  return loadQuotes(ctx, and(eq(quotes.companyId, ctx.companyId), ownScope(ctx, quotes.createdBy)));
+  const base = and(eq(quotes.companyId, ctx.companyId), ownScope(ctx, quotes.createdBy));
+  if (!wantsPage(query)) return loadQuotes(ctx, base);
+
+  const filters = parseListQuery(query, QUOTE_STATUSES);
+  const where = and(
+    base,
+    periodFilter(localDay(quotes.createdAt), filters),
+    filters.status ? eq(quotes.status, filters.status as QuoteStatus) : undefined,
+    textFilter([people.name], filters.q, quotes.number),
+  );
+  const [summary] = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+      // O que foi recusado ou cancelado não está mais em negociação.
+      value: money(
+        sql`sum(${quotes.total}) filter (where ${quotes.status} not in ('rejected', 'cancelled'))`,
+      ),
+    })
+    .from(quotes)
+    .leftJoin(people, eq(people.id, quotes.customerId))
+    .where(where);
+  const rows = await loadQuotes(ctx, where, pageWindow(filters));
+  return toPage(filters, summary?.count ?? 0, rows, { value: summary?.value ?? 0 });
 }
 
 export async function getQuote(ctx: Ctx, id: number) {

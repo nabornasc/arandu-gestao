@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import type { ListPage, PAGE_SIZES } from '@arandue/shared/schemas';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { api } from './api.ts';
 import { todayIso } from './format.ts';
 
-// Filtros das telas de lista. A API devolve os 500 registros mais recentes e a tela filtra sobre eles.
-export const LIST_LIMIT = 500;
+// Filtros das telas de lista. O servidor filtra, pagina e soma os totais sobre todo o filtro.
 
 export const PERIODS = [
   ['all', 'Todos'],
@@ -88,37 +90,48 @@ export function useListFilters(initial: Partial<ListFilterState> = {}) {
   };
 }
 
-const normalize = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-    .trim();
-
-// Data no fuso do navegador: um momento vira o dia em que aconteceu para quem está vendo.
-function dayOf(value: string) {
-  if (value.length === 10) return value;
-  const parsed = new Date(value);
-  return new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+// Espera o usuário parar de digitar antes de consultar o servidor.
+export function useDebounced<T>(value: T, delay = 300) {
+  const [current, setCurrent] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setCurrent(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return current;
 }
 
-export interface ListFilterFields<T> {
-  date: (row: T) => string | null | undefined;
-  status?: (row: T) => string;
-  text: (row: T) => (string | number | null | undefined)[];
-}
+export type PageSize = (typeof PAGE_SIZES)[number];
 
-export function applyListFilters<T>(rows: T[], filters: ListFilterState, fields: ListFilterFields<T>) {
-  const search = normalize(filters.text);
-  return rows.filter((row) => {
-    if (filters.status && fields.status?.(row) !== filters.status) return false;
-    if (filters.from || filters.to) {
-      const value = fields.date(row);
-      if (!value) return false;
-      const day = dayOf(value);
-      if ((filters.from && day < filters.from) || (filters.to && day > filters.to)) return false;
-    }
-    if (!search) return true;
-    return fields.text(row).some((value) => value != null && normalize(String(value)).includes(search));
+// Lista paginada no servidor com os filtros da tela. Mudar um filtro volta para a primeira página;
+// enquanto a página nova carrega, a anterior continua na tela.
+export function useServerList<T>(
+  endpoint: string,
+  control: ReturnType<typeof useListFilters>,
+  enabled = true,
+) {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(25);
+  const text = useDebounced(control.filters.text.trim());
+  const { from, to, status } = control.filters;
+
+  const filterKey = JSON.stringify([from, to, status, text, pageSize]);
+  const [lastKey, setLastKey] = useState(filterKey);
+  if (filterKey !== lastKey) {
+    setLastKey(filterKey);
+    setPage(1);
+  }
+
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  if (status) params.set('status', status);
+  if (text) params.set('q', text);
+  const search = params.toString();
+  const query = useQuery({
+    queryKey: [endpoint, 'page', search],
+    queryFn: () => api<ListPage<T>>(`${endpoint}?${search}`),
+    placeholderData: keepPreviousData,
+    enabled,
   });
+  return { query, page, setPage, pageSize, setPageSize };
 }

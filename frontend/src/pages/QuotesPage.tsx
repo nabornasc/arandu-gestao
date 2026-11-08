@@ -1,16 +1,14 @@
 import { QUOTE_STATUSES } from '@arandue/shared/schemas';
-import { useQuery } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { quoteActions } from '../actions/registry.ts';
 import { EmptyState } from '../components/EmptyState.tsx';
-import { ListFilters, ListTotals } from '../components/ListFilters.tsx';
-import { api } from '../lib/api.ts';
+import { ListFilters, ListTotals, Pagination } from '../components/ListFilters.tsx';
 import { can, useProfile } from '../lib/auth.ts';
 import type { Quote } from '../lib/documents.ts';
 import { formatCode, formatDate, formatMoney, label } from '../lib/format.ts';
-import { applyListFilters, useListFilters } from '../lib/listFilters.ts';
+import { useListFilters, useServerList } from '../lib/listFilters.ts';
 
 const STATUSES = QUOTE_STATUSES.map((status) => [status, label(status)] as const);
 
@@ -18,16 +16,12 @@ export default function QuotesPage() {
   const profile = useProfile();
   const navigate = useNavigate();
   const canCreate = can(profile, 'quotes.create');
-  const quotes = useQuery({ queryKey: ['/quotes'], queryFn: () => api<Quote[]>('/quotes') });
   const control = useListFilters();
-  const loaded = quotes.data?.length ?? 0;
-  const visible = applyListFilters(quotes.data ?? [], control.filters, {
-    date: (quote) => quote.createdAt,
-    status: (quote) => quote.status,
-    text: (quote) => [quote.customerName, formatCode(quote.number), quote.number],
-  });
-  // O que foi recusado ou cancelado não está mais em negociação.
-  const inPlay = visible.filter((quote) => quote.status !== 'rejected' && quote.status !== 'cancelled');
+  const list = useServerList<Quote>('/quotes', control);
+  const data = list.query.data;
+  const visible = data?.rows ?? [];
+  // Sem nenhum orçamento e sem filtro, a tela mostra só o convite para criar o primeiro.
+  const hasAny = control.active || (data?.total ?? 0) > 0;
 
   return (
     <section>
@@ -44,7 +38,7 @@ export default function QuotesPage() {
         )}
       </div>
 
-      {loaded > 0 && (
+      {hasAny && (
         <ListFilters
           control={control}
           dateLabel="Data do orçamento"
@@ -54,10 +48,10 @@ export default function QuotesPage() {
       )}
 
       <div className="panel table-panel">
-        {quotes.isPending ? (
+        {list.query.isPending ? (
           <div className="loading">Carregando orçamentos...</div>
-        ) : quotes.isError ? (
-          <EmptyState text={quotes.error.message} />
+        ) : list.query.isError ? (
+          <EmptyState text={list.query.error.message} />
         ) : visible.length ? (
           <div className="table-wrap">
             <table>
@@ -114,19 +108,24 @@ export default function QuotesPage() {
           </div>
         ) : (
           <EmptyState
-            text={loaded ? 'Nenhum registro com esses filtros.' : 'Nenhum orçamento ainda.'}
-            action={canCreate && !loaded ? 'Criar primeiro orçamento' : undefined}
+            text={hasAny ? 'Nenhum registro com esses filtros.' : 'Nenhum orçamento ainda.'}
+            action={canCreate && !hasAny ? 'Criar primeiro orçamento' : undefined}
             onClick={() => navigate('/orcamentos/novo')}
           />
         )}
       </div>
 
-      {loaded > 0 && (
-        <ListTotals
-          count={visible.length}
-          loaded={loaded}
-          totals={[{ label: 'Valor total', value: inPlay.reduce((sum, quote) => sum + quote.total, 0) }]}
-        />
+      {data && hasAny && (
+        <>
+          <Pagination
+            page={list.page}
+            pageSize={list.pageSize}
+            total={data.total}
+            onPage={list.setPage}
+            onPageSize={list.setPageSize}
+          />
+          <ListTotals count={data.total} totals={[{ label: 'Valor total', value: data.totals.value ?? 0 }]} />
+        </>
       )}
     </section>
   );

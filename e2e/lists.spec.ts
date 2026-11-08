@@ -154,6 +154,8 @@ test('pedido parcelado gera contas, baixa por parcela e fica pago só na última
 
   await page.goto('/pedidos');
   await page.getByLabel('Cliente ou número').fill(code);
+  // A busca vai ao servidor: espera a lista já filtrada.
+  await expect(page.locator('tbody tr')).toHaveCount(1);
   await expect(page.getByText('· parcial')).toBeVisible();
   await page.getByRole('button', { name: new RegExp(`Ações: pedido ${code}`) }).click();
   await page.getByRole('menuitem', { name: 'Dar baixa (recebido)' }).click();
@@ -281,16 +283,17 @@ test('despesa com fornecedor aparece na lista e na busca', async ({ page }) => {
   await expect(page.getByRole('cell', { name: 'Gelo Polar' }).first()).toBeVisible();
 });
 
-test('imprimir lista abre a impressão e sai só a lista, com o resumo dos filtros', async ({ page }) => {
+test('imprimir página abre a impressão e sai só a lista, com o resumo dos filtros', async ({ page }) => {
   await page.goto('/pedidos');
   await page.getByLabel('Cliente ou número').fill('Bar do Zé');
+  await expect(page.locator('tbody tr').first()).toContainText('Bar do Zé');
   await page.evaluate(() => {
     (window as unknown as { printed: boolean }).printed = false;
     window.print = () => {
       (window as unknown as { printed: boolean }).printed = true;
     };
   });
-  await page.getByRole('button', { name: 'Imprimir lista' }).click();
+  await page.getByRole('button', { name: 'Imprimir página' }).click();
   expect(await page.evaluate(() => (window as unknown as { printed: boolean }).printed)).toBe(true);
 
   await expect(page.locator('.list-print-summary')).toBeHidden();

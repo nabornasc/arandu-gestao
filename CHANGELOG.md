@@ -18,14 +18,17 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Busca rápida:** Ctrl+K ou F2, ou o botão Buscar no topo. Acha telas e ações na hora e, pelo servidor, clientes, fornecedores, produtos, orçamentos, pedidos e oportunidades, também pelo número (`#12`). Cada resultado respeita a permissão e o escopo "só os próprios".
 - **Atalhos de teclado:** F4 novo orçamento, F6 novo pedido, F7 novo cliente, F8 produtos, F9 ou Ctrl+Enter salva o formulário visível, Alt+setas trocam de aba e Alt+X fecha a aba. A lista fica na própria busca.
 - **Cadastro rápido** no orçamento e no pedido: "Novo cliente" (nome, CPF ou CNPJ, celular e e-mail) e "Novo produto" sem sair do documento. O cliente novo já fica escolhido; o produto entra na primeira linha vazia, com o preço. Cada botão aparece só para quem pode criar.
+- **Paginação no servidor** em orçamentos, pedidos, contas a receber, contas a pagar e movimentações: 25, 50 ou 100 por página, com filtros de período, status e texto aplicados pelo servidor. Os totais somam todo o filtro, não só a página. A API aceita `page`, `pageSize`, `from`, `to`, `status` e `q`; sem `page`, devolve a lista simples de antes.
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado
 
+- As listas não param mais nos 500 registros mais recentes. "Imprimir lista" virou "Imprimir página": sai a página que está na tela.
 - No cadastro, o estoque só é informado na criação; depois, muda pelo ajuste. Pela API, alterar `stock` no cadastro continua possível e entra no extrato como edição do cadastro.
 
 ### Corrigido
 
+- Em contas a receber, a parcela (ex.: 2/3) é contada no banco e continua certa com filtro ou paginação.
 - No celular, o menu principal rola até as últimas opções.
 - Salvar uma janela aberta de dentro de um formulário não envia mais o formulário de trás.
 - Janelas com campo marcado para foco automático abrem com o foco nesse campo, não no botão de fechar.

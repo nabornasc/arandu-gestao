@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { type KeyboardEvent, useEffect, useId, useState } from 'react';
+import { type KeyboardEvent, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { navigation } from '../config/navigation.ts';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
+import { useDebounced } from '../lib/listFilters.ts';
 import { SHORTCUTS } from '../lib/shortcuts.ts';
 import { Modal } from './Modal.tsx';
 
@@ -32,16 +33,6 @@ const normalize = (text: string) =>
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase();
 
-// Espera o usuário parar de digitar antes de consultar o servidor.
-function useDebounced(value: string, delay = 250) {
-  const [current, setCurrent] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setCurrent(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return current;
-}
-
 // Busca rápida (Ctrl+K ou F2): telas e atalhos de criação na hora, cadastros e documentos pelo servidor.
 export function QuickSearch({ onClose }: { onClose: () => void }) {
   const profile = useProfile();
@@ -49,7 +40,7 @@ export function QuickSearch({ onClose }: { onClose: () => void }) {
   const listId = useId();
   const [text, setText] = useState('');
   const [active, setActive] = useState(0);
-  const term = useDebounced(text.trim());
+  const term = useDebounced(text.trim(), 250);
 
   const needle = normalize(text.trim());
   const local: SearchResult[] = needle

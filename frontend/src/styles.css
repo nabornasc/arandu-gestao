@@ -1929,17 +1929,43 @@ fieldset.view-switch {
   margin: 0;
   font-weight: 700;
 }
-.list-limit {
-  flex-basis: 100%;
-  margin: 0;
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  margin-top: 14px;
   color: #665d7a;
+  font-size: 13px;
+}
+.pagination label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pagination select {
+  width: auto;
+  border: 1px solid #e2ddea;
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: #fff;
+  color: #3b324c;
   font-size: 12px;
+}
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pagination .pagination-pages .button {
+  padding: 8px 12px;
 }
 .list-print-summary {
   display: none;
 }
 
-/* Imprimir lista: sai só o título, o resumo dos filtros, a tabela e os totais. */
+/* Imprimir página: sai só o título, o resumo dos filtros, a tabela e os totais. */
 @media print {
   .sidebar,
   .topbar,
@@ -1948,6 +1974,8 @@ fieldset.view-switch {
   .mobile-backdrop,
   .list-filters,
   .list-print,
+  .pagination label,
+  .pagination-pages .button,
   .page-heading .button,
   td.actions,
   th[aria-label="Ações"] {

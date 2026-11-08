@@ -33,20 +33,14 @@ export interface ResourceConfig {
   isLocked?: (row: Record<string, unknown>) => boolean;
   // Filtros e totais da lista, nas telas com lançamentos por data.
   list?: {
-    dateKey: string;
+    // A lista é filtrada e paginada no servidor; aqui ficam só os rótulos dos filtros.
     dateLabel: string;
-    textKeys: string[];
     textLabel: string;
-    statusKey?: string;
     statuses?: readonly (readonly [string, string])[];
-    totals: (rows: Record<string, unknown>[]) => { label: string; value: number }[];
+    // Os totais vêm somados pelo servidor, sobre todo o filtro.
+    totals: (sums: Record<string, number>) => { label: string; value: number }[];
   };
 }
-
-const sumAmount = (
-  rows: Record<string, unknown>[],
-  keep: (row: Record<string, unknown>) => boolean = () => true,
-) => rows.filter(keep).reduce((sum, row) => sum + Number(row.amount), 0);
 
 export const resources = {
   products: {
@@ -134,19 +128,16 @@ export const resources = {
       ['status', 'Status'],
     ],
     list: {
-      dateKey: 'expenseDate',
       dateLabel: 'Vencimento ou pagamento',
-      textKeys: ['description', 'category', 'supplierName'],
       textLabel: 'Descrição, categoria ou fornecedor',
-      statusKey: 'status',
       statuses: [
         ['pending', 'Pendente'],
         ['paid', 'Pago'],
       ],
-      totals: (rows) => [
-        { label: 'Valor total', value: sumAmount(rows) },
-        { label: 'Pago', value: sumAmount(rows, (row) => row.status === 'paid') },
-        { label: 'Em aberto', value: sumAmount(rows, (row) => row.status === 'pending') },
+      totals: (sums) => [
+        { label: 'Valor total', value: sums.amount ?? 0 },
+        { label: 'Pago', value: sums.paid ?? 0 },
+        { label: 'Em aberto', value: sums.pending ?? 0 },
       ],
     },
   },
@@ -213,24 +204,17 @@ export const resources = {
       ['transactionDate', 'Data'],
     ],
     list: {
-      dateKey: 'transactionDate',
       dateLabel: 'Data da movimentação',
-      textKeys: ['description', 'category'],
       textLabel: 'Descrição ou categoria',
-      statusKey: 'type',
       statuses: [
         ['income', 'Entrada'],
         ['outcome', 'Saída'],
       ],
-      totals: (rows) => {
-        const income = sumAmount(rows, (row) => row.type === 'income');
-        const outcome = sumAmount(rows, (row) => row.type === 'outcome');
-        return [
-          { label: 'Entradas', value: income },
-          { label: 'Saídas', value: outcome },
-          { label: 'Saldo', value: income - outcome },
-        ];
-      },
+      totals: (sums) => [
+        { label: 'Entradas', value: sums.income ?? 0 },
+        { label: 'Saídas', value: sums.outcome ?? 0 },
+        { label: 'Saldo', value: sums.balance ?? 0 },
+      ],
     },
     isLocked: (row) => Boolean(row.orderId || row.expenseId),
   },

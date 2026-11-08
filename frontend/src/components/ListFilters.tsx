@@ -1,6 +1,13 @@
+import { PAGE_SIZES } from '@arandue/shared/schemas';
 import { Printer } from 'lucide-react';
 import { formatDate, formatMoney } from '../lib/format.ts';
-import { LIST_LIMIT, PERIODS, type PeriodKey, periodRange, type useListFilters } from '../lib/listFilters.ts';
+import {
+  type PageSize,
+  PERIODS,
+  type PeriodKey,
+  periodRange,
+  type useListFilters,
+} from '../lib/listFilters.ts';
 
 const periodLabel = (key: PeriodKey) => PERIODS.find(([value]) => value === key)?.[1] ?? '';
 
@@ -105,13 +112,12 @@ export function ListFilters({ control, dateLabel, textLabel, statuses }: Filters
 }
 
 interface TotalsProps {
+  // Registros de todo o filtro, não só da página.
   count: number;
-  // Quantos registros a API devolveu, antes dos filtros.
-  loaded: number;
   totals: { label: string; value: number }[];
 }
 
-export function ListTotals({ count, loaded, totals }: TotalsProps) {
+export function ListTotals({ count, totals }: TotalsProps) {
   return (
     <div className="list-totals">
       <dl>
@@ -127,13 +133,60 @@ export function ListTotals({ count, loaded, totals }: TotalsProps) {
         ))}
       </dl>
       <button type="button" className="button secondary list-print" onClick={() => window.print()}>
-        <Printer size={15} /> Imprimir lista
+        <Printer size={15} /> Imprimir página
       </button>
-      {loaded >= LIST_LIMIT && (
-        <p className="list-limit">
-          Mostrando os {LIST_LIMIT} registros mais recentes: filtros e totais consideram só esses.
-        </p>
-      )}
     </div>
+  );
+}
+
+interface PaginationProps {
+  page: number;
+  pageSize: PageSize;
+  total: number;
+  onPage: (page: number) => void;
+  onPageSize: (size: PageSize) => void;
+}
+
+export function Pagination({ page, pageSize, total, onPage, onPageSize }: PaginationProps) {
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const first = total ? (page - 1) * pageSize + 1 : 0;
+  const last = Math.min(page * pageSize, total);
+  return (
+    <nav className="pagination" aria-label="Paginação">
+      <span className="pagination-range">{`${first}–${last} de ${total}`}</span>
+      <label>
+        Por página
+        <select
+          name="pageSize"
+          value={pageSize}
+          onChange={(event) => onPageSize(Number(event.target.value) as PageSize)}
+        >
+          {PAGE_SIZES.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="pagination-pages">
+        <button
+          type="button"
+          className="button secondary"
+          disabled={page <= 1}
+          onClick={() => onPage(page - 1)}
+        >
+          Anterior
+        </button>
+        <span>{`Página ${page} de ${pages}`}</span>
+        <button
+          type="button"
+          className="button secondary"
+          disabled={page >= pages}
+          onClick={() => onPage(page + 1)}
+        >
+          Próxima
+        </button>
+      </div>
+    </nav>
   );
 }

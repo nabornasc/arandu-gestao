@@ -1,5 +1,6 @@
 import { can, type Permission } from '@arandue/shared/permissions';
 import {
+  ORDER_STATUSES,
   type OrderCreateInput,
   type OrderStatus,
   type OrderUpdateInput,
@@ -28,6 +29,15 @@ import {
 import { diffFields, diffItems, type FieldChange, initialFields, removedFields } from '../lib/changes.ts';
 import { authorize, authorizeAny, type Ctx, ownScope } from '../lib/context.ts';
 import { badRequest, conflict, notFound } from '../lib/errors.ts';
+import {
+  money,
+  pageWindow,
+  parseListQuery,
+  periodFilter,
+  textFilter,
+  toPage,
+  wantsPage,
+} from '../lib/listing.ts';
 import { round2 } from '../lib/money.ts';
 import { parse } from '../lib/validate.ts';
 import { accountName, audit, namedLines, personName } from './audit.ts';
@@ -368,7 +378,7 @@ async function cashAccountName(tx: Transaction, orderId: number): Promise<string
   return row ? `${row.bankName} — ${row.accountName}` : null;
 }
 
-async function loadOrders(ctx: Ctx, where: SQL | undefined) {
+async function loadOrders(ctx: Ctx, where: SQL | undefined, window = { limit: 500, offset: 0 }) {
   const rows = await db
     .select({
       id: orders.id,
@@ -395,7 +405,8 @@ async function loadOrders(ctx: Ctx, where: SQL | undefined) {
     .leftJoin(opportunities, eq(opportunities.id, orders.opportunityId))
     .where(where)
     .orderBy(desc(orders.orderDate), desc(orders.id))
-    .limit(500);
+    .limit(window.limit)
+    .offset(window.offset);
   if (!rows.length) return [];
 
   // Uma consulta para os itens de todos os pedidos (evita N+1).
@@ -480,9 +491,33 @@ async function loadOrders(ctx: Ctx, where: SQL | undefined) {
   }));
 }
 
-export async function listOrders(ctx: Ctx) {
+export async function listOrders(ctx: Ctx, query?: unknown) {
   authorize(ctx, 'orders.read');
-  return loadOrders(ctx, and(eq(orders.companyId, ctx.companyId), ownScope(ctx, orders.createdBy)));
+  const base = and(eq(orders.companyId, ctx.companyId), ownScope(ctx, orders.createdBy));
+  if (!wantsPage(query)) return loadOrders(ctx, base);
+
+  const filters = parseListQuery(query, ORDER_STATUSES);
+  const where = and(
+    base,
+    periodFilter(orders.orderDate, filters),
+    filters.status ? eq(orders.status, filters.status as OrderStatus) : undefined,
+    textFilter([people.name], filters.q, orders.number),
+  );
+  const [summary] = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+      // Pedido cancelado não é venda.
+      value: money(sql`sum(${orders.total}) filter (where ${orders.status} <> 'cancelled')`),
+      pending: money(sql`sum(${orders.total}) filter (where ${orders.status} = 'pending')`),
+    })
+    .from(orders)
+    .leftJoin(people, eq(people.id, orders.customerId))
+    .where(where);
+  const rows = await loadOrders(ctx, where, pageWindow(filters));
+  return toPage(filters, summary?.count ?? 0, rows, {
+    value: summary?.value ?? 0,
+    pending: summary?.pending ?? 0,
+  });
 }
 
 export async function getOrder(ctx: Ctx, id: number) {
@@ -835,8 +870,9 @@ export async function deleteOrder(ctx: Ctx, id: number, confirmation?: { reason:
 // ---------- Contas a receber ----------
 
 // Contas de pedidos não cancelados, de toda a empresa: quem cuida do financeiro dá baixa em todas.
-export async function listReceivables(ctx: Ctx) {
-  authorize(ctx, 'receivables.read');
+const LISTED_RECEIVABLES = ['open', 'settled'] as const;
+
+function selectReceivables() {
   return db
     .select({
       id: receivables.id,
@@ -845,23 +881,74 @@ export async function listReceivables(ctx: Ctx) {
       customerName: people.name,
       orderDate: orders.orderDate,
       position: receivables.position,
-      titleCount: sql<number>`(count(*) OVER (PARTITION BY ${receivables.orderId}))::int`,
+      // Contado no banco, e não na página: a parcela "2/3" continua certa com filtro ou paginação.
+      titleCount: sql<number>`(
+        select count(*) from receivables r2
+        where r2.order_id = ${receivables.orderId} and r2.status in ('open', 'settled')
+      )::int`.as('title_count'),
       dueDate: receivables.dueDate,
       amount: receivables.amount,
       paidAmount: receivables.paidAmount,
       received: sql<number>`coalesce((
         select sum(p.received) from receivable_payments p
         where p.receivable_id = ${receivables.id} and p.reversed_at is null
-      ), 0)`.mapWith(Number),
+      ), 0)`
+        .mapWith(Number)
+        .as('received'),
       method: receivables.method,
       status: receivables.status,
     })
     .from(receivables)
     .innerJoin(orders, eq(orders.id, receivables.orderId))
     .leftJoin(people, eq(people.id, orders.customerId))
-    .where(and(eq(receivables.companyId, ctx.companyId), inArray(receivables.status, ['open', 'settled'])))
-    .orderBy(asc(receivables.dueDate), asc(receivables.id))
-    .limit(500);
+    .$dynamic();
+}
+
+export async function listReceivables(ctx: Ctx, query?: unknown) {
+  authorize(ctx, 'receivables.read');
+  const base = and(eq(receivables.companyId, ctx.companyId), inArray(receivables.status, LISTED_RECEIVABLES));
+  const order = [asc(receivables.dueDate), asc(receivables.id)];
+  if (!wantsPage(query))
+    return selectReceivables()
+      .where(base)
+      .orderBy(...order)
+      .limit(500);
+
+  const filters = parseListQuery(query, LISTED_RECEIVABLES);
+  const where = and(
+    base,
+    periodFilter(receivables.dueDate, filters),
+    filters.status
+      ? eq(receivables.status, filters.status as (typeof LISTED_RECEIVABLES)[number])
+      : undefined,
+    textFilter([people.name, receivables.method], filters.q, orders.number),
+  );
+  const filtered = selectReceivables().where(where).as('filtered');
+  const open = sql`${filtered.status} = 'open'`;
+  const balance = sql`${filtered.amount} - ${filtered.paidAmount}`;
+  const [summary] = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+      amount: money(sql`sum(${filtered.amount})`),
+      received: money(sql`sum(${filtered.received})`),
+      open: money(sql`sum(${balance}) filter (where ${open})`),
+      overdue: money(
+        sql`sum(${balance}) filter (where ${open} and ${filtered.dueDate} < ${todayInBrazil()})`,
+      ),
+    })
+    .from(filtered);
+  const { limit, offset } = pageWindow(filters);
+  const rows = await selectReceivables()
+    .where(where)
+    .orderBy(...order)
+    .limit(limit)
+    .offset(offset);
+  return toPage(filters, summary?.count ?? 0, rows, {
+    amount: summary?.amount ?? 0,
+    received: summary?.received ?? 0,
+    open: summary?.open ?? 0,
+    overdue: summary?.overdue ?? 0,
+  });
 }
 
 // Com a última conta paga, o pedido vira "pago" e pode ganhar a oportunidade.

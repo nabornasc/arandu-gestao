@@ -1,16 +1,14 @@
 import { ORDER_STATUSES } from '@arandue/shared/schemas';
-import { useQuery } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { orderActions } from '../actions/registry.ts';
 import { EmptyState } from '../components/EmptyState.tsx';
-import { ListFilters, ListTotals } from '../components/ListFilters.tsx';
-import { api } from '../lib/api.ts';
+import { ListFilters, ListTotals, Pagination } from '../components/ListFilters.tsx';
 import { can, useProfile } from '../lib/auth.ts';
 import type { Order } from '../lib/documents.ts';
 import { formatCode, formatDate, formatMoney, label } from '../lib/format.ts';
-import { applyListFilters, useListFilters } from '../lib/listFilters.ts';
+import { useListFilters, useServerList } from '../lib/listFilters.ts';
 
 const STATUSES = ORDER_STATUSES.map((status) => [status, label(status)] as const);
 
@@ -18,16 +16,11 @@ export default function OrdersPage() {
   const profile = useProfile();
   const navigate = useNavigate();
   const canCreate = can(profile, 'orders.create');
-  const orders = useQuery({ queryKey: ['/orders'], queryFn: () => api<Order[]>('/orders') });
   const control = useListFilters();
-  const loaded = orders.data?.length ?? 0;
-  const visible = applyListFilters(orders.data ?? [], control.filters, {
-    date: (order) => order.orderDate,
-    status: (order) => order.status,
-    text: (order) => [order.customerName, formatCode(order.number), order.number],
-  });
-  // Pedido cancelado não é venda.
-  const sold = visible.filter((order) => order.status !== 'cancelled');
+  const list = useServerList<Order>('/orders', control);
+  const data = list.query.data;
+  const visible = data?.rows ?? [];
+  const hasAny = control.active || (data?.total ?? 0) > 0;
 
   return (
     <section>
@@ -44,7 +37,7 @@ export default function OrdersPage() {
         )}
       </div>
 
-      {loaded > 0 && (
+      {hasAny && (
         <ListFilters
           control={control}
           dateLabel="Data do pedido"
@@ -54,10 +47,10 @@ export default function OrdersPage() {
       )}
 
       <div className="panel table-panel">
-        {orders.isPending ? (
+        {list.query.isPending ? (
           <div className="loading">Carregando pedidos...</div>
-        ) : orders.isError ? (
-          <EmptyState text={orders.error.message} />
+        ) : list.query.isError ? (
+          <EmptyState text={list.query.error.message} />
         ) : visible.length ? (
           <div className="table-wrap">
             <table>
@@ -115,27 +108,30 @@ export default function OrdersPage() {
           </div>
         ) : (
           <EmptyState
-            text={loaded ? 'Nenhum registro com esses filtros.' : 'Nenhum pedido cadastrado ainda.'}
-            action={canCreate && !loaded ? 'Criar primeiro pedido' : undefined}
+            text={hasAny ? 'Nenhum registro com esses filtros.' : 'Nenhum pedido cadastrado ainda.'}
+            action={canCreate && !hasAny ? 'Criar primeiro pedido' : undefined}
             onClick={() => navigate('/pedidos/novo')}
           />
         )}
       </div>
 
-      {loaded > 0 && (
-        <ListTotals
-          count={visible.length}
-          loaded={loaded}
-          totals={[
-            { label: 'Valor total', value: sold.reduce((sum, order) => sum + order.total, 0) },
-            {
-              label: 'Em aberto',
-              value: sold
-                .filter((order) => order.status === 'pending')
-                .reduce((sum, order) => sum + order.total, 0),
-            },
-          ]}
-        />
+      {data && hasAny && (
+        <>
+          <Pagination
+            page={list.page}
+            pageSize={list.pageSize}
+            total={data.total}
+            onPage={list.setPage}
+            onPageSize={list.setPageSize}
+          />
+          <ListTotals
+            count={data.total}
+            totals={[
+              { label: 'Valor total', value: data.totals.value ?? 0 },
+              { label: 'Em aberto', value: data.totals.pending ?? 0 },
+            ]}
+          />
+        </>
       )}
     </section>
   );

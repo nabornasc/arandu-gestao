@@ -262,6 +262,30 @@ export const reportQuerySchema = z.object({
 });
 export type ReportQuery = z.input<typeof reportQuerySchema>;
 
+// Listas paginadas no servidor: página, período, status e texto, todos opcionais.
+export const PAGE_SIZES = [25, 50, 100] as const;
+export const listQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(100_000).default(1),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .refine((value) => (PAGE_SIZES as readonly number[]).includes(value), 'Tamanho de página inválido.')
+    .default(25),
+  from: isoDate.optional(),
+  to: isoDate.optional(),
+  status: z.string().trim().max(30).optional(),
+  q: z.string().trim().max(120).optional(),
+});
+export type ListQuery = z.output<typeof listQuerySchema>;
+export interface ListPage<T> {
+  rows: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  // Somas sobre todos os registros do filtro, não só da página.
+  totals: Record<string, number>;
+}
+
 // Listas da empresa: valores sugeridos nos formulários, que continuam aceitando digitar outro.
 export const LIST_KINDS = [
   'payment_method',
