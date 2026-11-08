@@ -34,6 +34,9 @@ export function Modal({ eyebrow, title, onClose, children, wide }: Props) {
         event.preventDefault();
         onClose();
       }}
+      // No React, o envio de um formulário da janela sobe até o formulário da tela que a abriu,
+      // mesmo por portal. Para aqui: salvar a janela nunca salva o documento de trás.
+      onSubmit={(event) => event.stopPropagation()}
       // Clique no fundo escurecido (fora do conteúdo) fecha o modal.
       onClick={(event) => event.target === event.currentTarget && onClose()}
     >

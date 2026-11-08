@@ -17,6 +17,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Menu por módulos:** Início, Vendas, Financeiro, Cadastros, Gestão e Administração. Cada módulo tem uma página de entrada com um bloco por tela e os atalhos de criação que o grupo pode usar; a de Vendas mostra o fluxo CRM, orçamento, pedido e recebimento. No desktop, o menu fica fixo e rola sozinho.
 - **Busca rápida:** Ctrl+K ou F2, ou o botão Buscar no topo. Acha telas e ações na hora e, pelo servidor, clientes, fornecedores, produtos, orçamentos, pedidos e oportunidades, também pelo número (`#12`). Cada resultado respeita a permissão e o escopo "só os próprios".
 - **Atalhos de teclado:** F4 novo orçamento, F6 novo pedido, F7 novo cliente, F8 produtos, F9 ou Ctrl+Enter salva o formulário visível, Alt+setas trocam de aba e Alt+X fecha a aba. A lista fica na própria busca.
+- **Cadastro rápido** no orçamento e no pedido: "Novo cliente" (nome, CPF ou CNPJ, celular e e-mail) e "Novo produto" sem sair do documento. O cliente novo já fica escolhido; o produto entra na primeira linha vazia, com o preço. Cada botão aparece só para quem pode criar.
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado
@@ -25,6 +26,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Corrigido
 
+- Salvar uma janela aberta de dentro de um formulário não envia mais o formulário de trás.
 - Janelas com campo marcado para foco automático abrem com o foco nesse campo, não no botão de fechar.
 - Datas do seed seguem o fuso de Brasília: à noite, as tarefas e os pedidos de exemplo não caem mais no dia seguinte.
 

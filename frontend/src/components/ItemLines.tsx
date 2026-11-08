@@ -1,6 +1,7 @@
 import { areaInSquareMeters, type MeasureUnit } from '@arandue/shared/schemas';
 import { Plus, Trash2 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useId } from 'react';
+import { QuickProductButton } from './QuickCreate.tsx';
 
 export interface Product {
   id: number;
@@ -223,7 +224,7 @@ export function ItemLines({
           )}
         </div>
       ))}
-      <div className="full-row">
+      <div className="full-row item-actions">
         <button
           type="button"
           className="button secondary"
@@ -231,6 +232,18 @@ export function ItemLines({
         >
           <Plus size={14} /> Adicionar item
         </button>
+        {/* Cadastro rápido: o produto novo entra na primeira linha vazia ou numa linha nova. */}
+        <QuickProductButton
+          onCreated={(product) => {
+            const filled = { productId: String(product.id), unitPrice: String(product.price ?? 0) };
+            setLines((current) => {
+              const empty = current.find((line) => !line.productId);
+              return empty
+                ? current.map((line) => (line.key === empty.key ? { ...line, ...filled } : line))
+                : [...current, { ...newLine(), ...filled }];
+            });
+          }}
+        />
       </div>
     </>
   );

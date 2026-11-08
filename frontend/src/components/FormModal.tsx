@@ -54,9 +54,19 @@ interface Props {
   saving: boolean;
   onClose: () => void;
   onSubmit: (payload: Row) => void;
+  title?: string;
+  eyebrow?: string;
 }
 
-export function FormModal({ config: fullConfig, initial, saving, onClose, onSubmit }: Props) {
+export function FormModal({
+  config: fullConfig,
+  initial,
+  saving,
+  onClose,
+  onSubmit,
+  title,
+  eyebrow = 'CADASTRO',
+}: Props) {
   const profile = useProfile();
   const config = {
     ...fullConfig,
@@ -90,7 +100,11 @@ export function FormModal({ config: fullConfig, initial, saving, onClose, onSubm
   const set = (key: string, value: string) => setForm((current) => ({ ...current, [key]: value }));
 
   return (
-    <Modal eyebrow="CADASTRO" title={initial ? 'Editar registro' : 'Novo registro'} onClose={onClose}>
+    <Modal
+      eyebrow={eyebrow}
+      title={title ?? (initial ? 'Editar registro' : 'Novo registro')}
+      onClose={onClose}
+    >
       <form onSubmit={submit} noValidate>
         <div className="form-grid">
           {config.fields.map((field) => (

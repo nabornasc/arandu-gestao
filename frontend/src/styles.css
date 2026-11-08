@@ -2457,3 +2457,23 @@ a.nav-label.active {
     display: none;
   }
 }
+
+/* Cadastro rápido no orçamento e no pedido */
+.customer-field {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+}
+.customer-field label {
+  flex: 1;
+  min-width: 0;
+}
+.customer-field .quick-create {
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

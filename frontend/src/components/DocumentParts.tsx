@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api.ts';
 import type { Customer, DocumentItem } from '../lib/documents.ts';
 import { formatMoney } from '../lib/format.ts';
+import { QuickCustomerButton } from './QuickCreate.tsx';
 
 // Peças comuns às telas de orçamento e pedido.
 
@@ -22,22 +23,26 @@ export function CustomerSelect({
     queryFn: () => api<Customer[]>('/people?role=customer'),
   });
   return (
-    <label>
-      Cliente
-      <select
-        name="customerId"
-        value={value}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        <option value="">{emptyLabel}</option>
-        {customers.data?.map((customer) => (
-          <option key={customer.id} value={customer.id}>
-            {customer.name}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="customer-field">
+      <label>
+        Cliente
+        <select
+          name="customerId"
+          value={value}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          <option value="">{emptyLabel}</option>
+          {customers.data?.map((customer) => (
+            <option key={customer.id} value={customer.id}>
+              {customer.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {/* Cadastro rápido: o cliente novo já fica escolhido. */}
+      {!disabled && <QuickCustomerButton onCreated={(id) => onChange(String(id))} />}
+    </div>
   );
 }
 

@@ -73,7 +73,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 - Menu por módulos e páginas de módulo. Feito em 08/11/2026.
 - Busca rápida e atalhos de teclado. Feito em 08/11/2026: Ctrl+K ou F2 abre a busca de telas, ações, clientes, fornecedores, produtos, orçamentos, pedidos e oportunidades. F4 abre novo orçamento, F6 novo pedido, F7 novo cliente e F8 a tela de produtos. F9 ou Ctrl+Enter salva o formulário visível. Alt+setas trocam de aba e Alt+X fecha a aba ativa. A personalização dos atalhos por usuário (seção 7.6 do plano da v2) fica para depois.
-- Cadastro rápido de cliente e produto dentro do orçamento e do pedido.
+- Cadastro rápido de cliente e produto dentro do orçamento e do pedido. Feito em 08/11/2026: o cliente novo já fica escolhido e o produto novo entra na primeira linha vazia, com o preço. Cada botão exige a permissão de criar.
 - Paginação no servidor. Os filtros de lista atuais trabalham na tela, sobre os 500 registros mais recentes que a API devolve.
 
 ### Etapa 7: restante dos documentos
