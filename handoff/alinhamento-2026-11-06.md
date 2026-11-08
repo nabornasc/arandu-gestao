@@ -44,8 +44,8 @@ Regras novas que valem para quem mexer nesse código:
 | 2 (concluída, em produção) | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto |
 | 3 (concluída, em produção) | Listas configuráveis e grupo do produto |
 | 4 (concluída, em produção) | Central de relatórios com exportação em CSV |
-| 5 (próxima) | Agenda |
-| 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos |
+| 5 (concluída, em produção) | Agenda |
+| 6 (próxima) | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos |
 | 7 | Restante dos documentos |
 | 8 | Gestão: precificação, dashboard modular e metas |
 | 9 | Operações opcionais, só se ainda houver interesse |

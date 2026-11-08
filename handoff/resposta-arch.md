@@ -135,3 +135,23 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   ```
 - **Próxima:** etapa 5, agenda.
 
+## Atualização de 08/11/2026, etapa 5
+
+**Etapa 5, agenda: concluída e em produção** (PR #22, `16c7c6c`).
+
+- **Agenda:** `/agenda` nas visões dia, semana, mês e lista. Junta as tarefas manuais (`agenda_events`), as próximas ações do CRM, a validade de orçamentos enviados ou aprovados, as contas a receber em aberto e as despesas pendentes. Cada fonte exige a leitura do seu módulo e respeita "só os próprios".
+- **Seed:** as datas seguem o fuso de Brasília, como o servidor e os testes.
+- **Produção, aplicada pelo Claude do notebook via MCP:**
+  - migração `0019_agenda`, registrada no Drizzle;
+  - `GRANT`, RLS e policy na tabela nova;
+  - `demo.table_list()` atualizada e 4 tarefas de exemplo;
+  - backup `backup_20261108_demo_agenda` e `demo.capture()`.
+  - Avisos de segurança do Supabase sem itens; agenda conferida no ar.
+- **Backups para apagar no SQL Editor:**
+  ```sql
+  DROP SCHEMA backup_20261108_demo CASCADE;
+  DROP SCHEMA backup_20261108_demo_relatorios CASCADE;
+  DROP SCHEMA backup_20261108_demo_agenda CASCADE;
+  ```
+- **Próxima:** etapa 6, navegação.
+
