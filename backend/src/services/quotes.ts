@@ -34,7 +34,7 @@ import {
   computeMargin,
   hideCustomerDetails,
   type MirrorSnapshot,
-  summarizeByType,
+  summarizeByGroup,
 } from './quoteMirror.ts';
 
 const scoped = (ctx: Ctx, id: number) =>
@@ -250,6 +250,7 @@ export async function getQuoteInternalMirror(ctx: Ctx, id: number) {
   const costs = await db
     .select({
       type: products.type,
+      group: products.groupName,
       quantity: quoteItems.quantity,
       subtotal: quoteItems.subtotal,
       sentCost: quoteItems.unitCost,
@@ -273,7 +274,7 @@ export async function getQuoteInternalMirror(ctx: Ctx, id: number) {
       type: lines[index]?.type ?? 'product',
       unitCost: lines[index]?.unitCost ?? null,
     })),
-    summary: summarizeByType(lines),
+    summary: summarizeByGroup(lines),
     margin: computeMargin(lines, mirror.discount),
   };
 }

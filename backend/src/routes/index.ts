@@ -13,6 +13,7 @@ import * as customers from '../services/customers.ts';
 import { getDashboard } from '../services/dashboard.ts';
 import * as expenses from '../services/expenses.ts';
 import * as history from '../services/history.ts';
+import * as lists from '../services/lists.ts';
 import * as lookup from '../services/lookup.ts';
 import * as opportunities from '../services/opportunities.ts';
 import * as orders from '../services/orders.ts';
@@ -321,6 +322,16 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     );
 
     protectedApp.get('/dashboard', (request) => getDashboard(ctxOf(request)));
+    protectedApp.get('/lists', (request) =>
+      lists.listLists(ctxOf(request), { all: (request.query as { all?: string }).all === '1' }),
+    );
+    protectedApp.post('/lists', async (request, reply) => {
+      reply.status(201);
+      return lists.createListItem(ctxOf(request), request.body as never);
+    });
+    protectedApp.put('/lists/:id', (request) =>
+      lists.updateListItem(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
+    );
     protectedApp.get('/company', (request) => company.getCompanySettings(ctxOf(request)));
     protectedApp.put('/company', (request) =>
       company.updateCompanySettings(ctxOf(request), request.body as never),

@@ -4,6 +4,7 @@ import type { ResourceConfig } from '../config/resources.ts';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { todayIso } from '../lib/format.ts';
+import { ListSuggestions } from './ListSuggestions.tsx';
 import { Modal } from './Modal.tsx';
 
 export interface AccountOption {
@@ -143,11 +144,15 @@ export function FormModal({ config: fullConfig, initial, saving, onClose, onSubm
                   name={field.key}
                   required={field.required}
                   type={field.type}
+                  list={field.suggestions ? `${formId}-${field.key}-list` : undefined}
                   inputMode={field.type === 'number' ? 'decimal' : undefined}
                   step={field.type === 'number' ? '0.01' : undefined}
                   value={form[field.key]}
                   onChange={(event) => set(field.key, event.target.value)}
                 />
+              )}
+              {field.suggestions && (
+                <ListSuggestions id={`${formId}-${field.key}-list`} kind={field.suggestions} />
               )}
             </label>
           ))}

@@ -86,4 +86,4 @@ Hoje a empresa não consegue ajustar esses valores. Parte tem sugestões fixas n
 ## 7. Decisões em aberto
 
 - Entra na etapa 3 de [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md), antes dos relatórios, porque filtros por categoria e forma de pagamento dependem de dados padronizados.
-- Se o campo aceita digitar um valor fora da lista, o que é mais simples para o MEI, ou se só permite escolher, o que deixa os dados mais limpos.
+- Decidido em 07/11/2026: o campo sugere os valores da lista e aceita digitar outro.

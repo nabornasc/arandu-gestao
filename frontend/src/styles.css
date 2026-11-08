@@ -2005,3 +2005,40 @@ fieldset.view-switch {
   padding: 10px 0;
   border-top: 1px solid #f1edf6;
 }
+
+/* Listas da empresa */
+.lists-settings {
+  margin-top: 20px;
+}
+.lists-kind {
+  max-width: 360px;
+}
+.list-items {
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.list-items li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.list-item-actions {
+  display: flex;
+  gap: 8px;
+}
+.list-new {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.list-new input,
+.list-items li input {
+  flex: 1 1 220px;
+}
+.list-items li.inactive input {
+  color: #6b6280;
+}

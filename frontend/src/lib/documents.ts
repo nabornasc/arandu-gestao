@@ -117,7 +117,7 @@ export interface QuoteInternalMirror extends QuoteMirror {
   internalNotes: string | null;
   items: (QuoteMirror['items'][number] & { type: 'product' | 'service'; unitCost: number | null })[];
   summary: {
-    type: 'product' | 'service';
+    label: string;
     revenue: number;
     cost: number | null;
     result: number | null;

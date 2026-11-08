@@ -10,8 +10,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 |---|---|---|---|
 | 1 | Fechar o que já está na `main` e resolver pendências pequenas | **Concluída em 07/11, v2.5.0** | Este arquivo |
 | 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Concluída em 07/11, em produção** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
-| 3 | Listas configuráveis e grupo do produto | **Próxima** | [Listas](PLANEJAMENTO_LISTAS.md) |
-| 4 | Central de relatórios com exportação em CSV | Planejada | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
+| 3 | Listas configuráveis e grupo do produto | **Concluída em 07/11** | [Listas](PLANEJAMENTO_LISTAS.md) |
+| 4 | Central de relatórios com exportação em CSV | **Próxima** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
 | 5 | Agenda: dia, semana, mês e lista | Planejada | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
 | 7 | Restante dos documentos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
@@ -52,7 +52,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 - Tela "Listas" em Configurações, com a tabela única `company_list_items`.
 - Valores que hoje estão fixos no código, criados para cada empresa.
 - "Categorias financeiras" unificando centro de custos, plano de contas e histórico financeiro.
-- Grupo do produto, com resumo por categoria no espelho interno.
+- Grupo do produto, com resumo por grupo no espelho interno.
+- Feito em 07/11/2026. Decisão do usuário: o campo sugere os valores da lista e aceita digitar outro. A ordem é alfabética, sem coluna de posição.
 
 ### Etapa 4: relatórios
 
@@ -101,6 +102,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 ## Fora da sequência
 
+**Pendência técnica:** o tratador global de erros não reconhece a violação de unicidade quando o Drizzle embrulha o erro do Postgres, e responde 500 em vez de 409. As listas já tratam isso; os demais cadastros com índice único ainda não.
+
 **Itens pequenos, quando surgir a necessidade:** copiar produto, código próprio do produto, ficha cadastral para imprimir, número do pedido do cliente, inventário e configurar colunas das listas.
 
 **Backlog sem etapa:** tabelas de preço, parceiro de indicação com comissão, indicação separada da origem, ordem de serviço, anexos, aviso de vencimento por e-mail, várias empresas por usuário e recuperação de senha por e-mail.
@@ -113,7 +116,6 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 | Decisão | Quando responder |
 |---|---|
-| O campo de lista aceita valor digitado fora da lista, ou só permite escolher | Etapa 3 |
 | A exportação de relatórios tem permissão própria, separada da leitura | Etapa 4 |
 | Quais itens da etapa 9 ainda interessam | Ao chegar nela |
 | Se o registro manual de notas fiscais interessa como estudo | Quando o dono do projeto quiser |

@@ -8,6 +8,7 @@ import { opportunityActions } from '../actions/registry.ts';
 import { CustomerSelect } from '../components/DocumentParts.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { ItemLines, type Line, linesToItems, newLine, type Product } from '../components/ItemLines.tsx';
+import { ListSuggestions } from '../components/ListSuggestions.tsx';
 import { useToast } from '../components/Toast.tsx';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
@@ -15,7 +16,6 @@ import { type OpportunityDetail, useOpportunity, useStages } from '../lib/docume
 import { formatCode, formatDate, formatMoney, label, todayIso } from '../lib/format.ts';
 import { useTab, useTabDirty, useTabTitle } from '../workspace/tab.ts';
 
-const SOURCES = ['Indicação', 'Instagram', 'WhatsApp', 'Site', 'Feira', 'Loja física', 'Outro'];
 const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
 // Tela da oportunidade: etapas, resumo de valores, dados, atividades e documentos vinculados.
@@ -291,11 +291,7 @@ function OpportunityEditor({
               value={form.source}
               onChange={set('source')}
             />
-            <datalist id="opportunity-sources">
-              {SOURCES.map((source) => (
-                <option key={source} value={source} />
-              ))}
-            </datalist>
+            <ListSuggestions id="opportunity-sources" kind="opportunity_source" />
           </label>
           <label>
             Nome do contato

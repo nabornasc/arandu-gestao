@@ -1,17 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
+import { ListSuggestions } from '../components/ListSuggestions.tsx';
 import { Modal } from '../components/Modal.tsx';
 import { api } from '../lib/api.ts';
 import type { Opportunity } from '../lib/documents.ts';
 
 // Perder uma oportunidade exige o motivo (alimenta a análise de perdas). A etapa fica registrada.
-const SUGGESTIONS = [
-  'Preço',
-  'Prazo de entrega',
-  'Escolheu concorrente',
-  'Sem retorno',
-  'Desistiu da compra',
-];
 
 interface Props {
   opportunity: Opportunity;
@@ -53,11 +47,7 @@ export function LostOpportunityModal({ opportunity, onClose, onLost }: Props) {
               value={reason}
               onChange={(event) => setReason(event.target.value)}
             />
-            <datalist id="lost-reasons">
-              {SUGGESTIONS.map((item) => (
-                <option key={item} value={item} />
-              ))}
-            </datalist>
+            <ListSuggestions id="lost-reasons" kind="lost_reason" />
           </label>
         </div>
         {error && (

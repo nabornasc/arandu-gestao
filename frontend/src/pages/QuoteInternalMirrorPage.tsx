@@ -17,7 +17,6 @@ import { formatCode, formatDateTime, formatMoney } from '../lib/format.ts';
 import './quoteMirror.css';
 
 const WARNING = 'Uso interno: não enviar ao cliente';
-const TYPE_LABEL = { product: 'Produtos', service: 'Serviços' };
 
 const moneyOrDash = (value: number | null) => (value === null ? '—' : formatMoney(value));
 const percent = (value: number | null) =>
@@ -107,7 +106,7 @@ export default function QuoteInternalMirrorPage() {
         </section>
 
         <section>
-          <h2>Resumo por tipo</h2>
+          <h2>Resumo por grupo</h2>
           <table className="mirror-items">
             <thead>
               <tr>
@@ -120,8 +119,8 @@ export default function QuoteInternalMirrorPage() {
             </thead>
             <tbody>
               {quote.summary.map((line) => (
-                <tr key={line.type}>
-                  <td>{TYPE_LABEL[line.type]}</td>
+                <tr key={line.label}>
+                  <td>{line.label}</td>
                   <td>{formatMoney(line.revenue)}</td>
                   <td>{moneyOrDash(line.cost)}</td>
                   <td>{moneyOrDash(line.result)}</td>

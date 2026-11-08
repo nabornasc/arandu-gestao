@@ -1,4 +1,5 @@
 import type { Area, Permission } from '@arandue/shared/permissions';
+import type { ListKind } from '@arandue/shared/schemas';
 import { bankAccountSchema, expenseSchema, productSchema, transactionSchema } from '@arandue/shared/schemas';
 import type { z } from 'zod';
 
@@ -14,6 +15,8 @@ export interface Field {
   permission?: Permission;
   // Só no cadastro novo; depois, muda por outra ação (ex.: estoque, pelo ajuste).
   createOnly?: boolean;
+  // Lista da empresa sugerida no campo de texto, que continua aceitando outro valor.
+  suggestions?: ListKind;
 }
 
 export interface ResourceConfig {
@@ -78,12 +81,14 @@ export const resources = {
           ['M2', 'Metro quadrado (M2)'],
         ],
       },
+      { key: 'groupName', label: 'Grupo', type: 'text', suggestions: 'product_group' },
       { key: 'stock', label: 'Estoque inicial (vazio para serviço)', type: 'number', createOnly: true },
       { key: 'minStock', label: 'Estoque mínimo (aviso)', type: 'number' },
     ],
     columns: [
       ['name', 'Nome'],
       ['type', 'Tipo'],
+      ['groupName', 'Grupo'],
       ['price', 'Preço'],
       ['stock', 'Estoque'],
       ['unit', 'Unidade'],
@@ -98,7 +103,13 @@ export const resources = {
     schema: expenseSchema,
     fields: [
       { key: 'description', label: 'Descrição', type: 'text', required: true },
-      { key: 'category', label: 'Categoria (ex.: Aluguel)', type: 'text', required: true },
+      {
+        key: 'category',
+        label: 'Categoria (ex.: Aluguel)',
+        type: 'text',
+        required: true,
+        suggestions: 'financial_category',
+      },
       { key: 'amount', label: 'Valor (R$)', type: 'number', required: true },
       { key: 'expenseDate', label: 'Vencimento / pagamento', type: 'date', required: true },
       {
@@ -183,7 +194,13 @@ export const resources = {
         ],
         required: true,
       },
-      { key: 'category', label: 'Categoria', type: 'text', required: true },
+      {
+        key: 'category',
+        label: 'Categoria',
+        type: 'text',
+        required: true,
+        suggestions: 'financial_category',
+      },
       { key: 'description', label: 'Descrição', type: 'text', required: true },
       { key: 'amount', label: 'Valor (R$)', type: 'number', required: true },
       { key: 'transactionDate', label: 'Data', type: 'date', required: true },

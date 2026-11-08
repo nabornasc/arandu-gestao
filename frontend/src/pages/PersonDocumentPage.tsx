@@ -6,6 +6,7 @@ import { type ChangeEvent, type FormEvent, useId, useState } from 'react';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { personActions } from '../actions/registry.ts';
 import { EmptyState } from '../components/EmptyState.tsx';
+import { ListSuggestions } from '../components/ListSuggestions.tsx';
 import { useToast } from '../components/Toast.tsx';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
@@ -22,21 +23,6 @@ import {
 } from '../lib/people.ts';
 import { useTab, useTabDirty, useTabTitle } from '../workspace/tab.ts';
 
-const PAYMENT_METHODS = [
-  'PIX',
-  'Boleto',
-  'Cartão de crédito',
-  'Cartão de débito',
-  'Dinheiro',
-  'Transferência',
-];
-const PAYMENT_TERMS = [
-  'À vista',
-  '30 dias',
-  '30/60 dias',
-  'Entrada + 30 dias',
-  'Entrada 50% + contra-entrega',
-];
 const SECTIONS = [
   ['id', 'Identificação'],
   ['commercial', 'Comercial'],
@@ -437,11 +423,7 @@ function PersonEditor({ person, newRole }: { person: Person | null; newRole: key
                 value={form.paymentMethod}
                 onChange={set('paymentMethod')}
               />
-              <datalist id="payment-methods">
-                {PAYMENT_METHODS.map((item) => (
-                  <option key={item} value={item} />
-                ))}
-              </datalist>
+              <ListSuggestions id="payment-methods" kind="payment_method" />
             </label>
             <label>
               Condição de pagamento padrão
@@ -452,11 +434,7 @@ function PersonEditor({ person, newRole }: { person: Person | null; newRole: key
                 value={form.paymentTerms}
                 onChange={set('paymentTerms')}
               />
-              <datalist id="payment-terms">
-                {PAYMENT_TERMS.map((item) => (
-                  <option key={item} value={item} />
-                ))}
-              </datalist>
+              <ListSuggestions id="payment-terms" kind="payment_terms" />
             </label>
             <label>
               Frete
@@ -489,11 +467,13 @@ function PersonEditor({ person, newRole }: { person: Person | null; newRole: key
               Categoria
               <input
                 name="category"
+                list="customer-categories"
                 maxLength={60}
                 placeholder="Ex.: varejo, atacado, construtora"
                 value={form.category}
                 onChange={set('category')}
               />
+              <ListSuggestions id="customer-categories" kind="customer_category" />
             </label>
             <label>
               Região
@@ -572,9 +552,11 @@ function ContactsEditor({
           <input
             aria-label="Cargo"
             placeholder="Cargo"
+            list="contact-roles"
             value={contact.role ?? ''}
             onChange={(event) => update(index, { role: event.target.value })}
           />
+          {index === 0 && <ListSuggestions id="contact-roles" kind="contact_role" />}
           <input
             aria-label="Telefone do contato"
             placeholder="Telefone"

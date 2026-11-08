@@ -79,6 +79,7 @@ export const hideCustomerDetails = (customer: MirrorSnapshot['customer']) =>
 
 interface CostedLine {
   type: 'product' | 'service';
+  group: string | null;
   subtotal: number;
   unitCost: number | null;
   quantity: number;
@@ -108,14 +109,16 @@ export function computeMargin(lines: CostedLine[], discount: number) {
   };
 }
 
-// Resumo por tipo, antes do desconto do documento.
-export function summarizeByType(lines: CostedLine[]) {
-  return (['product', 'service'] as const).flatMap((type) => {
-    const ofType = lines.filter((line) => line.type === type);
-    if (!ofType.length) return [];
-    const revenue = round2(ofType.reduce((sum, line) => sum + line.subtotal, 0));
-    const cost = sumCosts(ofType);
+const TYPE_LABEL = { product: 'Produtos', service: 'Serviços' } as const;
+
+// Resumo por grupo do produto, antes do desconto do documento. Item sem grupo fica em Produtos ou Serviços.
+export function summarizeByGroup(lines: CostedLine[]) {
+  const labels = [...new Set(lines.map((line) => line.group ?? TYPE_LABEL[line.type]))];
+  return labels.map((label) => {
+    const ofGroup = lines.filter((line) => (line.group ?? TYPE_LABEL[line.type]) === label);
+    const revenue = round2(ofGroup.reduce((sum, line) => sum + line.subtotal, 0));
+    const cost = sumCosts(ofGroup);
     const result = cost === null ? null : round2(revenue - cost);
-    return [{ type, revenue, cost, result, percent: result === null ? null : percentOf(result, revenue) }];
+    return { label, revenue, cost, result, percent: result === null ? null : percentOf(result, revenue) };
   });
 }

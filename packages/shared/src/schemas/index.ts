@@ -229,9 +229,33 @@ export const productSchema = z.object({
   cost: money.nullish(),
   stock: z.number().nonnegative('O estoque não pode ser negativo').max(1e9).nullish(),
   unit: z.enum(PRODUCT_UNITS).default('UN'),
+  groupName: optionalText(80),
   minStock: z.number().nonnegative('O estoque mínimo não pode ser negativo').max(1e9).nullish(),
 });
 export type ProductInput = z.input<typeof productSchema>;
+
+// Listas da empresa: valores sugeridos nos formulários, que continuam aceitando digitar outro.
+export const LIST_KINDS = [
+  'payment_method',
+  'payment_terms',
+  'opportunity_source',
+  'lost_reason',
+  'customer_category',
+  'contact_role',
+  'financial_category',
+  'product_group',
+] as const;
+export type ListKind = (typeof LIST_KINDS)[number];
+export const listItemSchema = z.object({
+  kind: z.enum(LIST_KINDS),
+  name: requiredText(80, 'Informe o nome'),
+});
+export type ListItemInput = z.input<typeof listItemSchema>;
+export const listItemUpdateSchema = z.object({
+  name: requiredText(80, 'Informe o nome'),
+  active: z.boolean(),
+});
+export type ListItemUpdateInput = z.input<typeof listItemUpdateSchema>;
 
 // Ajuste de estoque: entrada, saída ou contagem (o saldo passa a ser a quantidade informada).
 export const STOCK_ADJUSTMENT_KINDS = ['in', 'out', 'count'] as const;

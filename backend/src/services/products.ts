@@ -12,7 +12,7 @@ import { recordStock } from './stock.ts';
 
 const scoped = (ctx: Ctx, id: number) => and(eq(products.id, id), eq(products.companyId, ctx.companyId));
 
-const TRACKED = ['name', 'type', 'price', 'cost', 'stock', 'unit', 'minStock'] as const;
+const TRACKED = ['name', 'type', 'price', 'cost', 'stock', 'unit', 'minStock', 'groupName'] as const;
 
 // Serviço não controla estoque nem tem estoque mínimo.
 const normalize = (data: ReturnType<typeof productSchema.parse>) => ({

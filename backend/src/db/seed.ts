@@ -9,6 +9,7 @@ import { createBankAccount } from '../services/bankAccounts.ts';
 import { updateCompanySettings } from '../services/company.ts';
 import { createCustomer } from '../services/customers.ts';
 import { createExpense } from '../services/expenses.ts';
+import { createListItem } from '../services/lists.ts';
 import { addInteraction, createOpportunity, setStatus } from '../services/opportunities.ts';
 import { createOrder, settleReceivable, settleReceivables } from '../services/orders.ts';
 import { createProduct } from '../services/products.ts';
@@ -26,7 +27,7 @@ const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISO
 
 async function truncateAll() {
   await db.execute(rawSql`
-    TRUNCATE companies, users, sessions, people, person_contacts, person_addresses, products, opportunities, opportunity_items, pipeline_stages, interactions,
+    TRUNCATE companies, company_list_items, users, sessions, people, person_contacts, person_addresses, products, opportunities, opportunity_items, pipeline_stages, interactions,
              quotes, quote_items, orders, order_items, stock_movements, receivables, receivable_payments, bank_accounts, expenses, cash_transactions,
              audit_logs, events, access_groups, access_group_permissions RESTART IDENTITY CASCADE`);
 }
@@ -79,8 +80,20 @@ async function seedConvenience() {
       'Entrega em até 2 horas na região central. Pagamento em Pix, dinheiro ou cartão. Venda de bebida alcoólica proibida para menores de 18 anos.',
   });
 
+  // Grupos do produto: viram a lista da empresa e o resumo do espelho interno.
+  const GROUPS: [string, RegExp][] = [
+    ['Cervejas', /^Cerveja/],
+    ['Bebidas não alcoólicas', /^(Refrigerante|Água|Energético|Suco)/],
+    ['Vinhos e destilados', /^(Vinho|Vodka)/],
+    ['Gelo e carvão', /^(Gelo|Carvão)/],
+    ['Petiscos', /^Amendoim/],
+  ];
+  for (const [name] of GROUPS) await createListItem(owner, { kind: 'product_group', name });
+  for (const name of ['Cliente da casa', 'Balcão'])
+    await createListItem(owner, { kind: 'opportunity_source', name });
+  const groupOf = (name: string) => GROUPS.find(([, pattern]) => pattern.test(name))?.[0];
   const product = (name: string, price: number, cost: number, stock: number, minStock?: number) =>
-    createProduct(owner, { name, type: 'product', price, cost, stock, minStock });
+    createProduct(owner, { name, type: 'product', price, cost, stock, minStock, groupName: groupOf(name) });
   const pilsen = await product('Cerveja Pilsen lata 350 ml', 4.5, 2.9, 240, 60);
   const longNeck = await product('Cerveja Pilsen long neck 330 ml', 6.5, 4.2, 120);
   const pureMalt = await product('Cerveja Puro Malte lata 350 ml', 6, 3.8, 96, 24);

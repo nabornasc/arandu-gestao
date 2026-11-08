@@ -125,6 +125,32 @@ export const sessions = pgTable(
 
 // ---------- Cadastros ----------
 
+// Listas da empresa: valores sugeridos nos formulários. Os registros guardam o texto, então renomear
+// ou desativar um valor não muda o que já foi lançado.
+export const listKindEnum = pgEnum('list_kind', [
+  'payment_method',
+  'payment_terms',
+  'opportunity_source',
+  'lost_reason',
+  'customer_category',
+  'contact_role',
+  'financial_category',
+  'product_group',
+]);
+
+export const companyListItems = pgTable(
+  'company_list_items',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    kind: listKindEnum().notNull(),
+    name: varchar({ length: 80 }).notNull(),
+    active: boolean().notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('company_list_items_name_unique').on(t.companyId, t.kind, sql`lower(${t.name})`)],
+);
+
 export const products = pgTable(
   'products',
   {
@@ -137,6 +163,7 @@ export const products = pgTable(
     // NULL = não controla estoque (serviços).
     stock: quantity(),
     unit: varchar({ length: 4 }).notNull().default('UN'),
+    groupName: varchar({ length: 80 }),
     // Aviso de estoque baixo quando o saldo chega neste valor. NULL = sem aviso.
     minStock: quantity(),
     active: boolean().notNull().default(true),

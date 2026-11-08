@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS demo.meta (captured_on date NOT NULL);
 CREATE OR REPLACE FUNCTION demo.table_list() RETURNS text[]
 LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
   SELECT ARRAY[
-    'companies', 'access_groups', 'access_group_permissions', 'users', 'people', 'person_contacts',
+    'companies', 'company_list_items', 'access_groups', 'access_group_permissions', 'users', 'people', 'person_contacts',
     'person_addresses', 'products', 'pipeline_stages', 'opportunities', 'opportunity_items',
     'interactions', 'bank_accounts', 'expenses', 'quotes', 'quote_items', 'orders', 'order_items',
     'stock_movements',

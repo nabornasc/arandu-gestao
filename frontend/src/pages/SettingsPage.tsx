@@ -2,6 +2,7 @@ import { companySettingsSchema, LOGO_MAX_BYTES, type MeasureUnit } from '@arandu
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { EmptyState } from '../components/EmptyState.tsx';
+import { ListsSettings } from '../components/ListsSettings.tsx';
 import { useToast } from '../components/Toast.tsx';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
@@ -44,6 +45,8 @@ export default function SettingsPage() {
           <SettingsForm initial={query.data} readOnly={!can(profile, 'settings.update')} />
         )}
       </div>
+
+      <ListsSettings readOnly={!can(profile, 'settings.update')} />
     </section>
   );
 }

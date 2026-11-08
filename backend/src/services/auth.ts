@@ -11,6 +11,7 @@ import { conflict, forbidden, unauthorized } from '../lib/errors.ts';
 import { parse } from '../lib/validate.ts';
 import { createDefaultGroups } from './accessGroups.ts';
 import { audit } from './audit.ts';
+import { createDefaultLists } from './lists.ts';
 import { createDefaultStages } from './pipeline.ts';
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -95,6 +96,7 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
 
     const ownerGroupId = await createDefaultGroups(tx, company.id);
     await createDefaultStages(tx, company.id);
+    await createDefaultLists(tx, company.id);
     const [user] = await tx
       .insert(users)
       .values({

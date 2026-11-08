@@ -61,8 +61,8 @@ describe('espelho interno', () => {
     // Venda 400 - 40 de desconto = 360; custo 2 x 60 + 50 = 170.
     expect(body.margin).toEqual({ revenue: 360, cost: 170, result: 190, percent: 52.78, missingCost: 0 });
     expect(body.summary).toEqual([
-      { type: 'product', revenue: 200, cost: 120, result: 80, percent: 40 },
-      { type: 'service', revenue: 200, cost: 50, result: 150, percent: 75 },
+      { label: 'Produtos', revenue: 200, cost: 120, result: 80, percent: 40 },
+      { label: 'Serviços', revenue: 200, cost: 50, result: 150, percent: 75 },
     ]);
     expect(body.items[0]).toMatchObject({ name: 'Produto', type: 'product', unitCost: 60 });
     expect(body.internalNotes).toBe('Só para a empresa');
@@ -85,8 +85,8 @@ describe('espelho interno', () => {
       missingCost: 1,
     });
     expect(body.summary).toEqual([
-      { type: 'product', revenue: 100, cost: 60, result: 40, percent: 40 },
-      { type: 'service', revenue: 50, cost: null, result: null, percent: null },
+      { label: 'Produtos', revenue: 100, cost: 60, result: 40, percent: 40 },
+      { label: 'Serviços', revenue: 50, cost: null, result: null, percent: null },
     ]);
   });
 

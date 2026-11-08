@@ -10,6 +10,8 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Ajuste de estoque** com entrada, saída ou contagem e motivo obrigatório, pela permissão nova `products.adjust`, concedida na migração a quem já edita produtos. O saldo nunca fica negativo.
 - **Estoque mínimo com aviso** na lista de produtos e na visão geral.
 - **Unidade no produto:** UN, CX, KG, L, M ou M2.
+- **Listas da empresa**, em Configurações: formas e condições de pagamento, origens da oportunidade, motivos de perda, categorias de cliente, cargos de contato, categorias financeiras e grupos de produto. Os formulários sugerem esses valores e aceitam digitar outro. Desativar tira o valor das sugestões sem mudar os registros que já o usam.
+- **Grupo do produto**, sugerido pela lista, com o resumo do espelho interno por grupo.
 
 ### Alterado
 
