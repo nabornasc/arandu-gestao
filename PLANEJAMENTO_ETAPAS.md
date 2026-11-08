@@ -9,8 +9,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | Etapa | Conteúdo | Situação | Detalhes em |
 |---|---|---|---|
 | 1 | Fechar o que já está na `main` e resolver pendências pequenas | **Concluída em 07/11, v2.5.0** | Este arquivo |
-| 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Pronta no PR, aguardando a migração em produção** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
-| 3 | Listas configuráveis e grupo do produto | Planejada | [Listas](PLANEJAMENTO_LISTAS.md) |
+| 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Concluída em 07/11, em produção** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
+| 3 | Listas configuráveis e grupo do produto | **Próxima** | [Listas](PLANEJAMENTO_LISTAS.md) |
 | 4 | Central de relatórios com exportação em CSV | Planejada | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
 | 5 | Agenda: dia, semana, mês e lista | Planejada | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
@@ -45,7 +45,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 - Estoque mínimo com aviso.
 - Ajuste de estoque com motivo e histórico, criando o registro de movimentos.
 - Unidade padrão no produto: UN, CX, KG, L, M ou M2.
-- Feito em 07/11/2026, na branch `feat/estoque`. Fica para a etapa 7: ligar a unidade M2 às medidas do orçamento, porque muda o formulário e os espelhos.
+- Feito em 07/11/2026 (PR #18), em produção. Fica para a etapa 7: ligar a unidade M2 às medidas do orçamento, porque muda o formulário e os espelhos.
 
 ### Etapa 3: listas
 
