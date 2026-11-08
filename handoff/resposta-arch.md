@@ -166,8 +166,10 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
    - F4 novo orçamento, F6 novo pedido, F7 novo cliente, F8 produtos, F9 ou Ctrl+Enter salva, Alt+setas trocam de aba, Alt+X fecha a aba.
    - Correção: o `Modal` foca o campo com `data-autofocus` depois do `showModal()`.
    - Personalização dos atalhos por usuário fica para depois.
-3. **Cadastro rápido** de cliente e produto dentro do orçamento e do pedido: próxima.
-4. **Paginação e filtros no servidor:** depois.
+3. **Cadastro rápido:** concluída (PR #27, `d266cae`). "Novo cliente" e "Novo produto" dentro do orçamento e do pedido, já selecionando o item criado. Correção junto: o `Modal` para o `submit` na própria janela, porque salvar a janela salvava também o pedido de trás.
+4. **Paginação e filtros no servidor:** próxima.
 
-- **Produção:** partes 1 e 2 sem migração; a Vercel publica a partir da `main`.
+**Manuais de uso:** planejados em `PLANEJAMENTO_MANUAIS.md` (PR #28, `2856047`). Central `/ajuda`, botão "?" por tela, artigos em Markdown e vídeos curtos gerados por roteiros Playwright. Quatro decisões em aberto na seção 9, aguardando o usuário.
+
+- **Produção:** partes 1 a 3 sem migração; a Vercel publica a partir da `main`.
 - **No Windows:** `git pull --ff-only`. Nada a migrar.
