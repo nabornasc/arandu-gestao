@@ -158,7 +158,7 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 
 ## Atualização de 08/11/2026, etapa 6 (partes 1 e 2)
 
-**Etapa 6, navegação: em andamento.** Dividida em quatro partes.
+**Etapa 6, navegação: concluída.** Dividida em quatro partes.
 
 1. **Menu por módulos e páginas de módulo:** concluída (PR #23, `eb05ef7`). Menu em Início, Vendas, Financeiro, Cadastros, Gestão e Administração; cada módulo tem página de entrada com atalhos de criação conforme a permissão. Menu fixo no desktop.
 2. **Busca rápida e atalhos:** concluída (PR #26, `b4a28a8`).
@@ -167,9 +167,11 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
    - Correção: o `Modal` foca o campo com `data-autofocus` depois do `showModal()`.
    - Personalização dos atalhos por usuário fica para depois.
 3. **Cadastro rápido:** concluída (PR #27, `d266cae`). "Novo cliente" e "Novo produto" dentro do orçamento e do pedido, já selecionando o item criado. Correção junto: o `Modal` para o `submit` na própria janela, porque salvar a janela salvava também o pedido de trás.
-4. **Paginação e filtros no servidor:** próxima.
+4. **Paginação e filtros no servidor:** concluída (PR #30, `121d8c4`). Orçamentos, pedidos, contas a receber, contas a pagar e movimentações paginam (25/50/100) e somam os totais no servidor. A API aceita `page`, `pageSize`, `from`, `to`, `status` e `q`; sem `page`, mantém a lista simples. "Imprimir lista" virou "Imprimir página".
+
+**Etapa 6 concluída.** Também entrou a correção do menu no celular, que não rolava (PR #29, `daf8643`).
 
 **Manuais de uso:** planejados em `PLANEJAMENTO_MANUAIS.md` (PR #28, `2856047`). Central `/ajuda`, botão "?" por tela, artigos em Markdown e vídeos curtos gerados por roteiros Playwright. Quatro decisões em aberto na seção 9, aguardando o usuário.
 
-- **Produção:** partes 1 a 3 sem migração; a Vercel publica a partir da `main`.
+- **Produção:** partes 1 a 4 sem migração; a Vercel publica a partir da `main`.
 - **No Windows:** `git pull --ff-only`. Nada a migrar.
