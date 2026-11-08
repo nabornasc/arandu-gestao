@@ -175,3 +175,29 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 
 - **Produção:** partes 1 a 4 sem migração; a Vercel publica a partir da `main`.
 - **No Windows:** `git pull --ff-only`. Nada a migrar.
+
+## Atualização de 08/11/2026, etapa 7 (parte 1) e decisões dos manuais
+
+**Manuais:** decisões registradas em `PLANEJAMENTO_MANUAIS.md` (PR #31). Entram depois da etapa 7, mídia no repositório, Markdown convertido para HTML no build e vídeo sem som com legenda gravada.
+
+**Etapa 7, documentos: em andamento**, em quatro partes.
+
+1. **Ajustes do documento:** concluída e em produção (PR #32, `aebca15`).
+   - Validade em dias ligada à data; desconto em R$ ou % (orçamento e pedido); duplicar grupo; ocultar item no espelho do cliente.
+   - Migração `0020_espelho_item_oculto` (`quote_items.hidden_in_mirror`).
+2. Condições de pagamento cadastráveis: próxima.
+3. Biblioteca de textos e cláusulas, modelos de grupos, unidades e item avulso (movido da parte 1).
+4. Exportação em DOCX.
+
+- **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
+  - migração `0020` registrada no Drizzle;
+  - backup `backup_20261108_demo_item_oculto` (27 tabelas da cópia da demonstração) e `demo.capture()`, porque `demo.reset()` copia as colunas por posição;
+  - avisos de segurança do Supabase sem itens; espelho e paginação conferidos no ar.
+- **Backups para apagar no SQL Editor:**
+  ```sql
+  DROP SCHEMA backup_20261108_demo CASCADE;
+  DROP SCHEMA backup_20261108_demo_relatorios CASCADE;
+  DROP SCHEMA backup_20261108_demo_agenda CASCADE;
+  DROP SCHEMA backup_20261108_demo_item_oculto CASCADE;
+  ```
+- **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
