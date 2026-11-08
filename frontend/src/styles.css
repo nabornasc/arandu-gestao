@@ -2298,3 +2298,96 @@ th.numeric {
     padding: 3px;
   }
 }
+
+/* Menu por módulos e páginas de módulo */
+.nav-module + .nav-module {
+  margin-top: 14px;
+}
+a.nav-label {
+  text-decoration: none;
+  border-radius: 6px;
+}
+a.nav-label:hover,
+a.nav-label.active {
+  color: #fff;
+}
+.module-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  list-style: none;
+}
+.module-flow li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.module-flow a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f0ebff;
+  color: #4b2fa6;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+}
+.module-flow-arrow {
+  color: #6b6280;
+}
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.module-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+.module-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.module-card-head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.module-card-head a {
+  color: inherit;
+}
+.module-card-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f0ebff;
+  color: #6547b6;
+}
+.module-card p {
+  margin: 0;
+  color: #5d556f;
+  font-size: 13px;
+}
+.module-grid .module-card .button {
+  justify-self: start;
+  text-decoration: none;
+}
+/* No desktop, o menu fica fixo e rola sozinho: com os módulos, ele passa da altura da tela. */
+@media (min-width: 651px) {
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+}
+.nav-module .nav-item {
+  padding: 9px 13px;
+}

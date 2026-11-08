@@ -71,7 +71,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 ### Etapa 6: navegação
 
-- Menu por módulos e páginas de módulo.
+- Menu por módulos e páginas de módulo. Feito em 08/11/2026.
 - Cadastro rápido, busca rápida e atalhos de teclado.
 - Paginação no servidor. Os filtros de lista atuais trabalham na tela, sobre os 500 registros mais recentes que a API devolve.
 

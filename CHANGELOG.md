@@ -14,6 +14,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Grupo do produto**, sugerido pela lista, com o resumo do espelho interno por grupo.
 - **Relatórios:** 17 relatórios de vendas, financeiro, estoque e gestão, com busca, período, totais, impressão e paginação. Cada grupo vê só os relatórios dos módulos que já pode ver; custo e margem exigem `costs.read`. Permissão `reports.read` para todos os grupos na migração.
 - **Agenda:** tarefas e compromissos lançados à mão, com as próximas ações do CRM, a validade dos orçamentos enviados e as contas a receber e a pagar, nas visões dia, semana, mês e lista. Cada tipo pode ser escondido, e cada item exige a leitura do seu módulo. Permissões `agenda.*`, com escopo "só os próprios".
+- **Menu por módulos:** Início, Vendas, Financeiro, Cadastros, Gestão e Administração. Cada módulo tem uma página de entrada com um bloco por tela e os atalhos de criação que o grupo pode usar; a de Vendas mostra o fluxo CRM, orçamento, pedido e recebimento. No desktop, o menu fica fixo e rola sozinho.
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado

@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react';
 import { useSyncExternalStore } from 'react';
 import { NavLink } from 'react-router';
-import { navigation } from '../config/navigation.ts';
+import { MODULES, modulePath, navigation } from '../config/navigation.ts';
 import { can, type Profile } from '../lib/auth.ts';
 
 interface Props {
@@ -34,24 +34,42 @@ export function Sidebar({ profile, open, onClose }: Props) {
         </div>
 
         <nav aria-label="Menu principal">
-          <span className="nav-label">MENU PRINCIPAL</span>
-          {items.map(({ path, label, icon: Icon }) => (
-            <NavLink
-              key={path}
-              to={path}
-              end={path === '/'}
-              onClick={onClose}
-              className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon size={18} aria-hidden="true" />
-                  <span>{label}</span>
-                  {isActive && <ChevronRight size={16} className="nav-chevron" aria-hidden="true" />}
-                </>
-              )}
-            </NavLink>
-          ))}
+          {MODULES.map((module) => {
+            const inModule = items.filter((item) => item.module === module.key);
+            if (!inModule.length) return null;
+            return (
+              <div key={module.key} className="nav-module">
+                {module.page ? (
+                  <NavLink
+                    to={modulePath(module.key)}
+                    onClick={onClose}
+                    className={({ isActive }) => (isActive ? 'nav-label active' : 'nav-label')}
+                  >
+                    {module.label}
+                  </NavLink>
+                ) : (
+                  <span className="nav-label">{module.label}</span>
+                )}
+                {inModule.map(({ path, label, icon: Icon }) => (
+                  <NavLink
+                    key={path}
+                    to={path}
+                    end={path === '/'}
+                    onClick={onClose}
+                    className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon size={18} aria-hidden="true" />
+                        <span>{label}</span>
+                        {isActive && <ChevronRight size={16} className="nav-chevron" aria-hidden="true" />}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="sidebar-footer">

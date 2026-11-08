@@ -1,6 +1,6 @@
 import { type ComponentType, type LazyExoticComponent, lazy } from 'react';
 import { matchPath } from 'react-router';
-import { navigation } from '../config/navigation.ts';
+import { MODULES, modulePath, navigation } from '../config/navigation.ts';
 
 // Telas que podem ser abertas em abas. Cada uma é carregada só quando aberta pela primeira vez.
 interface PageDefinition {
@@ -20,7 +20,14 @@ const OpportunityDocument = lazy(() => import('../pages/OpportunityDocumentPage.
 const QuoteDocument = lazy(() => import('../pages/QuoteDocumentPage.tsx'));
 const OrderDocument = lazy(() => import('../pages/OrderDocumentPage.tsx'));
 
+const ModulePage = lazy(() => import('../pages/ModulePage.tsx'));
+
 const PAGES: PageDefinition[] = [
+  ...MODULES.filter((module) => module.page).map((module) => ({
+    pattern: modulePath(module.key),
+    title: module.label,
+    Component: ModulePage,
+  })),
   { pattern: '/', title: titleOf('/'), Component: lazy(() => import('../pages/DashboardPage.tsx')) },
   { pattern: '/agenda', title: titleOf('/agenda'), Component: lazy(() => import('../pages/AgendaPage.tsx')) },
   {
