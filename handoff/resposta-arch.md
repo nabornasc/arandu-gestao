@@ -185,7 +185,9 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 1. **Ajustes do documento:** concluída e em produção (PR #32, `aebca15`).
    - Validade em dias ligada à data; desconto em R$ ou % (orçamento e pedido); duplicar grupo; ocultar item no espelho do cliente.
    - Migração `0020_espelho_item_oculto` (`quote_items.hidden_in_mirror`).
-2. Condições de pagamento cadastráveis: próxima.
+2. **Condições de pagamento:** concluída e em produção (PR #33, `531684b`).
+   - Tabela `payment_conditions` (migração `0021`, com cinco condições padrão por empresa), cadastro em Configurações e escolha nas parcelas do orçamento e do pedido.
+   - Produção via MCP antes do merge: migração registrada, `GRANT`, RLS e policy `arandue_app_all`, `demo.table_list()` com a tabela nova, backup `backup_20261108_demo_condicoes` e `demo.capture()`. Avisos de segurança sem itens; `/payment-conditions` conferido no ar.
 3. Biblioteca de textos e cláusulas, modelos de grupos, unidades e item avulso (movido da parte 1).
 4. Exportação em DOCX.
 
@@ -199,5 +201,6 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   DROP SCHEMA backup_20261108_demo_relatorios CASCADE;
   DROP SCHEMA backup_20261108_demo_agenda CASCADE;
   DROP SCHEMA backup_20261108_demo_item_oculto CASCADE;
+  DROP SCHEMA backup_20261108_demo_condicoes CASCADE;
   ```
 - **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
