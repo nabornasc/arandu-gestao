@@ -17,6 +17,7 @@ export const ACTION_LABELS = {
   assign: 'Definir vendedor da carteira',
   configure: 'Configurar etapas do funil',
   adjust: 'Ajustar estoque',
+  receive: 'Receber',
   export: 'Exportar em CSV',
 } as const;
 export type ActionKey = keyof typeof ACTION_LABELS;
@@ -53,6 +54,11 @@ export const AREAS = {
   payables: {
     label: 'Contas a pagar (despesas)',
     actions: ['read', 'create', 'update', 'pay', 'reverse', 'delete'],
+  },
+  purchases: {
+    label: 'Compras',
+    actions: ['read', 'create', 'update', 'receive', 'cancel'],
+    actionLabels: { receive: 'Receber (estoque, custo e conta a pagar)' },
   },
   cash: { label: 'Movimentações de caixa', actions: CRUD },
   bank_accounts: { label: 'Contas bancárias', actions: CRUD },
@@ -97,6 +103,8 @@ const EXTRA_REQUIREMENTS: Partial<Record<Permission, Permission[]>> = {
   'opportunities.update': PICK_ITEMS,
   'access.manage': ['users.read'],
   'costs.read': ['products.read'],
+  'purchases.create': ['products.read', 'suppliers.read'],
+  'purchases.update': ['products.read', 'suppliers.read'],
 };
 
 export function requirementsOf(permission: Permission): Permission[] {

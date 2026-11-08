@@ -498,6 +498,28 @@ export const expensesPaySchema = z.object({
 });
 export type ExpensesPayInput = z.input<typeof expensesPaySchema>;
 
+// Compra simples: itens do fornecedor com custo. Ao receber, entra no estoque, atualiza o custo
+// e gera a conta a pagar.
+export const PURCHASE_STATUSES = ['draft', 'received', 'cancelled'] as const;
+export const purchaseSchema = z.object({
+  supplierId: id,
+  purchaseDate: isoDate,
+  dueDate: isoDate,
+  freight: money.default(0),
+  notes: optionalText(500),
+  items: z
+    .array(
+      z.object({
+        productId: id,
+        quantity: z.number().positive('A quantidade deve ser maior que zero').max(1e6),
+        unitCost: money,
+      }),
+    )
+    .min(1, 'Inclua ao menos um item')
+    .max(100),
+});
+export type PurchaseInput = z.input<typeof purchaseSchema>;
+
 export const TRANSACTION_TYPES = ['income', 'outcome'] as const;
 
 export const transactionSchema = z.object({

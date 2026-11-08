@@ -58,6 +58,7 @@ export const companies = pgTable('companies', {
   // Contadores da numeração por empresa (#001, #002...), para o número não revelar o volume de outras.
   orderSeq: integer().notNull().default(0),
   quoteSeq: integer().notNull().default(0),
+  purchaseSeq: integer().notNull().default(0),
   createdAt: createdAt(),
 });
 
@@ -612,6 +613,7 @@ export const stockMovementKindEnum = pgEnum('stock_movement_kind', [
   'sale',
   'return',
   'edit',
+  'purchase',
 ]);
 
 export const stockMovements = pgTable(
@@ -692,6 +694,47 @@ export const expensePayments = pgTable(
     reversalReason: varchar({ length: 255 }),
   },
   (t) => [index().on(t.expenseId), index().on(t.bankAccountId)],
+);
+
+export const purchaseStatusEnum = pgEnum('purchase_status', ['draft', 'received', 'cancelled']);
+
+// Compra simples do fornecedor. Ao receber: estoque, custo médio e conta a pagar (expenseId).
+export const purchases = pgTable(
+  'purchases',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    number: integer().notNull(),
+    supplierId: integer().references(() => people.id, { onDelete: 'set null' }),
+    purchaseDate: date({ mode: 'string' }).notNull(),
+    dueDate: date({ mode: 'string' }).notNull(),
+    status: purchaseStatusEnum().notNull().default('draft'),
+    freight: money().notNull().default(0),
+    total: money().notNull().default(0),
+    notes: varchar({ length: 500 }),
+    expenseId: integer().references(() => expenses.id, { onDelete: 'set null' }),
+    receivedAt: timestamp({ withTimezone: true }),
+    createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex().on(t.companyId, t.number), index().on(t.companyId, t.purchaseDate)],
+);
+
+export const purchaseItems = pgTable(
+  'purchase_items',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    purchaseId: integer()
+      .notNull()
+      .references(() => purchases.id, { onDelete: 'cascade' }),
+    productId: integer()
+      .notNull()
+      .references(() => products.id, { onDelete: 'restrict' }),
+    quantity: quantity().notNull(),
+    unitCost: money().notNull(),
+    subtotal: money().notNull(),
+  },
+  (t) => [index().on(t.purchaseId), index().on(t.productId)],
 );
 
 export const receivableStatusEnum = pgEnum('receivable_status', ['open', 'settled', 'cancelled']);

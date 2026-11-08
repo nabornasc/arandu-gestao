@@ -91,6 +91,8 @@ export const LABELS: Record<string, string> = {
   count: 'Contagem',
   sale: 'Venda',
   return: 'Devolução',
+  purchase: 'Compra',
+  received: 'Recebida',
   edit: 'Edição do cadastro',
 };
 

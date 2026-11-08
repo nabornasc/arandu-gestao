@@ -16,6 +16,7 @@ import {
   Receipt,
   Settings,
   ShieldCheck,
+  ShoppingCart,
   SquareKanban,
   Target,
   Truck,
@@ -137,6 +138,14 @@ export const navigation: NavItem[] = [
     permission: 'products.read',
     module: 'cadastros',
     description: 'Catálogo com preço, custo, grupo e estoque.',
+  },
+  {
+    path: '/compras',
+    label: 'Compras',
+    icon: ShoppingCart,
+    permission: 'purchases.read',
+    module: 'cadastros',
+    description: 'Compras do fornecedor: entrada no estoque, custo médio e conta a pagar.',
   },
   {
     path: '/clientes',

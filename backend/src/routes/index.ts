@@ -26,6 +26,7 @@ import * as pipeline from '../services/pipeline.ts';
 import * as preferences from '../services/preferences.ts';
 import * as pricing from '../services/pricing.ts';
 import * as products from '../services/products.ts';
+import * as purchases from '../services/purchases.ts';
 import * as quoteDocx from '../services/quoteDocx.ts';
 import * as quotes from '../services/quotes.ts';
 import * as reports from '../services/reports.ts';
@@ -399,6 +400,23 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       library.updateTemplate(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
     );
     protectedApp.get('/pricing/base', (request) => pricing.getPricingBase(ctxOf(request)));
+    protectedApp.get('/purchases', (request) => purchases.listPurchases(ctxOf(request)));
+    protectedApp.get('/purchases/:id', (request) =>
+      purchases.getPurchase(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
+    protectedApp.post('/purchases', async (request, reply) => {
+      reply.status(201);
+      return purchases.createPurchase(ctxOf(request), request.body as never);
+    });
+    protectedApp.put('/purchases/:id', (request) =>
+      purchases.updatePurchase(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
+    );
+    protectedApp.post('/purchases/:id/receive', (request) =>
+      purchases.receivePurchase(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
+    protectedApp.post('/purchases/:id/cancel', (request) =>
+      purchases.cancelPurchase(ctxOf(request), idParamSchema.parse(request.params).id, request.body),
+    );
     protectedApp.get('/goals', (request) => goals.getGoals(ctxOf(request), request.query));
     protectedApp.put('/goals', (request) => goals.saveGoals(ctxOf(request), request.body as never));
     protectedApp.get('/preferences/dashboard', (request) => preferences.getDashboardLayout(ctxOf(request)));

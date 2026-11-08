@@ -101,7 +101,7 @@ Em quatro partes:
 
 1. **9a. Entrega no pedido.** Feito em 08/11/2026: previsão de entrega no pedido, "Marcar como entregue" e "Desfazer entrega" no menu, situação na lista (data, atrasada ou entregue) e entregas pendentes na agenda. Migração `0026_entrega_pedido`.
 2. **9b. Baixas nas contas a pagar.** Feito em 08/11/2026: tabela `expense_payments` e `expenses.paid_amount` (migração `0027`; cada despesa já paga virou uma baixa, ligada à saída de caixa existente). Pagamento parcial, com juros e desconto, em lote e estorno com permissão própria (`payables.reverse`), senha e motivo. O cadastro continua como lançamento único: marcar "pago" quita o saldo e voltar para "pendente" estorna as baixas.
-3. 9c. Compras simples: entrada de estoque, custo e título a pagar.
+3. **9c. Compras simples.** Feito em 08/11/2026: tabelas `purchases` e `purchase_items` (migração `0028`), área de permissão `purchases` (ver, criar, editar, receber, cancelar). Rascunho editável; receber dá entrada no estoque (tipo "compra" no extrato), atualiza o custo médio ponderado e cria a conta a pagar do fornecedor (categoria Mercadorias). Cancelar a recebida devolve o estoque e apaga a conta a pagar sem pagamento; o custo médio não volta. O frete entra no total da conta, não no custo do produto.
 4. 9d. Renegociação de títulos e adiantamentos.
 
 ### Etapa 10: assistente de IA

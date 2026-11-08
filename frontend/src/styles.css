@@ -2864,3 +2864,13 @@ a.nav-label.active {
   list-style: none;
   font-size: 13px;
 }
+.modal fieldset.form-grid {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.purchase-total {
+  margin: 12px 0;
+  text-align: right;
+}

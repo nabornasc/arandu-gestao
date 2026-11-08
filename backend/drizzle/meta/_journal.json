@@ -197,6 +197,13 @@
       "when": 1794173721948,
       "tag": "0027_baixa_contas_pagar",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794175169524,
+      "tag": "0028_compras",
+      "breakpoints": true
     }
   ]
 }

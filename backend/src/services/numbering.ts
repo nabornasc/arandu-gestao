@@ -7,16 +7,20 @@ export const formatCode = (value: number) => `#${String(value).padStart(3, '0')}
 
 // Próximo número da empresa (#001, #002...). O UPDATE trava a linha da empresa até o fim da
 // transação, então duas vendas simultâneas nunca recebem o mesmo número.
-export async function nextNumber(tx: Transaction, ctx: Ctx, kind: 'order' | 'quote'): Promise<number> {
-  const set =
-    kind === 'order'
-      ? { orderSeq: sql`${companies.orderSeq} + 1` }
-      : { quoteSeq: sql`${companies.quoteSeq} + 1` };
+export async function nextNumber(
+  tx: Transaction,
+  ctx: Ctx,
+  kind: 'order' | 'quote' | 'purchase',
+): Promise<number> {
+  const column = { order: companies.orderSeq, quote: companies.quoteSeq, purchase: companies.purchaseSeq }[
+    kind
+  ];
+  const key = ({ order: 'orderSeq', quote: 'quoteSeq', purchase: 'purchaseSeq' } as const)[kind];
   const [row] = await tx
     .update(companies)
-    .set(set)
+    .set({ [key]: sql`${column} + 1` })
     .where(eq(companies.id, ctx.companyId))
-    .returning({ orderSeq: companies.orderSeq, quoteSeq: companies.quoteSeq });
+    .returning({ value: column });
   if (!row) throw new Error('Empresa não encontrada ao numerar.');
-  return kind === 'order' ? row.orderSeq : row.quoteSeq;
+  return row.value;
 }

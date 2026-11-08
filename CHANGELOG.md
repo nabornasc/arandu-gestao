@@ -30,6 +30,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Metas de venda** (Gestão): meta do mês para a empresa e para cada vendedor, com o vendido até agora, a projeção do mês no ritmo atual e o bloco "Metas do mês" na visão geral. Quem altera as configurações define as metas; mudanças ficam no histórico.
 - **Entrega no pedido:** previsão de entrega no pedido, "Marcar como entregue" e "Desfazer entrega" no menu de ações, situação na lista de pedidos (data prevista, atrasada ou entregue) e entregas pendentes na agenda.
 - **Baixas nas contas a pagar:** botão "Baixas" em cada despesa para pagar total ou parcial, com juros e desconto, ver as baixas e estornar (permissão nova `payables.reverse`, senha e motivo); "Pagar em lote" para várias contas de uma vez. A lista mostra o valor pago e o selo "Parcial", e os totais somam o pago e o saldo em aberto. As despesas já pagas viraram uma baixa cada, sem mudar o saldo.
+- **Compras** (Cadastros): compra do fornecedor com itens e custo, em rascunho. "Receber" dá entrada no estoque, atualiza o custo médio do produto e cria a conta a pagar; "Cancelar" devolve o estoque e apaga a conta a pagar ainda sem pagamento. Permissões próprias (área "Compras").
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado

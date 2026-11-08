@@ -30,6 +30,11 @@ const PAGES: PageDefinition[] = [
   })),
   { pattern: '/', title: titleOf('/'), Component: lazy(() => import('../pages/DashboardPage.tsx')) },
   { pattern: '/agenda', title: titleOf('/agenda'), Component: lazy(() => import('../pages/AgendaPage.tsx')) },
+  {
+    pattern: '/compras',
+    title: titleOf('/compras'),
+    Component: lazy(() => import('../pages/PurchasesPage.tsx')),
+  },
   { pattern: '/metas', title: titleOf('/metas'), Component: lazy(() => import('../pages/GoalsPage.tsx')) },
   {
     pattern: '/precificacao',

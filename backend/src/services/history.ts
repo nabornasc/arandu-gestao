@@ -85,6 +85,12 @@ const ENTITIES: Record<string, EntityInfo> = {
     path: listPath('/relatorios'),
     open: 'Abrir relatórios',
   },
+  purchase: {
+    noun: 'a compra',
+    module: 'Compras',
+    path: listPath('/compras'),
+    open: 'Abrir compras',
+  },
   sales_goal: {
     noun: 'as metas de venda',
     module: 'Gestão',
@@ -185,7 +191,6 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   receivable: { label: 'Baixa de parcela', kind: 'text' },
   reversal: { label: 'Estorno de baixa', kind: 'text' },
   payment: { label: 'Pagamento', kind: 'text' },
-  supplier: { label: 'Fornecedor', kind: 'text' },
   // Produtos.
   name: { label: 'Nome', kind: 'text' },
   type: { label: 'Tipo', kind: 'status' },
@@ -201,6 +206,9 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   active: { label: 'Ativo', kind: 'boolean' },
   terms: { label: 'Entrada e prazos', kind: 'text' },
   goal: { label: 'Meta da empresa', kind: 'money' },
+  supplier: { label: 'Fornecedor', kind: 'text' },
+  purchaseDate: { label: 'Data da compra', kind: 'date' },
+  dueDate: { label: 'Vencimento', kind: 'date' },
   deliveryDate: { label: 'Previsão de entrega', kind: 'date' },
   deliveredOn: { label: 'Entregue em', kind: 'date' },
   clauses: { label: 'Cláusulas', kind: 'text' },
