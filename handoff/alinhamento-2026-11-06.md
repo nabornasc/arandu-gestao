@@ -76,7 +76,11 @@ As decisões pendentes e a correspondência com os rótulos antigos de versão e
 **Migrações em produção**
 
 - Tabela nova precisa de `GRANT` para `arandue_app`, `REVOKE` de `anon` e `authenticated`, RLS, a policy `arandue_app_all` e inclusão em `demo.table_list()` e `scripts/supabase-demo.sql`.
-- Migração com remoção de dados ou de coluna vai em um arquivo `.sql`, testado antes em banco temporário, e o usuário roda no SQL Editor do Supabase. Se a ferramenta recusar um comando destrutivo, não contorne.
+- **Acesso do Claude à produção (liberado pelo usuário em 07/11/2026):** o Claude das duas estações aplica migrações e roda SQL no Supabase pelo MCP, sem pedir confirmação a cada passo. O servidor MCP `supabase` fica restrito ao projeto (`?project_ref=whaunqisvvhubzmesudw`), e `~/.claude/settings.json` libera `execute_sql`, `apply_migration`, `list_migrations`, `list_tables` e `get_advisors`.
+- **Única ressalva: mudança crítica exige backup manual antes.** É crítica a mudança que remove ou reescreve dados ou estrutura: `DROP`, `TRUNCATE`, `DELETE` ou `UPDATE` em massa, `ALTER` que remove coluna ou muda tipo, `demo.reset()` e `demo.capture()`. Antes dela, copie as tabelas afetadas para um schema `backup_AAAAMMDD_HHMM` com `CREATE TABLE backup_….tabela AS TABLE public.tabela`, sem acesso externo (`REVOKE ALL ON SCHEMA … FROM PUBLIC`). Registre o schema na resposta do handoff e apague-o depois de conferir o resultado.
+- **Limite conhecido:** o próprio Supabase pede confirmação para comandos destrutivos, e uma sessão sem tela de confirmação recebe `declined`. Nesse caso, não contorne: rode numa sessão interativa, que mostra a pergunta, ou entregue o SQL para o usuário colar no SQL Editor.
+- Migração com remoção de dados ou de coluna continua em um arquivo `.sql`, testado antes em banco temporário.
+- Aplicar a migração do repositório pelo MCP: rode o `.sql` dentro de uma transação e registre a linha em `drizzle.__drizzle_migrations`, com o `sha256` do arquivo e o `when` do `_journal.json`. Assim o `migrate.ts` não tenta aplicá-la de novo.
 - Depois de testar em produção, restaure a demonstração com `demo.reset()`. Se os dados de exemplo mudarem, rode também `demo.capture()`.
 
 ## 5. Resposta

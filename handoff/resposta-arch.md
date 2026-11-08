@@ -91,3 +91,14 @@ Se a restauração agendada rodar entre os passos 4 e 6, ela falha sem mudar nad
 
 No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os novos exemplos, mas apaga os dados locais.
 
+## Atualização de 07/11/2026, fim do dia
+
+- **Etapa 2 em produção:** a migração `0016_estoque` foi aplicada pelo Claude do notebook via MCP, com registro em `drizzle.__drizzle_migrations`. O usuário rodou no SQL Editor a segurança, a lista da demonstração, o estoque mínimo e o `demo.capture()`. PR #18 mesclado (`6f8c766`), deploy no ar e conferido.
+- **Novo padrão de acesso ao Supabase:** está na seção 4 do alinhamento. No Windows, aplique a mesma configuração:
+  ```bat
+  claude mcp remove supabase -s user
+  claude mcp add -s user --transport http supabase "https://mcp.supabase.com/mcp?project_ref=whaunqisvvhubzmesudw"
+  ```
+  Depois, faça o login com `/mcp` e copie para `~/.claude/settings.json` a lista `permissions.allow` do notebook: `mcp__supabase__*` e `mcp__claude_ai_Supabase__*` para `execute_sql`, `apply_migration`, `list_migrations`, `list_tables` e `get_advisors`.
+- **Teste do acesso:** a escrita comum passou. `DELETE` e `DROP` vieram como `declined`, porque a confirmação de comando destrutivo é do Supabase e não aparece nesta sessão.
+
