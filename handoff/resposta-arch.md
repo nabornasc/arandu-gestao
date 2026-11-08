@@ -210,8 +210,8 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 **Etapa 9, operações: em andamento**, em quatro partes.
 
 1. **9a. Entrega no pedido:** concluída e em produção (PR #40, `15758d2`). Previsão, marcar/desfazer entrega, situação na lista e agenda. Migração `0026` (colunas novas); backup `backup_20261108_demo_entrega` e `demo.capture()`.
-2. 9b. Contas a pagar com baixa parcial, em lote e estorno: próxima.
-3. 9c. Compras simples.
+2. **9b. Baixas nas contas a pagar:** concluída e em produção (PR #41, `7135034`). `expense_payments`, `expenses.paid_amount`, permissão `payables.reverse`. Migração `0027` com conversão das despesas pagas em baixas; o `DROP INDEX` do índice único foi rodado pelo usuário no SQL Editor (o MCP recusa DROP), o restante pelo Claude via MCP. Saldo conferido antes e depois (igual). Backup `backup_20261108_pagar` (expenses, cash_transactions e a cópia da demo) e `demo.capture()`.
+3. 9c. Compras simples: próxima.
 4. 9d. Renegociação e adiantamentos.
 
 - **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
@@ -230,5 +230,6 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   DROP SCHEMA backup_20261108_demo_dashboard CASCADE;
   DROP SCHEMA backup_20261108_demo_metas CASCADE;
   DROP SCHEMA backup_20261108_demo_entrega CASCADE;
+  DROP SCHEMA backup_20261108_pagar CASCADE;
   ```
 - **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
