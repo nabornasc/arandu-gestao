@@ -207,12 +207,15 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 
 ## Atualização de 08/11/2026, etapa 9
 
-**Etapa 9, operações: em andamento**, em quatro partes.
+**Etapa 9, operações: concluída**, em quatro partes.
 
 1. **9a. Entrega no pedido:** concluída e em produção (PR #40, `15758d2`). Previsão, marcar/desfazer entrega, situação na lista e agenda. Migração `0026` (colunas novas); backup `backup_20261108_demo_entrega` e `demo.capture()`.
 2. **9b. Baixas nas contas a pagar:** concluída e em produção (PR #41, `7135034`). `expense_payments`, `expenses.paid_amount`, permissão `payables.reverse`. Migração `0027` com conversão das despesas pagas em baixas; o `DROP INDEX` do índice único foi rodado pelo usuário no SQL Editor (o MCP recusa DROP), o restante pelo Claude via MCP. Saldo conferido antes e depois (igual). Backup `backup_20261108_pagar` (expenses, cash_transactions e a cópia da demo) e `demo.capture()`.
 3. **9c. Compras simples:** concluída e em produção (PR #42, `2e848ab`). `purchases`/`purchase_items`, área `purchases`, receber (estoque, custo médio, conta a pagar) e cancelar. Migração `0028`; backup `backup_20261108_demo_compras` e `demo.capture()`.
-4. 9d. Renegociação (9d1) e adiantamentos (9d2): próxima.
+4. **9d1. Renegociação:** concluída e em produção (PR #43, `f98b593`). Status `renegotiated`, permissão `receivables.renegotiate`, botão no pedido. Migração `0029` (só valor de enum).
+5. **9d2. Adiantamentos:** concluída e em produção (PR #44, `18539c9`). `customer_advances`, baixa com "Usar adiantamento" sem nova entrada no caixa, aba na ficha do cliente. Migração `0030`; backup `backup_20261108_demo_adiantamentos` e `demo.capture()`.
+
+**Etapa 9 concluída.** Próximo, pela ordem do usuário: manuais de uso (`PLANEJAMENTO_MANUAIS.md`, fase M1); por último, a etapa 10 (IA e bot).
 
 - **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
   - migração `0020` registrada no Drizzle;
@@ -232,5 +235,6 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   DROP SCHEMA backup_20261108_demo_entrega CASCADE;
   DROP SCHEMA backup_20261108_pagar CASCADE;
   DROP SCHEMA backup_20261108_demo_compras CASCADE;
+  DROP SCHEMA backup_20261108_demo_adiantamentos CASCADE;
   ```
 - **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
