@@ -22,6 +22,7 @@ import { db, type Transaction } from '../db/client.ts';
 import {
   bankAccounts,
   cashTransactions,
+  customerAdvances,
   opportunities,
   orderItems,
   orders,
@@ -166,6 +167,8 @@ type Payment = {
   received: number;
   method?: string | null;
   notes?: string | null;
+  // Paga com o adiantamento do cliente: registra o uso do crédito e não entra no caixa.
+  fromAdvance?: boolean;
 };
 
 // Registra a baixa e abate o saldo. O valor recebido, se houver, entra no caixa com a data informada.
@@ -178,7 +181,7 @@ async function recordPayment(
   titleCount: number,
   payment: Payment,
 ) {
-  if (payment.received > 0 && !payment.accountId) {
+  if (payment.received > 0 && !payment.accountId && !payment.fromAdvance) {
     throw badRequest('Cadastre uma conta bancária para registrar o recebimento.');
   }
   const paidAmount = round2(title.paidAmount + payment.principal);
@@ -199,9 +202,22 @@ async function recordPayment(
       method: payment.method ?? title.method,
       notes: payment.notes ?? null,
       createdBy: ctx.userId,
+      fromAdvance: payment.fromAdvance ?? false,
     })
     .returning({ id: receivablePayments.id });
-  if (row && payment.received > 0 && payment.accountId) {
+  if (row && payment.fromAdvance && payment.received > 0 && order.customerId) {
+    await tx.insert(customerAdvances).values({
+      companyId: ctx.companyId,
+      customerId: order.customerId,
+      kind: 'use',
+      amount: payment.received,
+      date: payment.paidOn,
+      paymentId: row.id,
+      notes: `Pedido ${formatCode(order.number)}`,
+      createdBy: ctx.userId,
+    });
+  }
+  if (row && payment.received > 0 && payment.accountId && !payment.fromAdvance) {
     const part = titleCount > 1 ? ` (parcela ${title.position}/${titleCount})` : '';
     await tx.insert(cashTransactions).values({
       companyId: ctx.companyId,
@@ -246,10 +262,26 @@ async function settleTitle(
 // Estorna todas as baixas do pedido, ao cancelar ou voltar para pendente. O motivo fica em cada baixa.
 async function reverseAllPayments(tx: Transaction, ctx: Ctx, orderId: number, reason: string) {
   await tx.delete(cashTransactions).where(eq(cashTransactions.orderId, orderId));
-  await tx
+  const reversed = await tx
     .update(receivablePayments)
     .set({ reversedAt: new Date(), reversedBy: ctx.userId, reversalReason: reason })
-    .where(and(eq(receivablePayments.orderId, orderId), isNull(receivablePayments.reversedAt)));
+    .where(and(eq(receivablePayments.orderId, orderId), isNull(receivablePayments.reversedAt)))
+    .returning({ id: receivablePayments.id });
+  await releaseAdvances(
+    tx,
+    ctx,
+    reversed.map((row) => row.id),
+    reason,
+  );
+}
+
+// Estornar a baixa paga com adiantamento devolve o crédito ao cliente.
+async function releaseAdvances(tx: Transaction, ctx: Ctx, paymentIds: number[], reason: string) {
+  if (!paymentIds.length) return;
+  await tx
+    .update(customerAdvances)
+    .set({ reversedAt: new Date(), reversedBy: ctx.userId, reversalReason: reason })
+    .where(and(inArray(customerAdvances.paymentId, paymentIds), isNull(customerAdvances.reversedAt)));
 }
 
 async function resolveAccount(tx: Transaction, ctx: Ctx, orderId: number, requested?: number | null) {
@@ -906,6 +938,7 @@ function selectReceivables() {
       id: receivables.id,
       orderId: receivables.orderId,
       number: orders.number,
+      customerId: orders.customerId,
       customerName: people.name,
       orderDate: orders.orderDate,
       position: receivables.position,
@@ -1080,6 +1113,16 @@ export async function settleReceivables(ctx: Ctx, input: ReceivablesSettleInput)
       .orderBy(asc(orders.id))
       .for('update');
     const paidOn = data.settledOn ?? todayInBrazil();
+    // Com adiantamento: todas as contas do mesmo cliente, e o saldo de crédito precisa cobrir as baixas.
+    let credit = 0;
+    if (data.useAdvance) {
+      const customers = new Set(locked.map((order) => order.customerId));
+      const [customerId] = [...customers];
+      if (customers.size !== 1 || !customerId) {
+        throw badRequest('Para usar adiantamento, escolha contas de um mesmo cliente.');
+      }
+      credit = await advanceBalance(tx, ctx.companyId, customerId);
+    }
 
     for (const order of locked) {
       const titles = await tx
@@ -1088,7 +1131,7 @@ export async function settleReceivables(ctx: Ctx, input: ReceivablesSettleInput)
         .where(and(eq(receivables.orderId, order.id), ne(receivables.status, 'renegotiated')))
         .orderBy(asc(receivables.position))
         .for('update');
-      const accountId = await resolveAccount(tx, ctx, order.id, data.bankAccountId);
+      const accountId = data.useAdvance ? null : await resolveAccount(tx, ctx, order.id, data.bankAccountId);
       const notes: string[] = [];
       const settled = new Set(titles.filter((title) => title.status === 'settled').map((title) => title.id));
 
@@ -1106,12 +1149,19 @@ export async function settleReceivables(ctx: Ctx, input: ReceivablesSettleInput)
           continue;
         }
         const values = paymentValues(title, titles.length, item);
+        if (data.useAdvance) {
+          if (values.received > round2(credit)) {
+            throw badRequest(`Saldo de adiantamento insuficiente: disponível ${round2(credit).toFixed(2)}.`);
+          }
+          credit -= values.received;
+        }
         const status = await recordPayment(tx, ctx, order, title, titles.length, {
           ...values,
           accountId,
           paidOn,
-          method: data.method,
+          method: data.useAdvance ? (data.method ?? 'Adiantamento') : data.method,
           notes: data.notes,
+          fromAdvance: data.useAdvance,
         });
         if (status === 'settled') settled.add(title.id);
         const extras = [
@@ -1198,6 +1248,7 @@ export async function reversePayment(ctx: Ctx, id: number, input: unknown) {
       .update(receivablePayments)
       .set({ reversedAt: new Date(), reversedBy: ctx.userId, reversalReason: reason })
       .where(eq(receivablePayments.id, id));
+    await releaseAdvances(tx, ctx, [id], reason);
     await tx
       .update(receivables)
       .set({ status: 'open', paidAmount: round2(title.paidAmount - payment.principal) })
@@ -1345,4 +1396,24 @@ export async function renegotiateReceivables(ctx: Ctx, orderId: number, input: R
     );
   });
   return getOrder(ctx, orderId);
+}
+
+// Saldo de adiantamento do cliente: créditos ativos menos usos ativos.
+export async function advanceBalance(tx: Transaction | typeof db, companyId: number, customerId: number) {
+  const [row] = await tx
+    .select({
+      balance:
+        sql<number>`coalesce(sum(case when ${customerAdvances.kind} = 'advance' then ${customerAdvances.amount} else -${customerAdvances.amount} end), 0)`.mapWith(
+          Number,
+        ),
+    })
+    .from(customerAdvances)
+    .where(
+      and(
+        eq(customerAdvances.companyId, companyId),
+        eq(customerAdvances.customerId, customerId),
+        isNull(customerAdvances.reversedAt),
+      ),
+    );
+  return round2(row?.balance ?? 0);
 }

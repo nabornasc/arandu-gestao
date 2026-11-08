@@ -13,6 +13,7 @@ interface Receivable {
   id: number;
   orderId: number;
   number: number;
+  customerId: number | null;
   customerName: string | null;
   position: number;
   titleCount: number;
@@ -67,6 +68,7 @@ export default function ReceivablesPage() {
   const targets: SettleTarget[] = (settling ?? []).map((item) => ({
     id: item.id,
     label: titleOf(item),
+    customerId: item.customerId,
     customerName: item.customerName,
     balance: balanceOf(item),
   }));

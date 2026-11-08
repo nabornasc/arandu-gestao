@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { db } from '../db/client.ts';
 import { ctxOf, requireAuth } from '../plugins/auth.ts';
 import * as accessGroups from '../services/accessGroups.ts';
+import * as advances from '../services/advances.ts';
 import * as agenda from '../services/agenda.ts';
 import * as bankAccounts from '../services/bankAccounts.ts';
 import * as company from '../services/company.ts';
@@ -132,6 +133,20 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       remove: bankAccounts.deleteBankAccount,
     });
     const passwordLimit = { rateLimit: { max: 10, timeWindow: '1 minute' } };
+    protectedApp.get('/customers/:id/advances', (request) =>
+      advances.listAdvances(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
+    protectedApp.post('/customers/:id/advances', async (request, reply) => {
+      reply.status(201);
+      return advances.createAdvance(
+        ctxOf(request),
+        idParamSchema.parse(request.params).id,
+        request.body as never,
+      );
+    });
+    protectedApp.post('/advances/:id/reverse', { config: passwordLimit }, (request) =>
+      advances.reverseAdvance(ctxOf(request), idParamSchema.parse(request.params).id, request.body),
+    );
     protectedApp.post('/expenses/pay', (request) =>
       expenses.payExpenses(ctxOf(request), request.body as never),
     );

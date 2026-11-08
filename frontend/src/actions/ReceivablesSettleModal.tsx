@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
+import { useAdvances } from '../components/CustomerAdvances.tsx';
 import { useAccountOptions } from '../components/FormModal.tsx';
 import { METHODS } from '../components/InstallmentsEditor.tsx';
 import { Modal } from '../components/Modal.tsx';
@@ -9,6 +10,7 @@ import { formatMoney, todayIso } from '../lib/format.ts';
 export interface SettleTarget {
   id: number;
   label: string;
+  customerId?: number | null;
   customerName: string | null;
   balance: number;
 }
@@ -44,6 +46,12 @@ export function ReceivablesSettleModal({ targets, onClose, onSettled }: Props) {
   const [method, setMethod] = useState('');
   const [notes, setNotes] = useState('');
   const [rows, setRows] = useState<Record<number, Row>>({});
+  // Adiantamento: só quando todas as contas são do mesmo cliente e ele tem saldo.
+  const customers = new Set(targets.map((target) => target.customerId ?? null));
+  const [onlyCustomer] = [...customers];
+  const advances = useAdvances(customers.size === 1 && onlyCustomer ? onlyCustomer : null);
+  const credit = advances.data?.balance ?? 0;
+  const [useAdvance, setUseAdvance] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const rowOf = (id: number): Row => rows[id] ?? { received: null, interest: '', discount: '' };
@@ -60,7 +68,8 @@ export function ReceivablesSettleModal({ targets, onClose, onSettled }: Props) {
   function submit(event: FormEvent) {
     event.preventDefault();
     settle.mutate({
-      bankAccountId: bankAccountId ? Number(bankAccountId) : null,
+      useAdvance,
+      bankAccountId: !useAdvance && bankAccountId ? Number(bankAccountId) : null,
       settledOn,
       method,
       notes,
@@ -92,11 +101,23 @@ export function ReceivablesSettleModal({ targets, onClose, onSettled }: Props) {
               onChange={(event) => setSettledOn(event.target.value)}
             />
           </label>
+          {credit > 0 && (
+            <label className="checkbox full-row">
+              <input
+                type="checkbox"
+                name="useAdvance"
+                checked={useAdvance}
+                onChange={(event) => setUseAdvance(event.target.checked)}
+              />
+              {`Usar adiantamento do cliente (saldo ${formatMoney(credit)}) — não entra de novo no caixa`}
+            </label>
+          )}
           <label>
             Conta de recebimento
             <select
               name="bankAccountId"
               value={bankAccountId}
+              disabled={useAdvance}
               onChange={(event) => setBankAccountId(event.target.value)}
             >
               <option value="">Conta padrão</option>

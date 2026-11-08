@@ -792,8 +792,37 @@ export const receivablePayments = pgTable(
     reversedAt: timestamp({ withTimezone: true }),
     reversedBy: integer().references(() => users.id, { onDelete: 'set null' }),
     reversalReason: varchar({ length: 255 }),
+    // Paga com o adiantamento do cliente: não entra de novo no caixa.
+    fromAdvance: boolean().notNull().default(false),
   },
   (t) => [index().on(t.receivableId), index().on(t.orderId), index().on(t.bankAccountId)],
+);
+
+export const advanceKindEnum = pgEnum('advance_kind', ['advance', 'use']);
+
+// Adiantamentos do cliente: o crédito recebido (entra no caixa) e cada uso numa baixa. Saldo =
+// adiantamentos ativos − usos ativos. Estorno mantém o registro, com o motivo.
+export const customerAdvances = pgTable(
+  'customer_advances',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    customerId: integer()
+      .notNull()
+      .references(() => people.id, { onDelete: 'cascade' }),
+    kind: advanceKindEnum().notNull(),
+    amount: money().notNull(),
+    date: date({ mode: 'string' }).notNull(),
+    bankAccountId: integer().references(() => bankAccounts.id, { onDelete: 'set null' }),
+    paymentId: integer().references(() => receivablePayments.id, { onDelete: 'cascade' }),
+    notes: varchar({ length: 255 }),
+    createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+    reversedAt: timestamp({ withTimezone: true }),
+    reversedBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    reversalReason: varchar({ length: 255 }),
+  },
+  (t) => [index().on(t.companyId, t.customerId), index().on(t.paymentId)],
 );
 
 export const cashTransactions = pgTable(
@@ -813,6 +842,7 @@ export const cashTransactions = pgTable(
     paymentId: integer().references(() => receivablePayments.id, { onDelete: 'cascade' }),
     // Uma saída por baixa da despesa (expenseId continua marcando a origem).
     expensePaymentId: integer().references(() => expensePayments.id, { onDelete: 'cascade' }),
+    advanceId: integer().references((): AnyPgColumn => customerAdvances.id, { onDelete: 'cascade' }),
     createdAt: createdAt(),
   },
   (t) => [
@@ -822,6 +852,7 @@ export const cashTransactions = pgTable(
     uniqueIndex().on(t.paymentId),
     index().on(t.expenseId),
     uniqueIndex().on(t.expensePaymentId),
+    uniqueIndex().on(t.advanceId),
   ],
 );
 

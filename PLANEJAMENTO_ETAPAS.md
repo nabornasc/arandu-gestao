@@ -16,7 +16,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
 | 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
-| 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | **Em andamento** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
+| 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
 | 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 10 |
 
 **Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Ordem decidida pelo usuário em 08/11/2026: etapa 9 inteira, depois os manuais e, por último, a etapa 10 (IA e bot).
@@ -104,7 +104,7 @@ Em quatro partes:
 3. **9c. Compras simples.** Feito em 08/11/2026: tabelas `purchases` e `purchase_items` (migração `0028`), área de permissão `purchases` (ver, criar, editar, receber, cancelar). Rascunho editável; receber dá entrada no estoque (tipo "compra" no extrato), atualiza o custo médio ponderado e cria a conta a pagar do fornecedor (categoria Mercadorias). Cancelar a recebida devolve o estoque e apaga a conta a pagar sem pagamento; o custo médio não volta. O frete entra no total da conta, não no custo do produto.
 4. 9d. Em duas entregas:
    - **9d1. Renegociação.** Feito em 08/11/2026: "Renegociar parcelas" no pedido pendente transforma o saldo em aberto em novas parcelas (pela condição de pagamento ou à mão), com motivo e permissão própria (`receivables.renegotiate`). Parcela com pagamento parcial fica quitada no valor pago; as sem pagamento ficam "renegociadas" e saem das somas; as que valem são renumeradas. Sem juros nem desconto, para não mudar o total do pedido. Migração `0029`.
-   - 9d2. Adiantamentos do cliente.
+   - **9d2. Adiantamentos do cliente.** Feito em 08/11/2026: tabela `customer_advances` (adiantamentos e usos) e `receivable_payments.from_advance` (migração `0030`). O adiantamento entra no caixa (categoria Adiantamentos) e vira crédito; a baixa com "Usar adiantamento" quita contas do mesmo cliente sem nova entrada no caixa; estornar essa baixa devolve o crédito; estornar o adiantamento só vale se o crédito não foi usado. Seção na ficha do cliente.
 
 ### Etapa 10: assistente de IA
 

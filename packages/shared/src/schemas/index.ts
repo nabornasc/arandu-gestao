@@ -633,6 +633,8 @@ const cents = money.refine((value) => Math.abs(value * 100 - Math.round(value * 
 // Baixa em uma ou mais contas. Sem valor recebido, quita o saldo (mais juros, menos desconto).
 export const receivablesSettleSchema = z.object({
   bankAccountId: id.nullish(),
+  // Paga com o saldo de adiantamento do cliente (todas as contas do mesmo cliente), sem entrar no caixa.
+  useAdvance: z.boolean().default(false),
   settledOn: isoDate.optional(),
   method: optionalText(40),
   notes: optionalText(255),
@@ -652,6 +654,15 @@ export const receivablesSettleSchema = z.object({
     }),
 });
 export type ReceivablesSettleInput = z.input<typeof receivablesSettleSchema>;
+
+// Adiantamento do cliente: entra no caixa e vira crédito para quitar contas a receber.
+export const advanceSchema = z.object({
+  amount: z.number().positive('Informe o valor').max(1e9),
+  date: isoDate,
+  bankAccountId: id,
+  notes: optionalText(255),
+});
+export type AdvanceInput = z.input<typeof advanceSchema>;
 
 // Renegociação: o saldo em aberto do pedido vira novas parcelas, com o motivo no histórico.
 export const receivablesRenegotiateSchema = z.object({

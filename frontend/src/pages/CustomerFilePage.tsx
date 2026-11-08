@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link } from 'react-router';
+import { CustomerAdvances } from '../components/CustomerAdvances.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { useToast } from '../components/Toast.tsx';
 import { api } from '../lib/api.ts';
@@ -120,6 +121,7 @@ const TABS = [
   ['quotes', 'Orçamentos'],
   ['orders', 'Pedidos'],
   ['finance', 'Financeiro'],
+  ['advances', 'Adiantamentos'],
 ] as const;
 type TabKey = (typeof TABS)[number][0];
 
@@ -142,7 +144,9 @@ export default function CustomerFilePage() {
 
 function CustomerFileView({ file }: { file: CustomerFile }) {
   const { customer } = file;
+  const profile = useProfile();
   const available = TABS.filter(([key]) => {
+    if (key === 'advances') return can(profile, 'receivables.read');
     if (key === 'history' || key === 'opportunities') return file.opportunities !== null;
     if (key === 'summary') return file.summary !== null;
     return file[key] !== null;
@@ -195,6 +199,9 @@ function CustomerFileView({ file }: { file: CustomerFile }) {
             {active === 'quotes' && <QuotesTab file={file} />}
             {active === 'orders' && <OrdersTab file={file} />}
             {active === 'finance' && file.finance && <FinanceTab finance={file.finance} />}
+            {active === 'advances' && (
+              <CustomerAdvances customerId={customer.id} customerName={customer.name} />
+            )}
           </div>
         </div>
         <aside className="panel customer-file-side" aria-label="Dados do cliente">

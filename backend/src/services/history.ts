@@ -191,6 +191,7 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   receivable: { label: 'Baixa de parcela', kind: 'text' },
   reversal: { label: 'Estorno de baixa', kind: 'text' },
   payment: { label: 'Pagamento', kind: 'text' },
+  advance: { label: 'Adiantamento', kind: 'text' },
   // Produtos.
   name: { label: 'Nome', kind: 'text' },
   type: { label: 'Tipo', kind: 'status' },
