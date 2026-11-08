@@ -22,6 +22,11 @@ const OrderDocument = lazy(() => import('../pages/OrderDocumentPage.tsx'));
 
 const PAGES: PageDefinition[] = [
   { pattern: '/', title: titleOf('/'), Component: lazy(() => import('../pages/DashboardPage.tsx')) },
+  {
+    pattern: '/relatorios',
+    title: titleOf('/relatorios'),
+    Component: lazy(() => import('../pages/ReportsPage.tsx')),
+  },
   { pattern: '/crm', title: titleOf('/crm'), Component: lazy(() => import('../pages/CrmPage.tsx')) },
   { pattern: '/crm/novo', title: 'Nova oportunidade', Component: OpportunityDocument },
   { pattern: '/crm/novo/:stageId', title: 'Nova oportunidade', Component: OpportunityDocument },

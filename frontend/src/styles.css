@@ -2042,3 +2042,92 @@ fieldset.view-switch {
 .list-items li.inactive input {
   color: #6b6280;
 }
+
+/* Relatórios */
+.reports-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.reports-catalog {
+  display: grid;
+  gap: 12px;
+}
+.reports-catalog summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+.reports-catalog ul {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.reports-catalog li button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+}
+.reports-catalog li button[aria-current="true"] {
+  background: #efeafd;
+  font-weight: 700;
+}
+.reports-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+.reports-search {
+  grid-template-columns: 1fr;
+}
+.reports-title {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+.reports-title h3 {
+  margin: 0;
+}
+.reports-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+.reports-filters {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 240px));
+}
+.reports-pages {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+td.numeric,
+th.numeric {
+  text-align: right;
+}
+@media (max-width: 900px) {
+  .reports-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media print {
+  .reports-catalog,
+  .reports-actions,
+  .reports-filters,
+  .reports-pages {
+    display: none;
+  }
+  .reports-layout {
+    display: block;
+  }
+}

@@ -14,6 +14,7 @@ const ACTIONS = [
   ['archive', 'Arquivou'],
   ['delete', 'Excluiu'],
   ['login', 'Entrou no sistema'],
+  ['export', 'Exportou em CSV'],
 ] as const;
 
 const EMPTY = { userId: '', module: '', action: '', from: '', to: '' };

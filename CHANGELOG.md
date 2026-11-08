@@ -12,6 +12,8 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Unidade no produto:** UN, CX, KG, L, M ou M2.
 - **Listas da empresa**, em Configurações: formas e condições de pagamento, origens da oportunidade, motivos de perda, categorias de cliente, cargos de contato, categorias financeiras e grupos de produto. Os formulários sugerem esses valores e aceitam digitar outro. Desativar tira o valor das sugestões sem mudar os registros que já o usam.
 - **Grupo do produto**, sugerido pela lista, com o resumo do espelho interno por grupo.
+- **Relatórios:** 17 relatórios de vendas, financeiro, estoque e gestão, com busca, período, totais, impressão e paginação. Cada grupo vê só os relatórios dos módulos que já pode ver; custo e margem exigem `costs.read`. Permissão `reports.read` para todos os grupos na migração.
+- **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado
 

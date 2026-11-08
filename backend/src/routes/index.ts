@@ -21,6 +21,7 @@ import * as people from '../services/people.ts';
 import * as pipeline from '../services/pipeline.ts';
 import * as products from '../services/products.ts';
 import * as quotes from '../services/quotes.ts';
+import * as reports from '../services/reports.ts';
 import * as stock from '../services/stock.ts';
 import * as suppliers from '../services/suppliers.ts';
 import * as trace from '../services/trace.ts';
@@ -322,6 +323,22 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     );
 
     protectedApp.get('/dashboard', (request) => getDashboard(ctxOf(request)));
+    protectedApp.get('/reports', (request) => reports.listReports(ctxOf(request)));
+    const reportParams = z.object({ id: z.string().regex(/^[a-z_]+$/) });
+    protectedApp.get('/reports/:id', (request) =>
+      reports.getReport(ctxOf(request), reportParams.parse(request.params).id, request.query as never),
+    );
+    protectedApp.get('/reports/:id/csv', async (request, reply) => {
+      const file = await reports.exportReport(
+        ctxOf(request),
+        reportParams.parse(request.params).id,
+        request.query as never,
+      );
+      return reply
+        .header('content-type', 'text/csv; charset=utf-8')
+        .header('content-disposition', `attachment; filename="${file.filename}"`)
+        .send(file.content);
+    });
     protectedApp.get('/lists', (request) =>
       lists.listLists(ctxOf(request), { all: (request.query as { all?: string }).all === '1' }),
     );

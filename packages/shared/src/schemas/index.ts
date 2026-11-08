@@ -234,6 +234,13 @@ export const productSchema = z.object({
 });
 export type ProductInput = z.input<typeof productSchema>;
 
+// Relatórios: período opcional, aplicado na data principal de cada relatório.
+export const reportQuerySchema = z.object({
+  from: isoDate.optional(),
+  to: isoDate.optional(),
+});
+export type ReportQuery = z.input<typeof reportQuerySchema>;
+
 // Listas da empresa: valores sugeridos nos formulários, que continuam aceitando digitar outro.
 export const LIST_KINDS = [
   'payment_method',
@@ -519,7 +526,9 @@ export type InteractionInput = z.input<typeof interactionSchema>;
 export const historyFilterSchema = z.object({
   userId: z.coerce.number().int().positive().optional(),
   module: z.string().trim().max(60).optional(),
-  action: z.enum(['create', 'update', 'status', 'convert', 'archive', 'delete', 'login']).optional(),
+  action: z
+    .enum(['create', 'update', 'status', 'convert', 'archive', 'delete', 'login', 'export'])
+    .optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
   page: z.coerce.number().int().positive().default(1),

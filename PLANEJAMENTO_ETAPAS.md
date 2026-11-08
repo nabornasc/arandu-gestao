@@ -11,8 +11,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 1 | Fechar o que já está na `main` e resolver pendências pequenas | **Concluída em 07/11, v2.5.0** | Este arquivo |
 | 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Concluída em 07/11, em produção** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
 | 3 | Listas configuráveis e grupo do produto | **Concluída em 07/11** | [Listas](PLANEJAMENTO_LISTAS.md) |
-| 4 | Central de relatórios com exportação em CSV | **Próxima** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
-| 5 | Agenda: dia, semana, mês e lista | Planejada | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
+| 4 | Central de relatórios com exportação em CSV | **Concluída em 08/11** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
+| 5 | Agenda: dia, semana, mês e lista | **Próxima** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
 | 7 | Restante dos documentos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
@@ -60,7 +60,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 - Página com busca, grupos, filtro de período, impressão e exportação em CSV, com o cálculo no servidor.
 - Os 14 relatórios já possíveis no plano original.
 - Candidatos que passaram a ter dados: formação de preço, composições dos orçamentos e, depois da etapa 2, extrato e movimentação de estoque.
-- **Revisar antes de começar:** o plano de relatórios é anterior às baixas. "Baixas de contas a receber" deve usar `receivable_payments`, em vez de só `cash_transactions`.
+- Feito em 08/11/2026: 17 relatórios, com "Baixas de contas a receber" sobre `receivable_payments`. Decisão do usuário: exportar em CSV tem permissão própria, `reports.export`. Limite de 5.000 linhas por relatório, com aviso para escolher um período menor.
 
 ### Etapa 5: agenda
 
@@ -116,7 +116,6 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 | Decisão | Quando responder |
 |---|---|
-| A exportação de relatórios tem permissão própria, separada da leitura | Etapa 4 |
 | Quais itens da etapa 9 ainda interessam | Ao chegar nela |
 | Se o registro manual de notas fiscais interessa como estudo | Quando o dono do projeto quiser |
 

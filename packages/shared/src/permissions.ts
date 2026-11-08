@@ -17,6 +17,7 @@ export const ACTION_LABELS = {
   assign: 'Definir vendedor da carteira',
   configure: 'Configurar etapas do funil',
   adjust: 'Ajustar estoque',
+  export: 'Exportar em CSV',
 } as const;
 export type ActionKey = keyof typeof ACTION_LABELS;
 
@@ -61,6 +62,8 @@ export const AREAS = {
   access: { label: 'Grupos de acesso', actions: ['manage'] },
   settings: { label: 'Configurações da empresa', actions: ['read', 'update'] },
   audit: { label: 'Auditoria', actions: ['read'] },
+  // Ver a tela abre só os relatórios dos módulos que o grupo já pode ver.
+  reports: { label: 'Relatórios', actions: ['read', 'export'] },
 } as const satisfies Record<string, AreaDefinition>;
 
 export type Area = keyof typeof AREAS;
@@ -142,6 +145,7 @@ export const DEFAULT_GROUPS: { name: string; description: string; permissions: P
       'receivables.settle',
       'opportunities.create',
       'opportunities.update',
+      'reports.read',
     ]),
   },
   {
@@ -160,6 +164,8 @@ export const DEFAULT_GROUPS: { name: string; description: string; permissions: P
       'bank_accounts.read',
       'analytics.read',
       'settings.read',
+      'reports.read',
+      'reports.export',
     ],
   },
 ];

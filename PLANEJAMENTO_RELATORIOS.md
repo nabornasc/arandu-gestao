@@ -77,4 +77,4 @@ Ficam de fora por exigirem controle de fábrica ou por terem pouco uso em um sis
 ## 7. Decisões em aberto
 
 - Entra na etapa 4 de [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
-- Se a exportação terá permissão própria, separada da leitura.
+- Decidido em 08/11/2026: a exportação tem permissão própria, `reports.export`.

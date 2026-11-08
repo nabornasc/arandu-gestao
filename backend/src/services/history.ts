@@ -78,6 +78,12 @@ const ENTITIES: Record<string, EntityInfo> = {
     open: 'Abrir CRM',
   },
   person: { noun: 'o cadastro', module: 'Pessoas', path: (id) => `/pessoas/${id}`, open: 'Abrir cadastro' },
+  report: {
+    noun: 'o relatório',
+    module: 'Relatórios',
+    path: listPath('/relatorios'),
+    open: 'Abrir relatórios',
+  },
   list_item: {
     noun: 'o valor da lista',
     module: 'Configurações',
@@ -315,6 +321,8 @@ function summarize(row: AuditRow, data: AuditData) {
       return `Excluiu ${infoOf(row.entity).noun}`;
     case 'login':
       return 'Entrou no sistema';
+    case 'export':
+      return 'Exportou em CSV';
     default:
       return 'Alterou o registro';
   }
