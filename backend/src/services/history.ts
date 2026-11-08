@@ -78,6 +78,7 @@ const ENTITIES: Record<string, EntityInfo> = {
     open: 'Abrir CRM',
   },
   person: { noun: 'o cadastro', module: 'Pessoas', path: (id) => `/pessoas/${id}`, open: 'Abrir cadastro' },
+  agenda_event: { noun: 'a tarefa', module: 'Agenda', path: listPath('/agenda'), open: 'Abrir agenda' },
   report: {
     noun: 'o relatório',
     module: 'Relatórios',
@@ -169,6 +170,9 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   unit: { label: 'Unidade', kind: 'text' },
   minStock: { label: 'Estoque mínimo', kind: 'number' },
   groupName: { label: 'Grupo', kind: 'text' },
+  done: { label: 'Concluída', kind: 'boolean' },
+  date: { label: 'Data', kind: 'date' },
+  time: { label: 'Hora', kind: 'text' },
   active: { label: 'Ativo', kind: 'boolean' },
   // Financeiro.
   description: { label: 'Descrição', kind: 'text' },

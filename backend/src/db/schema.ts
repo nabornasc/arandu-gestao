@@ -14,6 +14,7 @@ import {
   pgTable,
   primaryKey,
   text,
+  time,
   timestamp,
   uniqueIndex,
   varchar,
@@ -124,6 +125,24 @@ export const sessions = pgTable(
 );
 
 // ---------- Cadastros ----------
+
+// Agenda: tarefas e compromissos lançados à mão. Próximas ações, validades e vencimentos vêm dos
+// próprios documentos e não ficam duplicados aqui.
+export const agendaEvents = pgTable(
+  'agenda_events',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    title: varchar({ length: 160 }).notNull(),
+    date: date({ mode: 'string' }).notNull(),
+    time: time({ precision: 0 }),
+    notes: varchar({ length: 500 }),
+    done: boolean().notNull().default(false),
+    createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.companyId, t.date)],
+);
 
 // Listas da empresa: valores sugeridos nos formulários. Os registros guardam o texto, então renomear
 // ou desativar um valor não muda o que já foi lançado.

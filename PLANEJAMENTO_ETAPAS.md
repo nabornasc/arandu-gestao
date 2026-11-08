@@ -12,8 +12,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Concluída em 07/11, em produção** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
 | 3 | Listas configuráveis e grupo do produto | **Concluída em 07/11** | [Listas](PLANEJAMENTO_LISTAS.md) |
 | 4 | Central de relatórios com exportação em CSV | **Concluída em 08/11** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
-| 5 | Agenda: dia, semana, mês e lista | **Próxima** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
-| 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
+| 5 | Agenda: dia, semana, mês e lista | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
+| 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Próxima** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
 | 7 | Restante dos documentos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | Só se ainda houver interesse | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
@@ -67,6 +67,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 - Tarefas, próximas ações, validades de orçamento e títulos a vencer, com tipos fixos que podem ser mostrados ou escondidos.
 - Eventos manuais.
 - Ficam para depois: visão de ano, feriados e integração com Apple e Google.
+- Feito em 08/11/2026: tabela `agenda_events`, visões dia, semana, mês e lista, filtro por tipo lembrado no navegador e período de até 92 dias por consulta.
 
 ### Etapa 6: navegação
 

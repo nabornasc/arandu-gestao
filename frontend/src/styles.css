@@ -2131,3 +2131,170 @@ th.numeric {
     display: block;
   }
 }
+
+/* Agenda */
+.danger-text {
+  color: #b8434d;
+}
+.agenda-toolbar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.agenda-toolbar fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.agenda-kind {
+  font-size: 13px;
+}
+.agenda-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.agenda-period {
+  margin-left: 8px;
+}
+.agenda-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.agenda-item {
+  display: grid;
+  width: 100%;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 0;
+  border-left: 4px solid var(--kind-color, #6d4fd6);
+  border-radius: 6px;
+  background: #f7f5fc;
+  color: #28233a;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.agenda .agenda-item small {
+  color: #5d556f;
+}
+.agenda-item.done .agenda-item-title {
+  text-decoration: line-through;
+  color: #5d556f;
+}
+.agenda-item.task,
+.agenda-kind.task {
+  --kind-color: #6d4fd6;
+}
+.agenda-item.opportunity,
+.agenda-kind.opportunity {
+  --kind-color: #3567c4;
+}
+.agenda-item.quote,
+.agenda-kind.quote {
+  --kind-color: #a66f12;
+}
+.agenda-item.receivable,
+.agenda-kind.receivable {
+  --kind-color: #1c6e4c;
+}
+.agenda-item.payable,
+.agenda-kind.payable {
+  --kind-color: #b8434d;
+}
+.agenda .agenda-kinds .agenda-kind input {
+  accent-color: var(--kind-color);
+}
+.agenda-list section + section {
+  margin-top: 16px;
+}
+.agenda-list h3,
+.agenda-week h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+.agenda-list ul,
+.agenda-week ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.agenda-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.agenda .agenda-week section {
+  min-height: 160px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fbfaff;
+}
+.agenda-week h3 span {
+  color: #5d556f;
+  font-weight: 400;
+}
+.agenda-month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.agenda-month-head {
+  padding: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #5d556f;
+}
+.agenda .agenda-month section {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 96px;
+  min-width: 0;
+  padding: 6px;
+  border-radius: 8px;
+  background: #fbfaff;
+}
+.agenda .agenda-month section.other {
+  opacity: 0.6;
+}
+.agenda-week section.today,
+.agenda .agenda-month section.today {
+  outline: 2px solid #6d4fd6;
+}
+.agenda-day-number {
+  font-size: 12px;
+  font-weight: 700;
+}
+.agenda-month .agenda-item {
+  padding: 3px 6px;
+  font-size: 11px;
+}
+.agenda .agenda-month .agenda-item-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+@media (max-width: 900px) {
+  .agenda-week {
+    grid-template-columns: 1fr;
+  }
+  .agenda-week section {
+    min-height: 0;
+  }
+  .agenda-month {
+    gap: 2px;
+  }
+  .agenda .agenda-month section {
+    min-height: 64px;
+    padding: 3px;
+  }
+}

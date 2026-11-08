@@ -64,6 +64,7 @@ export const AREAS = {
   audit: { label: 'Auditoria', actions: ['read'] },
   // Ver a tela abre só os relatórios dos módulos que o grupo já pode ver.
   reports: { label: 'Relatórios', actions: ['read', 'export'] },
+  agenda: { label: 'Agenda (tarefas e compromissos)', actions: CRUD, scoped: true },
 } as const satisfies Record<string, AreaDefinition>;
 
 export type Area = keyof typeof AREAS;
@@ -146,6 +147,9 @@ export const DEFAULT_GROUPS: { name: string; description: string; permissions: P
       'opportunities.create',
       'opportunities.update',
       'reports.read',
+      'agenda.create',
+      'agenda.update',
+      'agenda.delete',
     ]),
   },
   {
@@ -166,6 +170,7 @@ export const DEFAULT_GROUPS: { name: string; description: string; permissions: P
       'settings.read',
       'reports.read',
       'reports.export',
+      'agenda.read',
     ],
   },
 ];

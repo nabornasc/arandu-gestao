@@ -22,6 +22,7 @@ const OrderDocument = lazy(() => import('../pages/OrderDocumentPage.tsx'));
 
 const PAGES: PageDefinition[] = [
   { pattern: '/', title: titleOf('/'), Component: lazy(() => import('../pages/DashboardPage.tsx')) },
+  { pattern: '/agenda', title: titleOf('/agenda'), Component: lazy(() => import('../pages/AgendaPage.tsx')) },
   {
     pattern: '/relatorios',
     title: titleOf('/relatorios'),

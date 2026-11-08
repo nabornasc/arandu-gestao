@@ -4,6 +4,7 @@ import { sql as rawSql } from 'drizzle-orm';
 import { config } from '../config.ts';
 import type { Ctx } from '../lib/context.ts';
 import { listAccessGroups } from '../services/accessGroups.ts';
+import { createAgendaEvent } from '../services/agenda.ts';
 import { register } from '../services/auth.ts';
 import { createBankAccount } from '../services/bankAccounts.ts';
 import { updateCompanySettings } from '../services/company.ts';
@@ -11,7 +12,7 @@ import { createCustomer } from '../services/customers.ts';
 import { createExpense } from '../services/expenses.ts';
 import { createListItem } from '../services/lists.ts';
 import { addInteraction, createOpportunity, setStatus } from '../services/opportunities.ts';
-import { createOrder, settleReceivable, settleReceivables } from '../services/orders.ts';
+import { createOrder, settleReceivable, settleReceivables, todayInBrazil } from '../services/orders.ts';
 import { createProduct } from '../services/products.ts';
 import { convertQuote, createQuote, transitionQuote } from '../services/quotes.ts';
 import { adjustStock } from '../services/stock.ts';
@@ -23,11 +24,13 @@ if (config.NODE_ENV === 'production') throw new Error('Seed não pode rodar em p
 
 export const DEMO_PASSWORD = 'senha-demo-123';
 
-const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
+// Datas relativas ao dia de hoje em Brasília, como o servidor usa: em UTC, à noite já seria amanhã.
+const daysAgo = (days: number) =>
+  new Date(Date.parse(`${todayInBrazil()}T00:00:00Z`) - days * 86_400_000).toISOString().slice(0, 10);
 
 async function truncateAll() {
   await db.execute(rawSql`
-    TRUNCATE companies, company_list_items, users, sessions, people, person_contacts, person_addresses, products, opportunities, opportunity_items, pipeline_stages, interactions,
+    TRUNCATE companies, company_list_items, agenda_events, users, sessions, people, person_contacts, person_addresses, products, opportunities, opportunity_items, pipeline_stages, interactions,
              quotes, quote_items, orders, order_items, stock_movements, receivables, receivable_payments, bank_accounts, expenses, cash_transactions,
              audit_logs, events, access_groups, access_group_permissions RESTART IDENTITY CASCADE`);
 }
@@ -413,6 +416,25 @@ async function seedConvenience() {
       items: [{ receivableId: overduePart.id, received: 30 }],
     });
   }
+
+  // Tarefas da agenda: a de ontem já feita, as próximas em aberto.
+  await createAgendaEvent(owner, {
+    title: 'Conferir validade das cervejas no freezer',
+    date: daysAgo(1),
+    done: true,
+  });
+  await createAgendaEvent(owner, {
+    title: 'Receber a Distribuidora Rio Claro',
+    date: daysAgo(0),
+    time: '09:00',
+  });
+  await createAgendaEvent(owner, {
+    title: 'Montar o bar do casamento de Carla e Rafael',
+    date: daysAgo(-6),
+    time: '16:00',
+    notes: 'Levar 2 caixas térmicas e o gelo de reserva.',
+  });
+  await createAgendaEvent(owner, { title: 'Pagar a conta de energia', date: daysAgo(-3) });
 
   // Rascunho avulso, sem oportunidade.
   await createQuote(owner, {

@@ -234,6 +234,27 @@ export const productSchema = z.object({
 });
 export type ProductInput = z.input<typeof productSchema>;
 
+// Agenda: tarefas e compromissos manuais. Os demais itens (próximas ações, validades e vencimentos)
+// vêm dos próprios documentos.
+const timeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Hora inválida (use HH:MM)');
+export const agendaEventSchema = z.object({
+  title: requiredText(160, 'Informe o título'),
+  date: isoDate,
+  time: timeOfDay.nullish(),
+  notes: optionalText(500),
+  done: z.boolean().default(false),
+});
+export type AgendaEventInput = z.input<typeof agendaEventSchema>;
+export const AGENDA_KINDS = ['task', 'opportunity', 'quote', 'receivable', 'payable'] as const;
+export type AgendaKind = (typeof AGENDA_KINDS)[number];
+export const agendaQuerySchema = z
+  .object({ from: isoDate, to: isoDate })
+  .refine(({ from, to }) => from <= to, 'O início deve vir antes do fim.')
+  .refine(
+    ({ from, to }) => (Date.parse(to) - Date.parse(from)) / 86_400_000 <= 92,
+    'Escolha um período de até 92 dias.',
+  );
+
 // Relatórios: período opcional, aplicado na data principal de cada relatório.
 export const reportQuerySchema = z.object({
   from: isoDate.optional(),

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { db } from '../db/client.ts';
 import { ctxOf, requireAuth } from '../plugins/auth.ts';
 import * as accessGroups from '../services/accessGroups.ts';
+import * as agenda from '../services/agenda.ts';
 import * as bankAccounts from '../services/bankAccounts.ts';
 import * as company from '../services/company.ts';
 import * as copies from '../services/copies.ts';
@@ -323,6 +324,18 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     );
 
     protectedApp.get('/dashboard', (request) => getDashboard(ctxOf(request)));
+    protectedApp.get('/agenda', (request) => agenda.getAgenda(ctxOf(request), request.query));
+    protectedApp.post('/agenda/events', async (request, reply) => {
+      reply.status(201);
+      return agenda.createAgendaEvent(ctxOf(request), request.body as never);
+    });
+    protectedApp.put('/agenda/events/:id', (request) =>
+      agenda.updateAgendaEvent(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
+    );
+    protectedApp.delete('/agenda/events/:id', async (request, reply) => {
+      await agenda.deleteAgendaEvent(ctxOf(request), idParamSchema.parse(request.params).id);
+      return reply.status(204).send();
+    });
     protectedApp.get('/reports', (request) => reports.listReports(ctxOf(request)));
     const reportParams = z.object({ id: z.string().regex(/^[a-z_]+$/) });
     protectedApp.get('/reports/:id', (request) =>
