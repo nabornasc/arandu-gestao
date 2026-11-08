@@ -155,3 +155,19 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   ```
 - **Próxima:** etapa 6, navegação.
 
+
+## Atualização de 08/11/2026, etapa 6 (partes 1 e 2)
+
+**Etapa 6, navegação: em andamento.** Dividida em quatro partes.
+
+1. **Menu por módulos e páginas de módulo:** concluída (PR #23, `eb05ef7`). Menu em Início, Vendas, Financeiro, Cadastros, Gestão e Administração; cada módulo tem página de entrada com atalhos de criação conforme a permissão. Menu fixo no desktop.
+2. **Busca rápida e atalhos:** concluída (PR #26, `b4a28a8`).
+   - Ctrl+K, F2 ou botão Buscar: telas, ações, clientes, fornecedores, produtos, orçamentos, pedidos e oportunidades (rota `GET /search`, aceita `#12`).
+   - F4 novo orçamento, F6 novo pedido, F7 novo cliente, F8 produtos, F9 ou Ctrl+Enter salva, Alt+setas trocam de aba, Alt+X fecha a aba.
+   - Correção: o `Modal` foca o campo com `data-autofocus` depois do `showModal()`.
+   - Personalização dos atalhos por usuário fica para depois.
+3. **Cadastro rápido** de cliente e produto dentro do orçamento e do pedido: próxima.
+4. **Paginação e filtros no servidor:** depois.
+
+- **Produção:** partes 1 e 2 sem migração; a Vercel publica a partir da `main`.
+- **No Windows:** `git pull --ff-only`. Nada a migrar.
