@@ -23,6 +23,7 @@ import * as pipeline from '../services/pipeline.ts';
 import * as products from '../services/products.ts';
 import * as quotes from '../services/quotes.ts';
 import * as reports from '../services/reports.ts';
+import * as search from '../services/search.ts';
 import * as stock from '../services/stock.ts';
 import * as suppliers from '../services/suppliers.ts';
 import * as trace from '../services/trace.ts';
@@ -324,6 +325,7 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     );
 
     protectedApp.get('/dashboard', (request) => getDashboard(ctxOf(request)));
+    protectedApp.get('/search', (request) => search.search(ctxOf(request), request.query));
     protectedApp.get('/agenda', (request) => agenda.getAgenda(ctxOf(request), request.query));
     protectedApp.post('/agenda/events', async (request, reply) => {
       reply.status(201);

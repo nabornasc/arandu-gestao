@@ -138,6 +138,29 @@ export function Workspace({ userId, home }: Props) {
   const visibleTabs = tabs.some((tab) => tab.path === active) ? tabs : [...tabs, newTab(active)];
   const sideTab = split && split !== active ? split : null;
 
+  // Alt+→ e Alt+← trocam de aba; Alt+X fecha a aba atual. Valem também dentro de campos de texto.
+  const closeRef = useRef(close);
+  closeRef.current = close;
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!event.altKey || event.ctrlKey || event.metaKey) return;
+      const index = visibleTabs.findIndex((tab) => tab.path === active);
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        const step = event.key === 'ArrowRight' ? 1 : -1;
+        const next = visibleTabs[(index + step + visibleTabs.length) % visibleTabs.length];
+        if (next && next.path !== active) {
+          event.preventDefault();
+          navigate(next.path);
+        }
+      } else if (event.key.toLowerCase() === 'x') {
+        event.preventDefault();
+        closeRef.current(active);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [visibleTabs, active, navigate]);
+
   return (
     <div className="workspace">
       <nav className="tabbar" aria-label="Telas abertas">

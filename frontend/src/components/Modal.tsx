@@ -16,7 +16,11 @@ export function Modal({ eyebrow, title, onClose, children, wide }: Props) {
 
   useEffect(() => {
     const dialog = ref.current;
-    if (dialog && !dialog.open) dialog.showModal();
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+      // showModal() foca o primeiro botão; o campo marcado com data-autofocus recebe o foco no lugar.
+      dialog.querySelector<HTMLElement>('[data-autofocus]')?.focus();
+    }
     return () => dialog?.close();
   }, []);
 

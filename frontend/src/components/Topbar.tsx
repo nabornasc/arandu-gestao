@@ -1,4 +1,4 @@
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, Search } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { type Profile, useLogout } from '../lib/auth.ts';
 import { formatToday } from '../lib/format.ts';
@@ -10,7 +10,14 @@ const initials = (name: string) =>
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('');
 
-export function Topbar({ title, profile, onMenu }: { title: string; profile: Profile; onMenu: () => void }) {
+interface Props {
+  title: string;
+  profile: Profile;
+  onMenu: () => void;
+  onSearch: () => void;
+}
+
+export function Topbar({ title, profile, onMenu, onSearch }: Props) {
   const logout = useLogout();
   const navigate = useNavigate();
 
@@ -26,6 +33,9 @@ export function Topbar({ title, profile, onMenu }: { title: string; profile: Pro
       </div>
 
       <div className="topbar-actions">
+        <button type="button" className="button secondary topbar-search" onClick={onSearch}>
+          <Search size={15} aria-hidden="true" /> Buscar <kbd>Ctrl+K</kbd>
+        </button>
         <div className="profile">
           <div className="avatar" aria-hidden="true">
             {initials(profile.name)}

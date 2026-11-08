@@ -1,18 +1,47 @@
-import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { ActionHost } from '../actions/ActionHost.tsx';
 import { navigation, SETTINGS_PATH } from '../config/navigation.ts';
 import { can, ProfileContext, useMe } from '../lib/auth.ts';
+import { isTyping, OPEN_KEYS, submitVisibleForm } from '../lib/shortcuts.ts';
 import { resolvePage } from '../workspace/pages.ts';
 import { Workspace } from '../workspace/Workspace.tsx';
 import { DemoNotice } from './DemoNotice.tsx';
+import { QuickSearch } from './QuickSearch.tsx';
 import { Sidebar } from './Sidebar.tsx';
 import { Topbar } from './Topbar.tsx';
 
 export function AppLayout() {
   const me = useMe();
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const profileData = me.data;
+
+  // Atalhos globais. Troca e fechamento de abas ficam na área de trabalho, que conhece as abas.
+  useEffect(() => {
+    if (!profileData) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const mod = event.ctrlKey || event.metaKey;
+      if (event.key === 'F2' || (mod && event.key.toLowerCase() === 'k')) {
+        event.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+      if (event.key === 'F9' || (mod && event.key === 'Enter')) {
+        if (submitVisibleForm()) event.preventDefault();
+        return;
+      }
+      const target = OPEN_KEYS[event.key];
+      if (target && !isTyping(event.target) && can(profileData, target.permission)) {
+        event.preventDefault();
+        navigate(target.path);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [profileData, navigate]);
 
   if (me.isPending) return <div className="page-loading">Carregando...</div>;
   if (!me.data) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
@@ -45,6 +74,7 @@ export function AppLayout() {
               title={current?.label ?? resolvePage(location.pathname).title}
               profile={me.data}
               onMenu={() => setMenuOpen((open) => !open)}
+              onSearch={() => setSearchOpen(true)}
             />
             <div className="content">
               <DemoNotice />
@@ -55,6 +85,7 @@ export function AppLayout() {
                 </p>
               )}
               <Workspace userId={me.data.id} home={home} />
+              {searchOpen && <QuickSearch onClose={() => setSearchOpen(false)} />}
             </div>
           </main>
         </div>
