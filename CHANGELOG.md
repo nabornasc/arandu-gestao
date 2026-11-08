@@ -26,6 +26,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Corrigido
 
+- No celular, o menu principal rola até as últimas opções.
 - Salvar uma janela aberta de dentro de um formulário não envia mais o formulário de trás.
 - Janelas com campo marcado para foco automático abrem com o foco nesse campo, não no botão de fechar.
 - Datas do seed seguem o fuso de Brasília: à noite, as tarefas e os pedidos de exemplo não caem mais no dia seguinte.

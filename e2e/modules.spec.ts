@@ -32,3 +32,21 @@ test('contador vê só os módulos e atalhos que o grupo permite', async ({ page
   // Só leitura: nenhum atalho de criação.
   await expect(page.getByRole('link', { name: /^Novo/ })).toHaveCount(0);
 });
+
+test('no celular, o menu rola até a última opção', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 664 });
+  await login(page, OWNER);
+  await page.getByRole('button', { name: 'Abrir menu de navegação' }).click();
+  const sidebar = page.locator('.sidebar.open');
+  await expect(sidebar).toBeVisible();
+  // O conteúdo passa da altura da tela e o menu rola por dentro.
+  const { scrollHeight, clientHeight } = await sidebar.evaluate((node) => ({
+    scrollHeight: node.scrollHeight,
+    clientHeight: node.clientHeight,
+  }));
+  expect(scrollHeight).toBeGreaterThan(clientHeight);
+  const last = page.getByRole('navigation', { name: 'Menu principal' }).getByRole('link').last();
+  await last.scrollIntoViewIfNeeded();
+  await expect(last).toBeInViewport();
+  expect(await sidebar.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+});

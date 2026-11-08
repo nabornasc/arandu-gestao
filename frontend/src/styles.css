@@ -668,6 +668,10 @@ td strong {
     bottom: 0;
     transition: left 0.2s;
     width: 250px;
+    /* Menu maior que a tela do celular: rola dentro dele, sem rolar a página de trás. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
   }
   .sidebar.open {
     left: 0;
