@@ -527,6 +527,9 @@ td strong {
   background: #211a3575;
 }
 .modal {
+  /* Janela aberta de dentro de uma célula de ações não herda o alinhamento à direita dela. */
+  text-align: left;
+  white-space: normal;
   background: #fff;
   width: min(580px, 100%);
   max-height: 90vh;
@@ -2844,4 +2847,20 @@ a.nav-label.active {
 .agenda-item.delivery,
 .agenda-kind.delivery {
   --kind-color: #2f7f8f;
+}
+.list-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.batch-list {
+  display: grid;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
 }

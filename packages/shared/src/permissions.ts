@@ -50,7 +50,10 @@ export const AREAS = {
     scoped: true,
   },
   receivables: { label: 'Contas a receber', actions: ['read', 'settle', 'reverse'] },
-  payables: { label: 'Contas a pagar (despesas)', actions: ['read', 'create', 'update', 'pay', 'delete'] },
+  payables: {
+    label: 'Contas a pagar (despesas)',
+    actions: ['read', 'create', 'update', 'pay', 'reverse', 'delete'],
+  },
   cash: { label: 'Movimentações de caixa', actions: CRUD },
   bank_accounts: { label: 'Contas bancárias', actions: CRUD },
   customers: { label: 'Clientes', actions: [...CRUD, 'assign'] },

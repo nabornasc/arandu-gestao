@@ -130,6 +130,16 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       update: bankAccounts.updateBankAccount,
       remove: bankAccounts.deleteBankAccount,
     });
+    const passwordLimit = { rateLimit: { max: 10, timeWindow: '1 minute' } };
+    protectedApp.post('/expenses/pay', (request) =>
+      expenses.payExpenses(ctxOf(request), request.body as never),
+    );
+    protectedApp.get('/expenses/:id/payments', (request) =>
+      expenses.listExpensePayments(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
+    protectedApp.post('/expense-payments/:id/reverse', { config: passwordLimit }, (request) =>
+      expenses.reverseExpensePayment(ctxOf(request), idParamSchema.parse(request.params).id, request.body),
+    );
     crudRoutes(protectedApp, '/expenses', {
       list: expenses.listExpenses,
       get: expenses.getExpense,
@@ -219,7 +229,6 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       orders.settleReceivables(ctxOf(request), request.body as never),
     );
     // Rotas que conferem a senha: o mesmo limite do login, contra tentativa e erro.
-    const passwordLimit = { rateLimit: { max: 10, timeWindow: '1 minute' } };
     protectedApp.post('/receivable-payments/:id/reverse', { config: passwordLimit }, (request) =>
       orders.reversePayment(ctxOf(request), idParamSchema.parse(request.params).id, request.body),
     );

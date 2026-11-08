@@ -23,7 +23,18 @@ function formatCell(key: string, value: unknown): string {
 // Ação extra em cada linha, para telas com mais do que editar e excluir (ex.: estoque do produto).
 export type RowExtra = ComponentType<{ row: Row }>;
 
-export function ResourcePage({ config, RowExtra }: { config: ResourceConfig; RowExtra?: RowExtra }) {
+// Ação sobre as linhas visíveis, ao lado dos filtros (ex.: pagar em lote).
+export type ListToolbar = ComponentType<{ rows: Row[] }>;
+
+export function ResourcePage({
+  config,
+  RowExtra,
+  Toolbar,
+}: {
+  config: ResourceConfig;
+  RowExtra?: RowExtra;
+  Toolbar?: ListToolbar;
+}) {
   const profile = useProfile();
   const notify = useToast();
   const client = useQueryClient();
@@ -104,6 +115,12 @@ export function ResourcePage({ config, RowExtra }: { config: ResourceConfig; Row
           textLabel={listConfig.textLabel}
           statuses={listConfig.statuses}
         />
+      )}
+
+      {Toolbar && (
+        <div className="list-toolbar">
+          <Toolbar rows={visible} />
+        </div>
       )}
 
       <div className="panel table-panel">

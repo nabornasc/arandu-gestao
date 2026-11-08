@@ -659,11 +659,39 @@ export const expenses = pgTable(
     amount: money().notNull(),
     expenseDate: date({ mode: 'string' }).notNull(),
     status: expenseStatusEnum().notNull().default('pending'),
+    // Soma das baixas ativas. Pago quando chega no valor; pendente com valor pago é parcial.
+    paidAmount: money().notNull().default(0),
     bankAccountId: integer().references(() => bankAccounts.id, { onDelete: 'set null' }),
     supplierId: integer().references(() => people.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
   (t) => [index().on(t.companyId, t.expenseDate), index().on(t.bankAccountId), index().on(t.supplierId)],
+);
+
+// Cada baixa de uma despesa: abate o principal, com juros e desconto, e gera a saída no caixa.
+export const expensePayments = pgTable(
+  'expense_payments',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    expenseId: integer()
+      .notNull()
+      .references(() => expenses.id, { onDelete: 'cascade' }),
+    bankAccountId: integer().references(() => bankAccounts.id, { onDelete: 'set null' }),
+    paidOn: date({ mode: 'string' }).notNull(),
+    principal: money().notNull(),
+    interest: money().notNull().default(0),
+    discount: money().notNull().default(0),
+    paid: money().notNull(),
+    method: varchar({ length: 40 }),
+    notes: varchar({ length: 255 }),
+    createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+    reversedAt: timestamp({ withTimezone: true }),
+    reversedBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    reversalReason: varchar({ length: 255 }),
+  },
+  (t) => [index().on(t.expenseId), index().on(t.bankAccountId)],
 );
 
 export const receivableStatusEnum = pgEnum('receivable_status', ['open', 'settled', 'cancelled']);
@@ -734,6 +762,8 @@ export const cashTransactions = pgTable(
     orderId: integer().references(() => orders.id, { onDelete: 'cascade' }),
     expenseId: integer().references(() => expenses.id, { onDelete: 'cascade' }),
     paymentId: integer().references(() => receivablePayments.id, { onDelete: 'cascade' }),
+    // Uma saída por baixa da despesa (expenseId continua marcando a origem).
+    expensePaymentId: integer().references(() => expensePayments.id, { onDelete: 'cascade' }),
     createdAt: createdAt(),
   },
   (t) => [
@@ -741,7 +771,8 @@ export const cashTransactions = pgTable(
     index().on(t.bankAccountId),
     index().on(t.orderId),
     uniqueIndex().on(t.paymentId),
-    uniqueIndex().on(t.expenseId),
+    index().on(t.expenseId),
+    uniqueIndex().on(t.expensePaymentId),
   ],
 );
 

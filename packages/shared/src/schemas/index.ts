@@ -475,6 +475,29 @@ export const expenseSchema = z.object({
 });
 export type ExpenseInput = z.input<typeof expenseSchema>;
 
+// Baixa em uma ou mais despesas. Sem valor pago, quita o saldo (mais juros, menos desconto).
+export const expensesPaySchema = z.object({
+  bankAccountId: id.nullish(),
+  paidOn: isoDate.optional(),
+  method: optionalText(40),
+  notes: optionalText(255),
+  items: z
+    .array(
+      z.object({
+        expenseId: id,
+        paid: z.number().nonnegative().max(1e9).optional(),
+        interest: z.number().nonnegative().max(1e9).default(0),
+        discount: z.number().nonnegative().max(1e9).default(0),
+      }),
+    )
+    .min(1, 'Selecione ao menos uma conta')
+    .max(100, 'Selecione no máximo 100 contas')
+    .refine((items) => new Set(items.map((item) => item.expenseId)).size === items.length, {
+      message: 'A mesma conta foi informada mais de uma vez',
+    }),
+});
+export type ExpensesPayInput = z.input<typeof expensesPaySchema>;
+
 export const TRANSACTION_TYPES = ['income', 'outcome'] as const;
 
 export const transactionSchema = z.object({

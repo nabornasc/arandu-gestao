@@ -29,6 +29,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Visão geral personalizável:** "Personalizar" deixa cada usuário escolher os blocos (faturamento, despesas, saldo, pedidos pendentes, a receber, orçamentos aguardando, resultado do mês, estoque baixo, vendas por mês, mais vendidos, últimos pedidos, CRM, limite do MEI, acesso rápido e ODS), a ordem e o tamanho. Cada um guarda o seu layout; quem não pode ver um módulo não vê o bloco dele.
 - **Metas de venda** (Gestão): meta do mês para a empresa e para cada vendedor, com o vendido até agora, a projeção do mês no ritmo atual e o bloco "Metas do mês" na visão geral. Quem altera as configurações define as metas; mudanças ficam no histórico.
 - **Entrega no pedido:** previsão de entrega no pedido, "Marcar como entregue" e "Desfazer entrega" no menu de ações, situação na lista de pedidos (data prevista, atrasada ou entregue) e entregas pendentes na agenda.
+- **Baixas nas contas a pagar:** botão "Baixas" em cada despesa para pagar total ou parcial, com juros e desconto, ver as baixas e estornar (permissão nova `payables.reverse`, senha e motivo); "Pagar em lote" para várias contas de uma vez. A lista mostra o valor pago e o selo "Parcial", e os totais somam o pago e o saldo em aberto. As despesas já pagas viraram uma baixa cada, sem mudar o saldo.
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado
@@ -39,6 +40,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Corrigido
 
+- Janelas abertas de uma linha da tabela (estoque, baixas) não herdam mais o texto alinhado à direita.
 - Em contas a receber, a parcela (ex.: 2/3) é contada no banco e continua certa com filtro ou paginação.
 - No celular, o menu principal rola até as últimas opções.
 - Salvar uma janela aberta de dentro de um formulário não envia mais o formulário de trás.

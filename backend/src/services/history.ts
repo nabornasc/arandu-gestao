@@ -184,6 +184,7 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   bankAccount: { label: 'Conta', kind: 'text' },
   receivable: { label: 'Baixa de parcela', kind: 'text' },
   reversal: { label: 'Estorno de baixa', kind: 'text' },
+  payment: { label: 'Pagamento', kind: 'text' },
   supplier: { label: 'Fornecedor', kind: 'text' },
   // Produtos.
   name: { label: 'Nome', kind: 'text' },

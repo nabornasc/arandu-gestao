@@ -124,9 +124,13 @@ export const resources = {
       ['supplierName', 'Fornecedor'],
       ['category', 'Categoria'],
       ['amount', 'Valor'],
+      ['paidAmount', 'Pago'],
       ['expenseDate', 'Data'],
       ['status', 'Status'],
     ],
+    // Pendente com valor pago é parcial.
+    badge: (key, row) =>
+      key === 'status' && row.status === 'pending' && Number(row.paidAmount) > 0 ? 'Parcial' : null,
     list: {
       dateLabel: 'Vencimento ou pagamento',
       textLabel: 'Descrição, categoria ou fornecedor',
@@ -222,4 +226,4 @@ export const resources = {
 
 export type ResourceKey = keyof typeof resources;
 
-export const MONEY_COLUMNS = new Set(['price', 'cost', 'amount', 'initialBalance', 'total']);
+export const MONEY_COLUMNS = new Set(['price', 'cost', 'amount', 'paidAmount', 'initialBalance', 'total']);

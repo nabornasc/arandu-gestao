@@ -100,7 +100,7 @@ Em quatro partes:
 Em quatro partes:
 
 1. **9a. Entrega no pedido.** Feito em 08/11/2026: previsão de entrega no pedido, "Marcar como entregue" e "Desfazer entrega" no menu, situação na lista (data, atrasada ou entregue) e entregas pendentes na agenda. Migração `0026_entrega_pedido`.
-2. 9b. Baixa parcial, em lote e com estorno nas contas a pagar, que hoje seguem em lançamento único.
+2. **9b. Baixas nas contas a pagar.** Feito em 08/11/2026: tabela `expense_payments` e `expenses.paid_amount` (migração `0027`; cada despesa já paga virou uma baixa, ligada à saída de caixa existente). Pagamento parcial, com juros e desconto, em lote e estorno com permissão própria (`payables.reverse`), senha e motivo. O cadastro continua como lançamento único: marcar "pago" quita o saldo e voltar para "pendente" estorna as baixas.
 3. 9c. Compras simples: entrada de estoque, custo e título a pagar.
 4. 9d. Renegociação de títulos e adiantamentos.
 
