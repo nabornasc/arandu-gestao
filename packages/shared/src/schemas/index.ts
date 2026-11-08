@@ -465,6 +465,8 @@ export const quoteItemSchema = orderItemSchema
     width: measure,
     length: measure,
     measureUnit: z.enum(MEASURE_UNITS).nullish(),
+    // Entra no total, mas não sai no espelho do cliente.
+    hiddenInMirror: z.boolean().default(false),
   })
   .refine((item) => !item.width === !item.length, {
     message: 'Informe a largura e o comprimento, ou deixe os dois em branco',

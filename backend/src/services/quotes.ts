@@ -84,13 +84,15 @@ type Composed = {
   width?: number | null;
   length?: number | null;
   measureUnit?: string | null;
+  hiddenInMirror?: boolean;
 };
 const compositionText = (lines: Composed[]) =>
   lines
-    .filter((line) => line.groupName || line.width)
+    .filter((line) => line.groupName || line.width || line.hiddenInMirror)
     .map((line) => {
       const measures = line.width ? ` (${line.width} × ${line.length} ${line.measureUnit ?? 'm'})` : '';
-      return `${line.groupName ? `${line.groupName}: ` : ''}${line.name}${measures}`;
+      const hidden = line.hiddenInMirror ? ' [oculto no espelho]' : '';
+      return `${line.groupName ? `${line.groupName}: ` : ''}${line.name}${measures}${hidden}`;
     })
     .join('; ') || null;
 
@@ -158,6 +160,7 @@ async function loadQuotes(ctx: Ctx, where: SQL | undefined, window = { limit: 50
       width: quoteItems.width,
       length: quoteItems.length,
       measureUnit: quoteItems.measureUnit,
+      hiddenInMirror: quoteItems.hiddenInMirror,
     })
     .from(quoteItems)
     .innerJoin(products, eq(products.id, quoteItems.productId))
@@ -190,6 +193,7 @@ const lineItems = (tx: Transaction, id: number) =>
       width: quoteItems.width,
       length: quoteItems.length,
       measureUnit: quoteItems.measureUnit,
+      hiddenInMirror: quoteItems.hiddenInMirror,
     })
     .from(quoteItems)
     .innerJoin(products, eq(products.id, quoteItems.productId))
@@ -239,6 +243,26 @@ export async function getQuote(ctx: Ctx, id: number) {
 // Dados do espelho do cliente. Sem custos nem observação interna. CPF, contatos e endereço do
 // cliente só aparecem para quem pode ver o cadastro de clientes.
 export async function getQuoteMirror(ctx: Ctx, id: number) {
+  const mirror = await fullMirror(ctx, id);
+  // Item oculto continua no subtotal e no total; só a linha não aparece para o cliente.
+  return {
+    ...mirror,
+    items: mirror.items
+      .filter((item) => !item.hiddenInMirror)
+      .map(({ hiddenInMirror: _hidden, ...item }) => item),
+  };
+}
+
+const groupSubtotals = (items: { groupName: string | null; subtotal: number }[]) => {
+  const totals: Record<string, number> = {};
+  for (const item of items) {
+    const key = item.groupName ?? '';
+    totals[key] = round2((totals[key] ?? 0) + item.subtotal);
+  }
+  return totals;
+};
+
+async function fullMirror(ctx: Ctx, id: number) {
   const quote = await getQuote(ctx, id);
   const [row] = await db
     .select({ snapshot: quotes.mirrorSnapshot, createdBy: quotes.createdBy })
@@ -269,6 +293,9 @@ export async function getQuoteMirror(ctx: Ctx, id: number) {
     siteAddress: quote.siteAddress,
     installments: quote.installments,
     ...snapshot,
+    subtotal: round2(snapshot.items.reduce((sum, item) => sum + item.subtotal, 0)),
+    // Por grupo, com os itens ocultos: o subtotal do grupo no espelho fecha com o total.
+    groupSubtotals: groupSubtotals(snapshot.items),
     customer: can(ctx.permissions, 'customers.read')
       ? snapshot.customer
       : hideCustomerDetails(snapshot.customer),
@@ -278,7 +305,8 @@ export async function getQuoteMirror(ctx: Ctx, id: number) {
 // Espelho interno: o mesmo documento do cliente, mais observação interna, custos e margem.
 export async function getQuoteInternalMirror(ctx: Ctx, id: number) {
   authorize(ctx, 'costs.read');
-  const mirror = await getQuoteMirror(ctx, id);
+  // O espelho interno mostra também os itens ocultos, marcados.
+  const mirror = await fullMirror(ctx, id);
   const [row] = await db.select({ internalNotes: quotes.internalNotes }).from(quotes).where(scoped(ctx, id));
   if (!row) throw notFound('Orçamento não encontrado.');
   const costs = await db
@@ -340,6 +368,7 @@ async function buildQuoteLines(tx: Transaction, ctx: Ctx, data: QuoteData) {
       width: items[index]?.width ?? null,
       length: items[index]?.length ?? null,
       measureUnit: items[index]?.width ? (items[index]?.measureUnit ?? 'm') : null,
+      hiddenInMirror: items[index]?.hiddenInMirror ?? false,
     })),
   };
 }

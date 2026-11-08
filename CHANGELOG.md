@@ -19,6 +19,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Atalhos de teclado:** F4 novo orçamento, F6 novo pedido, F7 novo cliente, F8 produtos, F9 ou Ctrl+Enter salva o formulário visível, Alt+setas trocam de aba e Alt+X fecha a aba. A lista fica na própria busca.
 - **Cadastro rápido** no orçamento e no pedido: "Novo cliente" (nome, CPF ou CNPJ, celular e e-mail) e "Novo produto" sem sair do documento. O cliente novo já fica escolhido; o produto entra na primeira linha vazia, com o preço. Cada botão aparece só para quem pode criar.
 - **Paginação no servidor** em orçamentos, pedidos, contas a receber, contas a pagar e movimentações: 25, 50 ou 100 por página, com filtros de período, status e texto aplicados pelo servidor. Os totais somam todo o filtro, não só a página. A API aceita `page`, `pageSize`, `from`, `to`, `status` e `q`; sem `page`, devolve a lista simples de antes.
+- **Ajustes no orçamento:** validade em dias ligada à data; desconto em R$ ou % (também no pedido), recalculado enquanto os itens mudam; "Duplicar grupo" copia os itens do grupo com o nome "(cópia)"; "Ocultar no espelho" tira a linha do espelho do cliente sem tirar o valor do subtotal, do subtotal do grupo e do total. O espelho interno mostra a linha marcada.
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado

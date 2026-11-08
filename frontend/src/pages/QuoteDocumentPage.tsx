@@ -5,7 +5,14 @@ import { Save } from 'lucide-react';
 import { type FormEvent, useId, useState } from 'react';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { quoteActions } from '../actions/registry.ts';
-import { CustomerSelect, ItemsTable, Totals } from '../components/DocumentParts.tsx';
+import {
+  CustomerSelect,
+  DiscountField,
+  ItemsTable,
+  Totals,
+  useDiscount,
+  ValidityFields,
+} from '../components/DocumentParts.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { HistoryPanel } from '../components/HistoryPanel.tsx';
 import {
@@ -34,7 +41,7 @@ import {
   useOpportunity,
   useQuote,
 } from '../lib/documents.ts';
-import { formatCode, label } from '../lib/format.ts';
+import { formatCode, label, todayIso } from '../lib/format.ts';
 import type { Person } from '../lib/people.ts';
 import { useTab, useTabDirty, useTabTitle } from '../workspace/tab.ts';
 
@@ -78,7 +85,7 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
   const seedCustomer = quote?.customerId ?? opportunity?.customerId ?? tab.params.customerId;
   const [customerId, setCustomerId] = useState(seedCustomer ? String(seedCustomer) : '');
   const [validUntil, setValidUntil] = useState(quote?.validUntil ?? '');
-  const [discount, setDiscount] = useState(String(quote?.discount ?? 0));
+  const discount = useDiscount(quote?.discount ?? 0);
   const [notes, setNotes] = useState(quote?.notes ?? '');
   const [freight, setFreight] = useState(String(quote?.freight ?? 0));
   const [otherCharges, setOtherCharges] = useState(String(quote?.otherCharges ?? 0));
@@ -102,18 +109,18 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
   const [showHistory, setShowHistory] = useState(false);
   // Item que já tem medidas continua editável, mesmo se a empresa desligar a opção depois.
   const showMeasures = profile.company.useMeasures || lines.some((line) => line.width || line.length);
+  const subtotal = linesSubtotal(lines);
+  const discountValue = discount.value(subtotal);
   const total = Math.max(
     0,
-    Math.round(
-      (linesSubtotal(lines) - Number(discount || 0) + Number(freight || 0) + Number(otherCharges || 0)) * 100,
-    ) / 100,
+    Math.round((subtotal - discountValue + Number(freight || 0) + Number(otherCharges || 0)) * 100) / 100,
   );
 
   const payload = {
     opportunityId: quote ? undefined : (opportunity?.id ?? null),
     customerId: customerId ? Number(customerId) : null,
     validUntil: validUntil || null,
-    discount: Number(discount || 0),
+    discount: discountValue,
     freight: Number(freight || 0),
     otherCharges: Number(otherCharges || 0),
     notes,
@@ -221,16 +228,12 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
       <form id={formId} className="panel" onSubmit={submit} noValidate hidden={showHistory}>
         <div className="form-grid">
           <CustomerSelect value={customerId} onChange={setCustomerId} disabled={!editable} />
-          <label>
-            Válido até
-            <input
-              name="validUntil"
-              type="date"
-              disabled={!editable}
-              value={validUntil}
-              onChange={(event) => setValidUntil(event.target.value)}
-            />
-          </label>
+          <ValidityFields
+            baseDate={todayIso(quote ? new Date(quote.createdAt) : undefined)}
+            validUntil={validUntil}
+            onChange={setValidUntil}
+            disabled={!editable}
+          />
 
           {editable ? (
             <ItemLines
@@ -245,19 +248,7 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
             quote && <ItemsTable items={quote.items} />
           )}
 
-          <label>
-            Desconto (R$)
-            <input
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="0.01"
-              name="discount"
-              disabled={!editable}
-              value={discount}
-              onChange={(event) => setDiscount(event.target.value)}
-            />
-          </label>
+          <DiscountField control={discount} subtotal={subtotal} disabled={!editable} />
           <label>
             Observações
             <input
@@ -386,7 +377,7 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
 
         <Totals
           subtotal={linesSubtotal(lines)}
-          discount={Number(discount || 0)}
+          discount={discountValue}
           freight={Number(freight || 0)}
           otherCharges={Number(otherCharges || 0)}
           label="Total do orçamento"

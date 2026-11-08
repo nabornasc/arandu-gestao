@@ -23,8 +23,8 @@ export function formatDateTime(value: string, seconds = false): string {
 // Número sequencial da empresa exibido como #001.
 export const formatCode = (value: number) => `#${String(value).padStart(3, '0')}`;
 
-export const todayIso = () => {
-  const now = new Date();
+// Dia no fuso do navegador (hoje, ou o dia de um momento gravado).
+export const todayIso = (now = new Date()) => {
   return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 };
 

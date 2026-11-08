@@ -236,3 +236,41 @@ describe('histórico', () => {
     await owner.put('/company', COMPANY);
   });
 });
+
+describe('item oculto no espelho', () => {
+  it('entra no total, some do espelho do cliente, aparece marcado no interno e segue na duplicação', async () => {
+    const material = (
+      await owner.post('/products', { name: 'Material embutido', type: 'service', price: 30 })
+    ).body.id;
+    const quote = await newQuote({
+      discount: 0,
+      freight: 0,
+      otherCharges: 0,
+      items: [
+        { productId, quantity: 1, groupName: 'Cozinha' },
+        { productId: material, quantity: 1, hiddenInMirror: true, groupName: 'Cozinha' },
+      ],
+    });
+    expect(quote.total).toBe(130);
+
+    const mirror = (await owner.get(`/quotes/${quote.id}/mirror`)).body;
+    expect(mirror.items.map((item: { name: string }) => item.name)).toEqual(['Serviço']);
+    // O subtotal continua com o item oculto, para fechar com o total.
+    expect(mirror).toMatchObject({ subtotal: 130, total: 130, groupSubtotals: { Cozinha: 130 } });
+
+    const internal = (await owner.get(`/quotes/${quote.id}/internal-mirror`)).body;
+    expect(internal.items).toEqual([
+      expect.objectContaining({ name: 'Serviço', hiddenInMirror: false }),
+      expect.objectContaining({ name: 'Material embutido', hiddenInMirror: true }),
+    ]);
+
+    const copy = (await owner.post(`/quotes/${quote.id}/duplicate`, {})).body;
+    const items = (await owner.get(`/quotes/${copy.id}`)).body.items;
+    expect(items.map((item: { hiddenInMirror: boolean }) => item.hiddenInMirror)).toEqual([false, true]);
+
+    // Quem vê só o espelho do cliente não recebe a linha oculta.
+    const seller = await addMember(app, owner, 'seller');
+    const sellerMirror = (await seller.get(`/quotes/${quote.id}/mirror`)).body;
+    expect(sellerMirror.items).toHaveLength(1);
+  });
+});

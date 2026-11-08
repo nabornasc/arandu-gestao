@@ -14,7 +14,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 4 | Central de relatórios com exportação em CSV | **Concluída em 08/11** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
 | 5 | Agenda: dia, semana, mês e lista | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
-| 7 | Restante dos documentos | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
+| 7 | Restante dos documentos | **Em andamento** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | Só se ainda houver interesse | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
 | 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 10 |
@@ -80,11 +80,12 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 
 ### Etapa 7: restante dos documentos
 
-- Modelos e duplicação de grupos de itens, unidades além de m² e item avulso.
-- Condições de pagamento cadastráveis, com várias formas por documento.
-- Biblioteca de textos e cláusulas.
-- Validade em dias, ocultar item no espelho e desconto em R$ ou %.
-- Exportação em DOCX.
+Em quatro partes:
+
+1. **Ajustes do documento.** Feito em 08/11/2026: validade em dias ligada à data, desconto em R$ ou % (o documento guarda o valor em R$), duplicar grupo de itens e ocultar item no espelho do cliente. O item oculto continua no subtotal, no subtotal do grupo e no total; o espelho interno mostra a linha marcada. Migração `0020_espelho_item_oculto`.
+2. Condições de pagamento cadastráveis, com várias formas por documento.
+3. Biblioteca de textos e cláusulas, modelos de grupos de itens, unidades além de m² e item avulso. O item avulso saiu da parte 1 porque mexe em pedido, estoque e relatórios, que hoje exigem produto em todo item.
+4. Exportação em DOCX.
 
 ### Etapa 8: gestão
 

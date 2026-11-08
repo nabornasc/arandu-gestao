@@ -21,6 +21,7 @@ export interface DocumentItem {
   width?: number | null;
   length?: number | null;
   measureUnit?: MeasureUnit | null;
+  hiddenInMirror?: boolean;
 }
 
 export interface Installment {
@@ -109,7 +110,12 @@ export interface QuoteMirror {
     width?: number | null;
     length?: number | null;
     measureUnit?: MeasureUnit | null;
+    // Só no espelho interno: no do cliente, o item oculto não vem.
+    hiddenInMirror?: boolean;
   }[];
+  // Somas com os itens ocultos, para fechar com o total.
+  subtotal: number;
+  groupSubtotals: Record<string, number>;
 }
 
 // Espelho interno: acrescenta observação interna, custos e margem. Valor nulo é custo desconhecido.

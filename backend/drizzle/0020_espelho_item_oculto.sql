@@ -1,0 +1,1 @@
+ALTER TABLE "quote_items" ADD COLUMN "hidden_in_mirror" boolean DEFAULT false NOT NULL;

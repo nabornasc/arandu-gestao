@@ -42,7 +42,7 @@ export default function QuoteMirrorPage() {
 
   const quote = mirror.data;
   const { issuer } = quote;
-  const subtotal = quote.items.reduce((sum, item) => sum + item.subtotal, 0);
+  const subtotal = quote.subtotal;
 
   return (
     <main className="mirror-page">
@@ -65,7 +65,7 @@ export default function QuoteMirrorPage() {
               </tr>
             </thead>
             <tbody>
-              {groupItems(quote.items).map((group) => (
+              {groupItems(quote.items, quote.groupSubtotals).map((group) => (
                 <Fragment key={group.name}>
                   {group.name && (
                     <tr className="mirror-group">

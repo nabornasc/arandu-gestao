@@ -205,3 +205,9 @@
   color: #5c5368;
   font-size: 11px;
 }
+.mirror-hidden {
+  display: block;
+  color: #8a5a00;
+  font-size: 11px;
+  font-style: italic;
+}

@@ -37,6 +37,7 @@ type Source = {
     width?: number | null;
     length?: number | null;
     measureUnit?: string | null;
+    hiddenInMirror?: boolean;
   }[];
 };
 
@@ -54,15 +55,18 @@ const quoteFrom = (source: Source) => ({
   siteDescription: source.siteDescription ?? null,
   siteContact: source.siteContact ?? null,
   siteAddress: source.siteAddress ?? null,
-  items: source.items.map(({ productId, quantity, unitPrice, groupName, width, length, measureUnit }) => ({
-    productId,
-    quantity,
-    unitPrice,
-    groupName: groupName ?? null,
-    width,
-    length,
-    measureUnit: measureUnit as MeasureUnit | null | undefined,
-  })),
+  items: source.items.map(
+    ({ productId, quantity, unitPrice, groupName, width, length, measureUnit, hiddenInMirror }) => ({
+      productId,
+      quantity,
+      unitPrice,
+      groupName: groupName ?? null,
+      width,
+      length,
+      measureUnit: measureUnit as MeasureUnit | null | undefined,
+      hiddenInMirror: hiddenInMirror ?? false,
+    }),
+  ),
   // As datas valiam para o documento de origem: a cópia nasce sem parcelas.
   installments: [],
 });

@@ -2509,3 +2509,23 @@ a.nav-label.active {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* Desconto em R$ ou %: valor e unidade lado a lado. */
+.discount-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.discount-field label:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.form-grid .discount-field small {
+  flex-basis: 100%;
+}
+.validity-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 8px;
+}

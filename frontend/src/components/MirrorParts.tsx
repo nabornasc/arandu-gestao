@@ -106,8 +106,9 @@ export function MirrorParties({ quote }: { quote: QuoteMirror }) {
 
 type MirrorItem = QuoteMirror['items'][number];
 
-// Agrupa pelo nome, na ordem em que cada grupo aparece, mesmo com itens intercalados.
-export function groupItems<T extends MirrorItem>(items: T[]) {
+// Agrupa pelo nome, na ordem em que cada grupo aparece, mesmo com itens intercalados. O subtotal do
+// grupo vem do servidor, que conta também os itens ocultos no espelho.
+export function groupItems<T extends MirrorItem>(items: T[], subtotals: Record<string, number> = {}) {
   const groups = new Map<string, T[]>();
   for (const item of items) {
     const key = item.groupName ?? '';
@@ -116,7 +117,7 @@ export function groupItems<T extends MirrorItem>(items: T[]) {
   return [...groups].map(([name, list]) => ({
     name,
     items: list,
-    subtotal: list.reduce((sum, item) => sum + item.subtotal, 0),
+    subtotal: subtotals[name] ?? list.reduce((sum, item) => sum + item.subtotal, 0),
   }));
 }
 
@@ -133,6 +134,7 @@ export function ItemName({ item }: { item: MirrorItem }) {
           {item.measureUnit ?? 'm'}
         </small>
       )}
+      {item.hiddenInMirror && <small className="mirror-hidden">oculto no espelho do cliente</small>}
     </>
   );
 }

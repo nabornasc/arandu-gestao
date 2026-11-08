@@ -74,7 +74,7 @@ export default function QuoteInternalMirrorPage() {
               </tr>
             </thead>
             <tbody>
-              {groupItems(quote.items).map((group) => (
+              {groupItems(quote.items, quote.groupSubtotals).map((group) => (
                 <Fragment key={group.name}>
                   {group.name && (
                     <tr className="mirror-group">

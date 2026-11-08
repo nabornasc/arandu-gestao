@@ -42,6 +42,7 @@ export async function buildMirrorSnapshot(
       width: quoteItems.width,
       length: quoteItems.length,
       measureUnit: quoteItems.measureUnit,
+      hiddenInMirror: quoteItems.hiddenInMirror,
     })
     .from(quoteItems)
     .innerJoin(products, eq(products.id, quoteItems.productId))

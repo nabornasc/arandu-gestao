@@ -4,7 +4,13 @@ import { Save } from 'lucide-react';
 import { type FormEvent, useId, useState } from 'react';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { orderActions } from '../actions/registry.ts';
-import { CustomerSelect, ItemsTable, Totals } from '../components/DocumentParts.tsx';
+import {
+  CustomerSelect,
+  DiscountField,
+  ItemsTable,
+  Totals,
+  useDiscount,
+} from '../components/DocumentParts.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { useAccountOptions } from '../components/FormModal.tsx';
 import { HistoryPanel } from '../components/HistoryPanel.tsx';
@@ -65,7 +71,7 @@ function OrderEditor({ order }: { order: Order | null }) {
     order?.customerId ? String(order.customerId) : (tab.params.customerId ?? ''),
   );
   const [orderDate, setOrderDate] = useState(order?.orderDate ?? todayIso());
-  const [discount, setDiscount] = useState(String(order?.discount ?? 0));
+  const discount = useDiscount(order?.discount ?? 0);
   const [notes, setNotes] = useState(order?.notes ?? '');
   const [status, setStatus] = useState<'pending' | 'paid'>('pending');
   const [bankAccountId, setBankAccountId] = useState('');
@@ -75,12 +81,14 @@ function OrderEditor({ order }: { order: Order | null }) {
   const [installments, setInstallments] = useState<InstallmentRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const newTotal = Math.max(0, Math.round((linesSubtotal(lines) - Number(discount || 0)) * 100) / 100);
+  const subtotal = linesSubtotal(lines);
+  const discountValue = discount.value(subtotal);
+  const newTotal = Math.max(0, Math.round((subtotal - discountValue) * 100) / 100);
 
   const header = {
     customerId: customerId ? Number(customerId) : null,
     orderDate,
-    discount: Number(discount || 0),
+    discount: discountValue,
     notes,
   };
   const payload = order
@@ -209,19 +217,7 @@ function OrderEditor({ order }: { order: Order | null }) {
             <ItemLines lines={lines} setLines={setLines} products={products.data} />
           )}
 
-          <label>
-            Desconto (R$)
-            <input
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="0.01"
-              name="discount"
-              disabled={!editable}
-              value={discount}
-              onChange={(event) => setDiscount(event.target.value)}
-            />
-          </label>
+          <DiscountField control={discount} subtotal={subtotal} disabled={!editable} />
           {!order && (
             <label>
               Status
@@ -277,7 +273,7 @@ function OrderEditor({ order }: { order: Order | null }) {
 
         <Totals
           subtotal={linesSubtotal(lines)}
-          discount={Number(discount || 0)}
+          discount={discountValue}
           freight={order?.freight}
           otherCharges={order?.otherCharges}
           label="Total do pedido"

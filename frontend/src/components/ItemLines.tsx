@@ -1,5 +1,5 @@
 import { areaInSquareMeters, type MeasureUnit } from '@arandue/shared/schemas';
-import { Plus, Trash2 } from 'lucide-react';
+import { Copy, Plus, Trash2 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useId } from 'react';
 import { QuickProductButton } from './QuickCreate.tsx';
 
@@ -20,6 +20,8 @@ export interface Line {
   length: string;
   // Vazio em item novo: usa a unidade atual da empresa. Item salvo mantém a unidade em que foi digitado.
   measureUnit: MeasureUnit | '';
+  // Só no orçamento: entra no total, mas não sai no espelho do cliente.
+  hiddenInMirror: boolean;
 }
 
 let lineKey = 0;
@@ -31,6 +33,7 @@ export const newLine = (initial?: {
   width?: number | null;
   length?: number | null;
   measureUnit?: MeasureUnit | null;
+  hiddenInMirror?: boolean;
 }): Line => ({
   key: ++lineKey,
   productId: initial ? String(initial.productId) : '',
@@ -40,6 +43,7 @@ export const newLine = (initial?: {
   width: initial?.width ? String(initial.width) : '',
   length: initial?.length ? String(initial.length) : '',
   measureUnit: initial?.width ? (initial.measureUnit ?? 'm') : '',
+  hiddenInMirror: initial?.hiddenInMirror ?? false,
 });
 
 export const linesSubtotal = (lines: Line[]) =>
@@ -65,7 +69,19 @@ export const linesToQuoteItems = (lines: Line[], defaultUnit: MeasureUnit) =>
       width: line.width ? Number(line.width) : null,
       length: line.length ? Number(line.length) : null,
       measureUnit: line.width || line.length ? line.measureUnit || defaultUnit : null,
+      hiddenInMirror: line.hiddenInMirror,
     }));
+
+// Copia as linhas do grupo para o fim, com um nome novo que não colide com os grupos que já existem.
+export function duplicateGroup(lines: Line[], name: string): Line[] {
+  const names = new Set(lines.map((line) => line.groupName.trim()));
+  let copyName = `${name} (cópia)`;
+  for (let count = 2; names.has(copyName); count++) copyName = `${name} (cópia ${count})`;
+  const copies = lines
+    .filter((line) => line.groupName.trim() === name)
+    .map((line) => ({ ...line, key: newLine().key, groupName: copyName.slice(0, 80) }));
+  return [...lines, ...copies];
+}
 
 const area = (width: string, length: string, unit: MeasureUnit) =>
   width && length ? String(areaInSquareMeters(Number(width), Number(length), unit)) : null;
@@ -178,6 +194,15 @@ export function ItemLines({
                   onChange={(event) => updateLine(line.key, { groupName: event.target.value })}
                 />
               </label>
+              <label className="checkbox">
+                <input
+                  type="checkbox"
+                  name={`items.${index}.hiddenInMirror`}
+                  checked={line.hiddenInMirror}
+                  onChange={(event) => updateLine(line.key, { hiddenInMirror: event.target.checked })}
+                />
+                Ocultar no espelho
+              </label>
               {measures && (
                 <>
                   <label>
@@ -232,6 +257,17 @@ export function ItemLines({
         >
           <Plus size={14} /> Adicionar item
         </button>
+        {groups &&
+          groupNames.map((name) => (
+            <button
+              key={name}
+              type="button"
+              className="button secondary"
+              onClick={() => setLines((current) => duplicateGroup(current, name))}
+            >
+              <Copy size={14} /> Duplicar grupo {name}
+            </button>
+          ))}
         {/* Cadastro rápido: o produto novo entra na primeira linha vazia ou numa linha nova. */}
         <QuickProductButton
           onCreated={(product) => {

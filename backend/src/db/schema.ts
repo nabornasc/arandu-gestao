@@ -466,6 +466,8 @@ export const quoteItems = pgTable(
     width: quantity(),
     length: quantity(),
     measureUnit: varchar({ length: 2 }),
+    // Entra no total, mas não aparece no espelho do cliente (ex.: material embutido no serviço).
+    hiddenInMirror: boolean().notNull().default(false),
   },
   (t) => [index().on(t.quoteId)],
 );
