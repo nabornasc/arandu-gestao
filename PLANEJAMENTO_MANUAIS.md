@@ -43,7 +43,7 @@ Regras de texto: português simples, sem jargão técnico, nome dos botões igua
 
 | Tipo | Quando usar | Formato | Limite |
 |---|---|---|---|
-| Vídeo curto | Ação com várias etapas na tela (ex.: preencher e salvar) | WebM (VP9) e MP4 (H.264) de reserva, sem som, em loop | 3 a 15 s, até 400 KB |
+| Vídeo curto | Ação com várias etapas na tela (ex.: preencher e salvar) | WebM (VP9) e MP4 (H.264) de reserva, sem som, com legenda gravada, em loop | 3 a 15 s, até 400 KB |
 | GIF | Ação de um gesto (ex.: abrir menu, atalho) e uso fora do sistema, como o README | GIF com paleta otimizada | até 2 s e 300 KB |
 | Imagem | Tela parada com destaque numa área | WebP com moldura e seta | até 120 KB |
 
@@ -59,7 +59,7 @@ Roteiros em Playwright, que o projeto já usa nos testes de ponta a ponta:
 - Sempre com os **dados da demonstração** (conveniência de bebidas fictícia). Nunca dados reais nem telas de outros sistemas.
 - Gravação com `recordVideo` do Playwright em 1280×720 e, para celular, em 390×844.
 - **Cursor e clique visíveis:** um script injetado desenha o ponteiro, um círculo no clique e a tecla apertada (ex.: "Ctrl+K"), porque a gravação sem tela não mostra o mouse.
-- Corte e conversão com `ffmpeg` (já instalado no notebook): marca de início e fim por passo, WebM e MP4 e, quando pedido, GIF com paleta gerada.
+- Corte e conversão com `ffmpeg` (já instalado no notebook): marca de início e fim por passo, legenda gravada com o texto de cada passo, WebM e MP4 e, quando pedido, GIF com paleta gerada.
 - Comando único: `npm run manual:midia` regrava tudo; `npm run manual:midia -- vendas/orcamento` regrava um artigo.
 - O CI roda os roteiros sem gravar, como teste: se a tela mudar e o roteiro quebrar, o manual desatualizado aparece no PR.
 
@@ -96,9 +96,9 @@ Estimativa: cerca de 60 artigos e 150 mídias, de 10 a 25 MB no total.
 
 Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.
 
-## 9. Decisões em aberto
+## 9. Decisões (08/11/2026)
 
-1. **Quando entra:** logo depois da parte 4 da etapa 6 (paginação), ou depois da etapa 7 (documentos), quando as telas de documento estiverem estáveis. Recomendação: M1 e M2 logo após a etapa 6, porque Vendas já está estável; o restante acompanha as etapas.
-2. **Onde guardar a mídia:** seção 6. Recomendação: no repositório.
-3. **Leitura do Markdown:** biblioteca pronta (`react-markdown`, uma dependência nova) ou conversão no build para HTML. Recomendação: conversão no build, sem dependência no navegador.
-4. **Narração:** sem som (recomendado) ou com legenda gravada no vídeo.
+1. **Quando entra:** depois da etapa 7 (documentos), com as telas de documento já estáveis.
+2. **Onde guardar a mídia:** no repositório, em `frontend/public/manual/` (opção A da seção 6).
+3. **Leitura do Markdown:** convertido para HTML no build, sem biblioteca nova no navegador.
+4. **Legenda:** o vídeo continua sem som e leva legenda gravada na imagem, com o texto do passo. A legenda sai do próprio roteiro e é aplicada pelo `ffmpeg` na conversão.
