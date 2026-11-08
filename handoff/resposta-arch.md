@@ -188,7 +188,9 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 2. **Condições de pagamento:** concluída e em produção (PR #33, `531684b`).
    - Tabela `payment_conditions` (migração `0021`, com cinco condições padrão por empresa), cadastro em Configurações e escolha nas parcelas do orçamento e do pedido.
    - Produção via MCP antes do merge: migração registrada, `GRANT`, RLS e policy `arandue_app_all`, `demo.table_list()` com a tabela nova, backup `backup_20261108_demo_condicoes` e `demo.capture()`. Avisos de segurança sem itens; `/payment-conditions` conferido no ar.
-3. Biblioteca de textos e cláusulas, modelos de grupos, unidades e item avulso (movido da parte 1).
+3. Em duas entregas:
+   - **3a. Biblioteca do orçamento:** concluída e em produção (PR #34, `8ea7646`). Cláusulas por orçamento (`quotes.clauses`), textos prontos (`text_snippets`) e modelos de grupo (`item_templates`). Migração `0022`; produção via MCP antes do merge, com `GRANT`, RLS, policy, `demo.table_list()`, backup `backup_20261108_demo_biblioteca` e `demo.capture()`. Avisos de segurança sem itens.
+   - **3b.** Unidades além de m² e item avulso: próxima.
 4. Exportação em DOCX.
 
 - **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
@@ -202,5 +204,6 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   DROP SCHEMA backup_20261108_demo_agenda CASCADE;
   DROP SCHEMA backup_20261108_demo_item_oculto CASCADE;
   DROP SCHEMA backup_20261108_demo_condicoes CASCADE;
+  DROP SCHEMA backup_20261108_demo_biblioteca CASCADE;
   ```
 - **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
