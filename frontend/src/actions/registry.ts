@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Copy,
   CopyPlus,
+  FileDown,
   FileInput,
   FileOutput,
   FilePlus2,
@@ -141,6 +142,20 @@ const baseQuoteActions: RecordAction<Quote>[] = [
     icon: Printer,
     permissions: ['quotes.read', 'costs.read'],
     run: (q) => void window.open(`/espelho/orcamento/${q.id}/interno`, '_blank'),
+  },
+  {
+    id: 'quote.docx',
+    group: 'open',
+    label: 'Baixar em Word (DOCX)',
+    icon: FileDown,
+    permissions: ['quotes.read'],
+    // O mesmo conteúdo do espelho do cliente, para editar no Word ou no LibreOffice.
+    run: (q) => {
+      const link = document.createElement('a');
+      link.href = `/api/quotes/${q.id}/docx`;
+      link.download = '';
+      link.click();
+    },
   },
   {
     id: 'quote.send',

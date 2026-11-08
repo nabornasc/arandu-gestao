@@ -14,12 +14,12 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 4 | Central de relatórios com exportação em CSV | **Concluída em 08/11** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
 | 5 | Agenda: dia, semana, mês e lista | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
-| 7 | Restante dos documentos | **Em andamento** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
+| 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | Só se ainda houver interesse | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
 | 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 10 |
 
-**Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Entram depois da etapa 7, por decisão de 08/11/2026.
+**Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Entram depois da etapa 7, por decisão de 08/11/2026: são os próximos.
 
 ## Por que esta ordem
 
@@ -87,7 +87,7 @@ Em quatro partes:
 3. Em duas entregas:
    - **3a. Biblioteca do orçamento.** Feito em 08/11/2026: cláusulas próprias de cada orçamento (`quotes.clauses`; vazio usa o texto padrão da empresa no espelho), textos prontos (`text_snippets`) inseridos nas cláusulas e modelos de grupo (`item_templates`): "Criar modelo do grupo" no orçamento e "Inserir modelo" procurando pelo nome. Manutenção em Configurações. Migração `0022_biblioteca_orcamento`.
    - **3b. Unidades e item avulso.** Feito em 08/11/2026: metro linear (só o comprimento vira a quantidade em metros) ao lado do m²; a unidade do cadastro (CX, KG, L...) aparece no espelho; item avulso no orçamento e no pedido, com descrição e preço livres, sem estoque, presente no histórico, nos espelhos e nos relatórios de itens. Migração `0023_item_avulso` (`product_id` opcional, `description` e uma regra no banco: produto ou descrição). Modelos de grupo guardam só itens do catálogo.
-4. Exportação em DOCX.
+4. **Exportação em DOCX.** Feito em 08/11/2026: "Baixar em Word (DOCX)" no menu do orçamento, com o conteúdo do espelho do cliente (logo PNG ou JPEG, grupos com subtotal, item avulso, medidas, totais, parcelas, observações e cláusulas). Gerado no servidor sem dependência nova: o arquivo é um zip de XML montado em `lib/zip.ts`. A exportação fica no histórico.
 
 ### Etapa 8: gestão
 

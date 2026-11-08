@@ -1,5 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { CUSTOMER, chooseOption, itemSelect, login, OWNER, openMenuItem, SERVICE } from './helpers.ts';
+import {
+  CUSTOMER,
+  chooseOption,
+  createQuote,
+  itemSelect,
+  login,
+  OWNER,
+  openMenuItem,
+  SERVICE,
+} from './helpers.ts';
 
 test.beforeEach(({ page }) => login(page, OWNER));
 
@@ -152,4 +161,17 @@ test('item avulso entra no pedido com descrição e preço livres', async ({ pag
   await page.getByRole('button', { name: 'Criar pedido' }).click();
   await expect(page).toHaveURL(/\/pedidos\/\d+$/);
   await expect(page.getByRole('cell', { name: new RegExp(`Taxa de entrega ${tag}`) })).toBeVisible();
+});
+
+test('orçamento baixa em Word (DOCX) pelo menu de ações', async ({ page }) => {
+  await createQuote(page);
+  const download = page.waitForEvent('download');
+  await openMenuItem(page, 'Baixar em Word (DOCX)');
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^orcamento-\d{3,}\.docx$/);
+  const stream = await file.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  // Arquivo do Office é um zip: começa com "PK".
+  expect(Buffer.concat(chunks).subarray(0, 2).toString()).toBe('PK');
 });

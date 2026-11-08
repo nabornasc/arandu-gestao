@@ -348,7 +348,9 @@ function summarize(row: AuditRow, data: AuditData) {
     case 'login':
       return 'Entrou no sistema';
     case 'export':
-      return 'Exportou em CSV';
+      return (row.data as { format?: string } | null)?.format === 'docx'
+        ? 'Exportou em DOCX'
+        : 'Exportou em CSV';
     default:
       return 'Alterou o registro';
   }

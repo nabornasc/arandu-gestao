@@ -23,6 +23,7 @@ import * as paymentConditions from '../services/paymentConditions.ts';
 import * as people from '../services/people.ts';
 import * as pipeline from '../services/pipeline.ts';
 import * as products from '../services/products.ts';
+import * as quoteDocx from '../services/quoteDocx.ts';
 import * as quotes from '../services/quotes.ts';
 import * as reports from '../services/reports.ts';
 import * as search from '../services/search.ts';
@@ -167,6 +168,13 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     protectedApp.get('/quotes/:id/mirror', (request) =>
       quotes.getQuoteMirror(ctxOf(request), idParamSchema.parse(request.params).id),
     );
+    protectedApp.get('/quotes/:id/docx', async (request, reply) => {
+      const file = await quoteDocx.exportQuoteDocx(ctxOf(request), idParamSchema.parse(request.params).id);
+      return reply
+        .header('content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        .header('content-disposition', `attachment; filename="${file.filename}"`)
+        .send(file.content);
+    });
     protectedApp.get('/quotes/:id/internal-mirror', (request) =>
       quotes.getQuoteInternalMirror(ctxOf(request), idParamSchema.parse(request.params).id),
     );
