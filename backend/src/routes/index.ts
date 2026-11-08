@@ -14,6 +14,7 @@ import * as customers from '../services/customers.ts';
 import { getDashboard } from '../services/dashboard.ts';
 import * as expenses from '../services/expenses.ts';
 import * as history from '../services/history.ts';
+import * as library from '../services/library.ts';
 import * as lists from '../services/lists.ts';
 import * as lookup from '../services/lookup.ts';
 import * as opportunities from '../services/opportunities.ts';
@@ -355,6 +356,25 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
         .header('content-disposition', `attachment; filename="${file.filename}"`)
         .send(file.content);
     });
+    const allQuery = (request: FastifyRequest) => ({ all: (request.query as { all?: string }).all === '1' });
+    protectedApp.get('/text-snippets', (request) => library.listSnippets(ctxOf(request), allQuery(request)));
+    protectedApp.post('/text-snippets', async (request, reply) => {
+      reply.status(201);
+      return library.createSnippet(ctxOf(request), request.body as never);
+    });
+    protectedApp.put('/text-snippets/:id', (request) =>
+      library.updateSnippet(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
+    );
+    protectedApp.get('/item-templates', (request) =>
+      library.listTemplates(ctxOf(request), allQuery(request)),
+    );
+    protectedApp.post('/item-templates', async (request, reply) => {
+      reply.status(201);
+      return library.createTemplate(ctxOf(request), request.body as never);
+    });
+    protectedApp.put('/item-templates/:id', (request) =>
+      library.updateTemplate(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
+    );
     protectedApp.get('/payment-conditions', (request) =>
       paymentConditions.listPaymentConditions(ctxOf(request), {
         all: (request.query as { all?: string }).all === '1',

@@ -187,6 +187,38 @@ export const paymentConditions = pgTable(
   (t) => [uniqueIndex('payment_conditions_name_unique').on(t.companyId, sql`lower(${t.name})`)],
 );
 
+// Biblioteca de textos: cláusulas e trechos prontos para inserir no orçamento.
+export const textSnippets = pgTable(
+  'text_snippets',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    title: varchar({ length: 80 }).notNull(),
+    body: varchar({ length: 2000 }).notNull(),
+    active: boolean().notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('text_snippets_title_unique').on(t.companyId, sql`lower(${t.title})`)],
+);
+
+// Modelos de grupo de itens: um grupo salvo do orçamento, para inserir de novo em outros.
+export const itemTemplates = pgTable(
+  'item_templates',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    name: varchar({ length: 80 }).notNull(),
+    items: jsonb()
+      .$type<{ productId: number; quantity: number; unitPrice: number | null }[]>()
+      .notNull()
+      .default([]),
+    active: boolean().notNull().default(true),
+    createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('item_templates_name_unique').on(t.companyId, sql`lower(${t.name})`)],
+);
+
 export const products = pgTable(
   'products',
   {
@@ -441,6 +473,8 @@ export const quotes = pgTable(
     siteDescription: varchar({ length: 160 }),
     siteContact: varchar({ length: 160 }),
     siteAddress: varchar({ length: 255 }),
+    // Cláusulas deste orçamento. Vazio usa o texto padrão da empresa no espelho.
+    clauses: varchar({ length: 4000 }),
     // Cópia feita ao enviar: reimprimir mostra o que o cliente recebeu, mesmo que o cadastro mude.
     mirrorSnapshot: jsonb(),
     // Condição combinada com o cliente. Ainda não gera contas a receber por parcela.

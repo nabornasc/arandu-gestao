@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { api } from '../lib/api.ts';
 import type { Customer, DocumentItem } from '../lib/documents.ts';
 import { formatMoney } from '../lib/format.ts';
+import { useSnippets } from '../lib/library.ts';
 import { QuickCustomerButton } from './QuickCreate.tsx';
 
 // Peças comuns às telas de orçamento e pedido.
@@ -243,5 +244,35 @@ export function ValidityFields({
         />
       </label>
     </div>
+  );
+}
+
+// Junta o texto da biblioteca ao que já foi escrito, separado por uma linha em branco.
+export const appendText = (current: string, addition: string) =>
+  current.trim() ? `${current.trimEnd()}\n\n${addition}` : addition;
+
+// Escolher um texto da biblioteca o acrescenta às cláusulas do orçamento.
+export function SnippetPicker({ onInsert }: { onInsert: (body: string) => void }) {
+  const snippets = useSnippets();
+  if (!snippets.data?.length) return null;
+  return (
+    <label className="full-row">
+      Inserir texto da biblioteca
+      <select
+        name="snippet"
+        value=""
+        onChange={(event) => {
+          const chosen = snippets.data?.find((row) => String(row.id) === event.target.value);
+          if (chosen) onInsert(chosen.body);
+        }}
+      >
+        <option value="">Escolha um texto para acrescentar</option>
+        {snippets.data.map((row) => (
+          <option key={row.id} value={row.id}>
+            {row.title}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

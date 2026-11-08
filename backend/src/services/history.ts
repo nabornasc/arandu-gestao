@@ -91,6 +91,18 @@ const ENTITIES: Record<string, EntityInfo> = {
     path: listPath('/configuracoes'),
     open: 'Abrir configurações',
   },
+  text_snippet: {
+    noun: 'o texto da biblioteca',
+    module: 'Configurações',
+    path: listPath('/configuracoes'),
+    open: 'Abrir configurações',
+  },
+  item_template: {
+    noun: 'o modelo de grupo',
+    module: 'Configurações',
+    path: listPath('/configuracoes'),
+    open: 'Abrir configurações',
+  },
   list_item: {
     noun: 'o valor da lista',
     module: 'Configurações',
@@ -181,6 +193,9 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   time: { label: 'Hora', kind: 'text' },
   active: { label: 'Ativo', kind: 'boolean' },
   terms: { label: 'Entrada e prazos', kind: 'text' },
+  clauses: { label: 'Cláusulas', kind: 'text' },
+  body: { label: 'Texto', kind: 'text' },
+  templateItems: { label: 'Itens do modelo', kind: 'text' },
   // Financeiro.
   description: { label: 'Descrição', kind: 'text' },
   category: { label: 'Categoria', kind: 'text' },

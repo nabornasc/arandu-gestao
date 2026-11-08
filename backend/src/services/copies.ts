@@ -28,6 +28,7 @@ type Source = {
   siteDescription?: string | null;
   siteContact?: string | null;
   siteAddress?: string | null;
+  clauses?: string | null;
   items: {
     productId: number;
     quantity: number;
@@ -55,6 +56,7 @@ const quoteFrom = (source: Source) => ({
   siteDescription: source.siteDescription ?? null,
   siteContact: source.siteContact ?? null,
   siteAddress: source.siteAddress ?? null,
+  clauses: source.clauses ?? null,
   items: source.items.map(
     ({ productId, quantity, unitPrice, groupName, width, length, measureUnit, hiddenInMirror }) => ({
       productId,

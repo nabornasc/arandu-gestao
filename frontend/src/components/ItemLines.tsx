@@ -1,6 +1,7 @@
 import { areaInSquareMeters, type MeasureUnit } from '@arandue/shared/schemas';
 import { Copy, Plus, Trash2 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useId } from 'react';
+import { GroupTemplates } from './GroupTemplates.tsx';
 import { QuickProductButton } from './QuickCreate.tsx';
 
 export interface Product {
@@ -281,6 +282,9 @@ export function ItemLines({
           }}
         />
       </div>
+      {groups && (
+        <GroupTemplates lines={lines} setLines={setLines} products={products} groupNames={groupNames} />
+      )}
     </>
   );
 }

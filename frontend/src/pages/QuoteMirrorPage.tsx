@@ -132,10 +132,10 @@ export default function QuoteMirrorPage() {
             <p>{quote.notes}</p>
           </section>
         )}
-        {issuer.terms && (
+        {(quote.clauses ?? issuer.terms) && (
           <section className="mirror-text">
             <h2>Condições</h2>
-            <p>{issuer.terms}</p>
+            <p>{quote.clauses ?? issuer.terms}</p>
           </section>
         )}
 

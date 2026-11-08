@@ -372,6 +372,32 @@ export function conditionInstallments(
   return rows;
 }
 
+// Biblioteca de textos: cláusulas e trechos prontos para o orçamento.
+export const textSnippetSchema = z.object({
+  title: requiredText(80, 'Informe o título'),
+  body: requiredText(2000, 'Informe o texto'),
+  active: z.boolean().default(true),
+});
+export type TextSnippetInput = z.input<typeof textSnippetSchema>;
+
+// Modelo de grupo: itens com quantidade e, opcionalmente, o preço combinado. Sem preço, vale o do
+// cadastro na hora de inserir.
+export const itemTemplateSchema = z.object({
+  name: requiredText(80, 'Informe o nome do modelo'),
+  items: z
+    .array(
+      z.object({
+        productId: id,
+        quantity: z.number().positive('A quantidade deve ser maior que zero').max(1e6),
+        unitPrice: money.nullish(),
+      }),
+    )
+    .min(1, 'O modelo precisa de ao menos um item')
+    .max(100),
+  active: z.boolean().default(true),
+});
+export type ItemTemplateInput = z.input<typeof itemTemplateSchema>;
+
 // Ajuste de estoque: entrada, saída ou contagem (o saldo passa a ser a quantidade informada).
 export const STOCK_ADJUSTMENT_KINDS = ['in', 'out', 'count'] as const;
 export const stockAdjustmentSchema = z.object({
@@ -558,6 +584,8 @@ export const quoteSchema = z.object({
   siteDescription: optionalText(160),
   siteContact: optionalText(160),
   siteAddress: optionalText(255),
+  // Vazio: o espelho usa o texto padrão da empresa.
+  clauses: optionalText(4000),
   items: z.array(quoteItemSchema).min(1, 'Inclua ao menos um item').max(100),
   // A soma é conferida no servidor, que calcula o total.
   installments: z.array(quoteInstallmentSchema).max(60).default([]),

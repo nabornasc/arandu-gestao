@@ -30,7 +30,7 @@ test('desconto em %: recalcula com os itens e é salvo em R$', async ({ page }) 
   await page.locator('input[name="items.0.quantity"]:visible').fill('3');
   await expect(page.getByText('= R$ 30,00')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Salvar' }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page).toHaveURL(/\/orcamentos\/\d+$/);
   await expect(page.getByLabel('Desconto (R$)')).toHaveValue('30');
 });
@@ -53,7 +53,7 @@ test('item oculto entra no total, mas não sai no espelho do cliente; grupo dupl
   await page.getByRole('button', { name: 'Remover item 4' }).click();
   await page.getByRole('button', { name: 'Remover item 3' }).click();
 
-  await page.getByRole('button', { name: 'Salvar' }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page).toHaveURL(/\/orcamentos\/\d+$/);
 
   const popup = page.waitForEvent('popup');
@@ -97,7 +97,47 @@ test('condição de pagamento: cadastrada nas configurações, gera parcelas com
   await expect(page.locator('input[name="installments.2.method"]:visible')).toHaveValue('Boleto');
   await expect(page.locator('input[name="installments.2.dueDate"]:visible')).toHaveValue(addDays(60));
 
-  await page.getByRole('button', { name: 'Salvar' }).click();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page).toHaveURL(/\/orcamentos\/\d+$/);
   await expect(page.locator('input[name="installments.1.method"]:visible')).toHaveValue('Boleto');
+});
+
+test('biblioteca: texto vira cláusula no espelho; grupo salvo como modelo entra em outro orçamento', async ({
+  page,
+}) => {
+  const tag = Date.now().toString().slice(-5);
+  await page.goto('/configuracoes');
+  const library = page.getByRole('region', { name: 'Biblioteca do orçamento' });
+  await library.getByRole('button', { name: 'Novo texto' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Novo texto' });
+  await dialog.getByLabel('Título').fill(`Garantia ${tag}`);
+  await dialog.getByLabel('Texto').fill(`Garantia de 90 dias para a montagem ${tag}.`);
+  await dialog.getByRole('button', { name: 'Salvar texto' }).click();
+  await expect(dialog).toBeHidden();
+
+  await page.goto('/orcamentos/novo');
+  await chooseOption(page.getByLabel('Cliente'), CUSTOMER);
+  await chooseOption(itemSelect(page, 0), SERVICE);
+  await page.locator('input[name="items.0.groupName"]:visible').fill(`Kit ${tag}`);
+  await page.getByText('Cláusulas e condições', { exact: true }).click();
+  await chooseOption(page.getByLabel('Inserir texto da biblioteca'), `Garantia ${tag}`);
+  await expect(page.getByLabel('Cláusulas deste orçamento')).toHaveValue(
+    `Garantia de 90 dias para a montagem ${tag}.`,
+  );
+  await page.getByRole('button', { name: `Criar modelo do grupo Kit ${tag}` }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Modelo salvo.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page).toHaveURL(/\/orcamentos\/\d+$/);
+
+  const popup = page.waitForEvent('popup');
+  await openMenuItem(page, 'Espelho do cliente');
+  const mirror = await popup;
+  await expect(mirror.getByText(`Garantia de 90 dias para a montagem ${tag}.`)).toBeVisible();
+  await mirror.close();
+
+  await page.goto('/orcamentos/novo');
+  await page.getByLabel('Modelo de grupo').fill(`Kit ${tag}`);
+  await page.getByRole('button', { name: 'Inserir modelo' }).click();
+  await expect(itemSelect(page, 0).locator('option:checked')).toContainText(SERVICE);
+  await expect(page.locator('input[name="items.0.groupName"]:visible')).toHaveValue(`Kit ${tag}`);
 });

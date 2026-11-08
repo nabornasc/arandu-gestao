@@ -6,9 +6,11 @@ import { type FormEvent, useId, useState } from 'react';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { quoteActions } from '../actions/registry.ts';
 import {
+  appendText,
   CustomerSelect,
   DiscountField,
   ItemsTable,
+  SnippetPicker,
   Totals,
   useDiscount,
   ValidityFields,
@@ -90,6 +92,7 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
   const [freight, setFreight] = useState(String(quote?.freight ?? 0));
   const [otherCharges, setOtherCharges] = useState(String(quote?.otherCharges ?? 0));
   const [internalNotes, setInternalNotes] = useState(quote?.internalNotes ?? '');
+  const [clauses, setClauses] = useState(quote?.clauses ?? '');
   const [siteDescription, setSiteDescription] = useState(quote?.siteDescription ?? '');
   const [siteContact, setSiteContact] = useState(quote?.siteContact ?? '');
   const [siteAddress, setSiteAddress] = useState(quote?.siteAddress ?? '');
@@ -125,6 +128,7 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
     otherCharges: Number(otherCharges || 0),
     notes,
     internalNotes,
+    clauses,
     siteDescription,
     siteContact,
     siteAddress,
@@ -374,6 +378,26 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
                   disabled={!editable}
                   value={internalNotes}
                   onChange={(event) => setInternalNotes(event.target.value)}
+                />
+              </label>
+            </div>
+          </details>
+          <details className="full-row document-more" open={Boolean(quote?.clauses)}>
+            <summary>Cláusulas e condições</summary>
+            <div className="form-grid">
+              {editable && (
+                <SnippetPicker onInsert={(body) => setClauses((current) => appendText(current, body))} />
+              )}
+              <label className="full-row">
+                Cláusulas deste orçamento
+                <textarea
+                  name="clauses"
+                  rows={6}
+                  maxLength={4000}
+                  placeholder="Vazio: o espelho mostra o texto padrão da empresa, definido em Configurações."
+                  disabled={!editable}
+                  value={clauses}
+                  onChange={(event) => setClauses(event.target.value)}
                 />
               </label>
             </div>

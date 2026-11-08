@@ -51,6 +51,8 @@ export interface Quote {
   siteDescription: string | null;
   siteContact: string | null;
   siteAddress: string | null;
+  // Vazio: o espelho usa o texto padrão da empresa.
+  clauses: string | null;
   installments: Installment[];
   createdAt: string;
   sellerName: string | null;
@@ -80,6 +82,8 @@ export interface QuoteMirror {
   siteDescription: string | null;
   siteContact: string | null;
   siteAddress: string | null;
+  // Vazio: o espelho usa o texto padrão da empresa.
+  clauses: string | null;
   installments: Installment[];
   sellerName: string | null;
   issuer: {

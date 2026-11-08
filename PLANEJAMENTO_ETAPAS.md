@@ -84,7 +84,9 @@ Em quatro partes:
 
 1. **Ajustes do documento.** Feito em 08/11/2026: validade em dias ligada à data, desconto em R$ ou % (o documento guarda o valor em R$), duplicar grupo de itens e ocultar item no espelho do cliente. O item oculto continua no subtotal, no subtotal do grupo e no total; o espelho interno mostra a linha marcada. Migração `0020_espelho_item_oculto`.
 2. **Condições de pagamento cadastráveis.** Feito em 08/11/2026: tabela `payment_conditions` (migração `0021_condicoes_pagamento`, que cria cinco condições padrão em cada empresa), cadastro em Configurações e escolha nas parcelas do orçamento e do pedido. A entrada em % vence no dia do documento com a sua forma; os prazos em dias geram as demais parcelas com outra forma. As parcelas continuam editáveis e são copiadas para o documento: mudar a condição depois não altera documentos antigos.
-3. Biblioteca de textos e cláusulas, modelos de grupos de itens, unidades além de m² e item avulso. O item avulso saiu da parte 1 porque mexe em pedido, estoque e relatórios, que hoje exigem produto em todo item.
+3. Em duas entregas:
+   - **3a. Biblioteca do orçamento.** Feito em 08/11/2026: cláusulas próprias de cada orçamento (`quotes.clauses`; vazio usa o texto padrão da empresa no espelho), textos prontos (`text_snippets`) inseridos nas cláusulas e modelos de grupo (`item_templates`): "Criar modelo do grupo" no orçamento e "Inserir modelo" procurando pelo nome. Manutenção em Configurações. Migração `0022_biblioteca_orcamento`.
+   - **3b.** Unidades além de m² e item avulso. O item avulso saiu da parte 1 porque mexe em pedido, estoque e relatórios, que hoje exigem produto em todo item.
 4. Exportação em DOCX.
 
 ### Etapa 8: gestão

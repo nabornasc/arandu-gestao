@@ -59,6 +59,7 @@ const extraFields = (quote: {
   siteDescription: string | null;
   siteContact: string | null;
   siteAddress: string | null;
+  clauses: string | null;
 }) => ({
   freight: quote.freight,
   otherCharges: quote.otherCharges,
@@ -66,6 +67,7 @@ const extraFields = (quote: {
   siteDescription: quote.siteDescription,
   siteContact: quote.siteContact,
   siteAddress: quote.siteAddress,
+  clauses: quote.clauses,
 });
 
 const moneyText = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -127,6 +129,7 @@ async function loadQuotes(ctx: Ctx, where: SQL | undefined, window = { limit: 50
       siteDescription: quotes.siteDescription,
       siteContact: quotes.siteContact,
       siteAddress: quotes.siteAddress,
+      clauses: quotes.clauses,
       installments: quotes.installments,
       sellerName: users.name,
       sentAt: quotes.sentAt,
@@ -291,6 +294,7 @@ async function fullMirror(ctx: Ctx, id: number) {
     siteDescription: quote.siteDescription,
     siteContact: quote.siteContact,
     siteAddress: quote.siteAddress,
+    clauses: quote.clauses,
     installments: quote.installments,
     ...snapshot,
     subtotal: round2(snapshot.items.reduce((sum, item) => sum + item.subtotal, 0)),
