@@ -102,3 +102,19 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   Depois, faça o login com `/mcp` e copie para `~/.claude/settings.json` a lista `permissions.allow` do notebook: `mcp__supabase__*` e `mcp__claude_ai_Supabase__*` para `execute_sql`, `apply_migration`, `list_migrations`, `list_tables` e `get_advisors`.
 - **Teste do acesso:** a escrita comum passou. `DELETE` e `DROP` vieram como `declined`, porque a confirmação de comando destrutivo é do Supabase e não aparece nesta sessão.
 
+## Atualização de 08/11/2026, madrugada
+
+**Etapa 3, listas configuráveis: concluída e em produção** (PR #20, `d7e2a4a`).
+
+- **Listas da empresa:** `company_list_items`, em Configurações > Listas. Os formulários sugerem os valores e aceitam digitar outro, por decisão do usuário. Desativar tira o valor das sugestões.
+- **Grupo do produto:** `products.group_name`, com o resumo do espelho interno por grupo.
+- **Produção, aplicada pelo Claude do notebook via MCP:**
+  - migração `0017_listas`, registrada em `drizzle.__drizzle_migrations`;
+  - `GRANT`, RLS e policy para `arandue_app` na tabela nova;
+  - `demo.table_list()` atualizada e grupos de produto nos dados de exemplo;
+  - `demo.capture()`. Os avisos de segurança do Supabase vieram sem nenhum item.
+- **Backup antes da captura:** schema `backup_20261108_demo`, com as 25 tabelas da cópia anterior da demonstração, sem acesso externo. A demonstração foi conferida no ar. Pode apagar com `DROP SCHEMA backup_20261108_demo CASCADE;` no SQL Editor, porque o MCP recusa `DROP` nesta sessão.
+- **Pendência técnica encontrada:** o tratador global de erros não reconhece a violação de unicidade quando o Drizzle embrulha o erro, e responde 500 em vez de 409. As listas já tratam isso. Registrado em `PLANEJAMENTO_ETAPAS.md`.
+- **Próxima:** etapa 4, relatórios.
+- **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
+

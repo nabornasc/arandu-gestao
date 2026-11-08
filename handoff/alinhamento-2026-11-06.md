@@ -41,9 +41,9 @@ Regras novas que valem para quem mexer nesse código:
 | Etapa | Conteúdo |
 |---|---|
 | 1 (concluída, v2.5.0) | Fechar o `[Não lançado]` em uma versão e resolver pendências pequenas |
-| 2 (PR #18, aguarda produção) | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto |
-| 3 | Listas configuráveis e grupo do produto |
-| 4 | Central de relatórios com exportação em CSV |
+| 2 (concluída, em produção) | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto |
+| 3 (concluída, em produção) | Listas configuráveis e grupo do produto |
+| 4 (próxima) | Central de relatórios com exportação em CSV |
 | 5 | Agenda |
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos |
 | 7 | Restante dos documentos |
