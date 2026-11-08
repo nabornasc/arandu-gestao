@@ -20,10 +20,12 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Cadastro rápido** no orçamento e no pedido: "Novo cliente" (nome, CPF ou CNPJ, celular e e-mail) e "Novo produto" sem sair do documento. O cliente novo já fica escolhido; o produto entra na primeira linha vazia, com o preço. Cada botão aparece só para quem pode criar.
 - **Paginação no servidor** em orçamentos, pedidos, contas a receber, contas a pagar e movimentações: 25, 50 ou 100 por página, com filtros de período, status e texto aplicados pelo servidor. Os totais somam todo o filtro, não só a página. A API aceita `page`, `pageSize`, `from`, `to`, `status` e `q`; sem `page`, devolve a lista simples de antes.
 - **Ajustes no orçamento:** validade em dias ligada à data; desconto em R$ ou % (também no pedido), recalculado enquanto os itens mudam; "Duplicar grupo" copia os itens do grupo com o nome "(cópia)"; "Ocultar no espelho" tira a linha do espelho do cliente sem tirar o valor do subtotal, do subtotal do grupo e do total. O espelho interno mostra a linha marcada.
+- **Condições de pagamento** em Configurações: nome, entrada em %, forma da entrada, prazos em dias (ex.: 30/60/90) e forma das parcelas. Cada empresa começa com À vista, 30 dias, 30/60, 30/60/90 e Entrada 50% + 30 dias. No orçamento e no pedido, escolher a condição gera as parcelas, cada uma com a sua forma, e elas continuam editáveis. Só quem configura a empresa cria ou altera; desativar tira a condição da escolha.
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado
 
+- A lista de texto "Condições de pagamento", sugerida no cadastro de clientes, passou a se chamar "Prazos no cadastro do cliente", para não se confundir com as condições que geram parcelas.
 - As listas não param mais nos 500 registros mais recentes. "Imprimir lista" virou "Imprimir página": sai a página que está na tela.
 - No cadastro, o estoque só é informado na criação; depois, muda pelo ajuste. Pela API, alterar `stock` no cadastro continua possível e entra no extrato como edição do cadastro.
 

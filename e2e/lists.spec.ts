@@ -140,7 +140,8 @@ test('pedido parcelado gera contas, baixa por parcela e fica pago só na última
   const code = heading.match(/#\d+/)?.[0] ?? '';
 
   await page.goto('/contas-a-receber');
-  await page.getByLabel('Cliente ou número').fill(code);
+  // Na troca de aba, a tela anterior pode continuar montada: usa só o campo visível.
+  await page.getByLabel('Cliente ou número').filter({ visible: true }).fill(code);
   await expect(page.locator('tbody tr')).toHaveCount(2);
   await capture(page, 'contas-a-receber');
   await page.getByRole('button', { name: `Dar baixa: pedido ${code}, parcela 1/2` }).click();
@@ -153,7 +154,8 @@ test('pedido parcelado gera contas, baixa por parcela e fica pago só na última
   await expect(page.getByRole('cell', { name: 'Recebida' })).toBeVisible();
 
   await page.goto('/pedidos');
-  await page.getByLabel('Cliente ou número').fill(code);
+  // Na troca de aba, a tela anterior pode continuar montada: usa só o campo visível.
+  await page.getByLabel('Cliente ou número').filter({ visible: true }).fill(code);
   // A busca vai ao servidor: espera a lista já filtrada.
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await expect(page.getByText('· parcial')).toBeVisible();

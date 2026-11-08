@@ -1,7 +1,9 @@
+import { conditionInstallments } from '@arandue/shared/schemas';
 import { Plus, Trash2 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useId, useState } from 'react';
 import type { OrderReceivable } from '../lib/documents.ts';
 import { formatDate, formatMoney, todayIso } from '../lib/format.ts';
+import { termsLabel, usePaymentConditions } from '../lib/paymentConditions.ts';
 
 export interface InstallmentRow {
   key: number;
@@ -58,10 +60,15 @@ interface Props {
   rows: InstallmentRow[];
   setRows: Dispatch<SetStateAction<InstallmentRow[]>>;
   total: number;
+  // Data do documento: a entrada vence nela, e os prazos da condição contam a partir dela.
+  baseDate: string;
 }
 
-export function InstallmentsEditor({ rows, setRows, total }: Props) {
+export function InstallmentsEditor({ rows, setRows, total, baseDate }: Props) {
   const listId = useId();
+  const conditions = usePaymentConditions();
+  const [conditionId, setConditionId] = useState('');
+  const condition = conditions.data?.find((row) => String(row.id) === conditionId);
   const [count, setCount] = useState('3');
   const [firstDate, setFirstDate] = useState(todayIso);
   const [method, setMethod] = useState('');
@@ -78,48 +85,88 @@ export function InstallmentsEditor({ rows, setRows, total }: Props) {
           <option key={option} value={option} />
         ))}
       </datalist>
-      <label>
-        Número de parcelas
-        <input
-          type="number"
-          min="1"
-          max="60"
-          step="1"
-          name="installmentCount"
-          value={count}
-          onChange={(event) => setCount(event.target.value)}
-        />
-      </label>
-      <label>
-        Primeiro vencimento
-        <input
-          type="date"
-          name="installmentFirstDate"
-          value={firstDate}
-          onChange={(event) => setFirstDate(event.target.value)}
-        />
-      </label>
-      <label>
-        Forma de pagamento
-        <input
-          type="text"
-          list={listId}
-          maxLength={40}
-          name="installmentMethod"
-          value={method}
-          onChange={(event) => setMethod(event.target.value)}
-        />
-      </label>
-      <div className="installments-generate">
-        <button
-          type="button"
-          className="button secondary"
-          disabled={!validCount || !firstDate || total <= 0}
-          onClick={() => setRows(split(total, Number(count), firstDate, method))}
+      <label className="full-row">
+        Condição de pagamento
+        <select
+          name="paymentCondition"
+          value={conditionId}
+          onChange={(event) => {
+            setConditionId(event.target.value);
+            const chosen = conditions.data?.find((row) => String(row.id) === event.target.value);
+            // Escolher a condição já gera as parcelas, que continuam editáveis.
+            if (chosen && total > 0) {
+              setRows(conditionInstallments(chosen, total, baseDate).map((row) => newInstallment(row)));
+            }
+          }}
         >
-          Gerar parcelas
-        </button>
-      </div>
+          <option value="">Parcelar à mão</option>
+          {conditions.data?.map((row) => (
+            <option key={row.id} value={row.id}>
+              {`${row.name} — ${termsLabel(row)}`}
+            </option>
+          ))}
+        </select>
+      </label>
+      {condition && (
+        <div className="installments-generate full-row">
+          <button
+            type="button"
+            className="button secondary"
+            disabled={total <= 0}
+            onClick={() =>
+              setRows(conditionInstallments(condition, total, baseDate).map((row) => newInstallment(row)))
+            }
+          >
+            Recalcular pela condição
+          </button>
+        </div>
+      )}
+      {!condition && (
+        <>
+          <label>
+            Número de parcelas
+            <input
+              type="number"
+              min="1"
+              max="60"
+              step="1"
+              name="installmentCount"
+              value={count}
+              onChange={(event) => setCount(event.target.value)}
+            />
+          </label>
+          <label>
+            Primeiro vencimento
+            <input
+              type="date"
+              name="installmentFirstDate"
+              value={firstDate}
+              onChange={(event) => setFirstDate(event.target.value)}
+            />
+          </label>
+          <label>
+            Forma de pagamento
+            <input
+              type="text"
+              list={listId}
+              maxLength={40}
+              name="installmentMethod"
+              value={method}
+              onChange={(event) => setMethod(event.target.value)}
+            />
+          </label>
+          <div className="installments-generate">
+            <button
+              type="button"
+              className="button secondary"
+              disabled={!validCount || !firstDate || total <= 0}
+              onClick={() => setRows(split(total, Number(count), firstDate, method))}
+            >
+              Gerar parcelas
+            </button>
+          </div>
+        </>
+      )}
 
       {rows.map((row, index) => (
         <div key={row.key} className="order-line">

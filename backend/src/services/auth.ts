@@ -12,6 +12,7 @@ import { parse } from '../lib/validate.ts';
 import { createDefaultGroups } from './accessGroups.ts';
 import { audit } from './audit.ts';
 import { createDefaultLists } from './lists.ts';
+import { createDefaultConditions } from './paymentConditions.ts';
 import { createDefaultStages } from './pipeline.ts';
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -97,6 +98,7 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
     const ownerGroupId = await createDefaultGroups(tx, company.id);
     await createDefaultStages(tx, company.id);
     await createDefaultLists(tx, company.id);
+    await createDefaultConditions(tx, company.id);
     const [user] = await tx
       .insert(users)
       .values({

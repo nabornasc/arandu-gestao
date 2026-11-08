@@ -85,6 +85,12 @@ const ENTITIES: Record<string, EntityInfo> = {
     path: listPath('/relatorios'),
     open: 'Abrir relatórios',
   },
+  payment_condition: {
+    noun: 'a condição de pagamento',
+    module: 'Configurações',
+    path: listPath('/configuracoes'),
+    open: 'Abrir configurações',
+  },
   list_item: {
     noun: 'o valor da lista',
     module: 'Configurações',
@@ -174,6 +180,7 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   date: { label: 'Data', kind: 'date' },
   time: { label: 'Hora', kind: 'text' },
   active: { label: 'Ativo', kind: 'boolean' },
+  terms: { label: 'Entrada e prazos', kind: 'text' },
   // Financeiro.
   description: { label: 'Descrição', kind: 'text' },
   category: { label: 'Categoria', kind: 'text' },

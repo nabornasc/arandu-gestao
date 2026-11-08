@@ -18,6 +18,7 @@ import * as lists from '../services/lists.ts';
 import * as lookup from '../services/lookup.ts';
 import * as opportunities from '../services/opportunities.ts';
 import * as orders from '../services/orders.ts';
+import * as paymentConditions from '../services/paymentConditions.ts';
 import * as people from '../services/people.ts';
 import * as pipeline from '../services/pipeline.ts';
 import * as products from '../services/products.ts';
@@ -354,6 +355,22 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
         .header('content-disposition', `attachment; filename="${file.filename}"`)
         .send(file.content);
     });
+    protectedApp.get('/payment-conditions', (request) =>
+      paymentConditions.listPaymentConditions(ctxOf(request), {
+        all: (request.query as { all?: string }).all === '1',
+      }),
+    );
+    protectedApp.post('/payment-conditions', async (request, reply) => {
+      reply.status(201);
+      return paymentConditions.createPaymentCondition(ctxOf(request), request.body as never);
+    });
+    protectedApp.put('/payment-conditions/:id', (request) =>
+      paymentConditions.updatePaymentCondition(
+        ctxOf(request),
+        idParamSchema.parse(request.params).id,
+        request.body as never,
+      ),
+    );
     protectedApp.get('/lists', (request) =>
       lists.listLists(ctxOf(request), { all: (request.query as { all?: string }).all === '1' }),
     );

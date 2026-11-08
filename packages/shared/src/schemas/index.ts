@@ -309,6 +309,69 @@ export const listItemUpdateSchema = z.object({
 });
 export type ListItemUpdateInput = z.input<typeof listItemUpdateSchema>;
 
+// Condições de pagamento da empresa: entrada em % (paga no dia do documento) e prazos em dias a partir
+// dele. No orçamento e no pedido, a condição escolhida gera as parcelas, que continuam editáveis.
+export const paymentConditionSchema = z
+  .object({
+    name: requiredText(80, 'Informe o nome'),
+    downPaymentPercent: z
+      .number()
+      .min(0, 'A entrada não pode ser negativa')
+      .max(100, 'A entrada vai até 100%')
+      .default(0),
+    downPaymentMethod: optionalText(40),
+    days: z
+      .array(z.number().int('Use dias inteiros').min(0, 'O prazo não pode ser negativo').max(3650))
+      .max(60, 'No máximo 60 parcelas')
+      .default([]),
+    method: optionalText(40),
+    active: z.boolean().default(true),
+  })
+  .refine((data) => data.downPaymentPercent > 0 || data.days.length > 0, {
+    message: 'Informe a entrada ou ao menos um prazo',
+  })
+  .refine((data) => data.downPaymentPercent < 100 || data.days.length === 0, {
+    message: 'Com entrada de 100%, não há prazos',
+  })
+  .refine((data) => data.days.every((day, index) => index === 0 || day > (data.days[index - 1] ?? -1)), {
+    message: 'Os prazos devem estar em ordem crescente, sem repetir',
+  });
+export type PaymentConditionInput = z.input<typeof paymentConditionSchema>;
+export type PaymentCondition = z.output<typeof paymentConditionSchema>;
+
+const addDaysIso = (iso: string, days: number) =>
+  new Date(Date.parse(`${iso}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+
+// Parcelas da condição para um total. Conta em centavos: a sobra do arredondamento fica na primeira
+// parcela depois da entrada, e a soma fecha com o total.
+export function conditionInstallments(
+  condition: Pick<PaymentCondition, 'downPaymentPercent' | 'downPaymentMethod' | 'days' | 'method'>,
+  total: number,
+  baseDate: string,
+) {
+  const cents = Math.round(total * 100);
+  const down = condition.days.length ? Math.round((cents * condition.downPaymentPercent) / 100) : cents;
+  const rest = cents - down;
+  const count = condition.days.length;
+  const part = count ? Math.floor(rest / count) : 0;
+  const rows: { dueDate: string; amount: number; method: string | null }[] = [];
+  if (down > 0) {
+    rows.push({
+      dueDate: baseDate,
+      amount: down / 100,
+      method: condition.downPaymentMethod ?? condition.method ?? null,
+    });
+  }
+  condition.days.forEach((day, index) => {
+    rows.push({
+      dueDate: addDaysIso(baseDate, day),
+      amount: (index === 0 ? part + (rest - part * count) : part) / 100,
+      method: condition.method ?? null,
+    });
+  });
+  return rows;
+}
+
 // Ajuste de estoque: entrada, saída ou contagem (o saldo passa a ser a quantidade informada).
 export const STOCK_ADJUSTMENT_KINDS = ['in', 'out', 'count'] as const;
 export const stockAdjustmentSchema = z.object({

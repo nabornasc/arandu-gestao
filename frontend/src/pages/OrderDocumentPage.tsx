@@ -252,7 +252,12 @@ function OrderEditor({ order }: { order: Order | null }) {
             <details className="full-row document-more">
               <summary>Parcelas</summary>
               <div className="form-grid">
-                <InstallmentsEditor rows={installments} setRows={setInstallments} total={newTotal} />
+                <InstallmentsEditor
+                  rows={installments}
+                  setRows={setInstallments}
+                  total={newTotal}
+                  baseDate={orderDate}
+                />
               </div>
             </details>
           )}

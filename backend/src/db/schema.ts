@@ -170,6 +170,23 @@ export const companyListItems = pgTable(
   (t) => [uniqueIndex('company_list_items_name_unique').on(t.companyId, t.kind, sql`lower(${t.name})`)],
 );
 
+export const paymentConditions = pgTable(
+  'payment_conditions',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    name: varchar({ length: 80 }).notNull(),
+    downPaymentPercent: money().notNull().default(0),
+    downPaymentMethod: varchar({ length: 40 }),
+    // Prazos em dias a partir da data do documento, em ordem crescente.
+    days: integer().array().notNull().default(sql`'{}'::integer[]`),
+    method: varchar({ length: 40 }),
+    active: boolean().notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('payment_conditions_name_unique').on(t.companyId, sql`lower(${t.name})`)],
+);
+
 export const products = pgTable(
   'products',
   {

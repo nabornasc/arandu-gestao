@@ -64,3 +64,40 @@ test('item oculto entra no total, mas não sai no espelho do cliente; grupo dupl
   await expect(mirror.getByText('Subtotal de Bar')).toBeVisible();
   await expect(mirror.locator('tr.mirror-group-total')).toContainText('R$ 140,00');
 });
+
+test('condição de pagamento: cadastrada nas configurações, gera parcelas com formas diferentes', async ({
+  page,
+}) => {
+  const name = `Entrada 20% + 30/60 ${Date.now().toString().slice(-5)}`;
+  await page.goto('/configuracoes');
+  const section = page.getByRole('region', { name: 'Condições de pagamento' });
+  await section.getByRole('button', { name: 'Nova condição' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Nova condição' });
+  await dialog.getByLabel('Nome').fill(name);
+  await dialog.getByLabel('Entrada (%)').fill('20');
+  await dialog.getByLabel('Forma da entrada').fill('PIX');
+  await dialog.getByLabel('Prazos em dias').fill('30/60');
+  await dialog.getByLabel('Forma das parcelas').fill('Boleto');
+  await dialog.getByRole('button', { name: 'Salvar condição' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(section.getByRole('row').filter({ hasText: name })).toContainText(
+    'Entrada 20% (PIX) + 30/60 dias (Boleto)',
+  );
+
+  await page.goto('/orcamentos/novo');
+  await chooseOption(page.getByLabel('Cliente'), CUSTOMER);
+  await chooseOption(itemSelect(page, 0), SERVICE);
+  await page.locator('input[name="items.0.unitPrice"]:visible').fill('100');
+  await page.getByText('Parcelas', { exact: true }).click();
+  await chooseOption(page.getByLabel('Condição de pagamento'), name);
+  await expect(page.locator('input[name="installments.0.amount"]:visible')).toHaveValue('20');
+  await expect(page.locator('input[name="installments.0.method"]:visible')).toHaveValue('PIX');
+  await expect(page.locator('input[name="installments.0.dueDate"]:visible')).toHaveValue(addDays(0));
+  await expect(page.locator('input[name="installments.1.amount"]:visible')).toHaveValue('40');
+  await expect(page.locator('input[name="installments.2.method"]:visible')).toHaveValue('Boleto');
+  await expect(page.locator('input[name="installments.2.dueDate"]:visible')).toHaveValue(addDays(60));
+
+  await page.getByRole('button', { name: 'Salvar' }).click();
+  await expect(page).toHaveURL(/\/orcamentos\/\d+$/);
+  await expect(page.locator('input[name="installments.1.method"]:visible')).toHaveValue('Boleto');
+});

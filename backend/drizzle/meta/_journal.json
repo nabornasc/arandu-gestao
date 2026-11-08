@@ -148,6 +148,13 @@
       "when": 1794150418048,
       "tag": "0020_espelho_item_oculto",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794151762450,
+      "tag": "0021_condicoes_pagamento",
+      "breakpoints": true
     }
   ]
 }

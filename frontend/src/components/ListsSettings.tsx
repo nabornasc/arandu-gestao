@@ -8,7 +8,10 @@ import { useToast } from './Toast.tsx';
 
 const KIND_LABELS: Record<ListKind, { title: string; help: string }> = {
   payment_method: { title: 'Formas de pagamento', help: 'Sugeridas no cadastro de clientes.' },
-  payment_terms: { title: 'Condições de pagamento', help: 'Sugeridas no cadastro de clientes.' },
+  payment_terms: {
+    title: 'Prazos no cadastro do cliente',
+    help: 'Texto sugerido no cadastro de clientes. As parcelas dos documentos usam as condições de pagamento acima.',
+  },
   opportunity_source: { title: 'Origens da oportunidade', help: 'De onde o cliente chegou, no CRM.' },
   lost_reason: { title: 'Motivos de perda', help: 'Sugeridos ao marcar uma oportunidade como perdida.' },
   customer_category: { title: 'Categorias de cliente', help: 'Sugeridas no cadastro de clientes.' },

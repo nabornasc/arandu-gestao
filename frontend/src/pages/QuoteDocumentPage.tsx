@@ -267,7 +267,12 @@ function QuoteEditor({ quote, opportunity }: { quote: Quote | null; opportunity:
               <summary>Parcelas</summary>
               <div className="form-grid">
                 {editable ? (
-                  <InstallmentsEditor rows={installments} setRows={setInstallments} total={total} />
+                  <InstallmentsEditor
+                    rows={installments}
+                    setRows={setInstallments}
+                    total={total}
+                    baseDate={todayIso(quote ? new Date(quote.createdAt) : undefined)}
+                  />
                 ) : (
                   <InstallmentsTable installments={quote?.installments ?? []} />
                 )}
