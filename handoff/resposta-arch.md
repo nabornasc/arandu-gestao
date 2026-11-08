@@ -180,7 +180,7 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 
 **Manuais:** decisões registradas em `PLANEJAMENTO_MANUAIS.md` (PR #31). Entram depois da etapa 7, mídia no repositório, Markdown convertido para HTML no build e vídeo sem som com legenda gravada.
 
-**Etapa 7, documentos: em andamento**, em quatro partes.
+**Etapa 7, documentos: concluída**, em quatro partes.
 
 1. **Ajustes do documento:** concluída e em produção (PR #32, `aebca15`).
    - Validade em dias ligada à data; desconto em R$ ou % (orçamento e pedido); duplicar grupo; ocultar item no espelho do cliente.
@@ -191,7 +191,9 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 3. Em duas entregas:
    - **3a. Biblioteca do orçamento:** concluída e em produção (PR #34, `8ea7646`). Cláusulas por orçamento (`quotes.clauses`), textos prontos (`text_snippets`) e modelos de grupo (`item_templates`). Migração `0022`; produção via MCP antes do merge, com `GRANT`, RLS, policy, `demo.table_list()`, backup `backup_20261108_demo_biblioteca` e `demo.capture()`. Avisos de segurança sem itens.
    - **3b. Item avulso e metro linear:** concluída e em produção (PR #35, `3bedd0c`). Item sem produto (descrição e preço livres, sem estoque) no orçamento e no pedido; metro linear; unidade do cadastro no espelho. Migração `0023` (`product_id` opcional, `description`, `CHECK` produto ou descrição); produção via MCP antes do merge, com backup `backup_20261108_demo_avulso` e `demo.capture()`. Avisos de segurança sem itens.
-4. Exportação em DOCX: próxima.
+4. **Exportação em DOCX:** concluída e em produção (PR #36, `8a69cd6`). "Baixar em Word (DOCX)" no menu do orçamento; gerado no servidor sem dependência nova (`lib/zip.ts`). Sem migração. Conferido no ar: o arquivo da demo abre no LibreOffice.
+
+**Etapa 7 concluída.** Próximo: manuais de uso (`PLANEJAMENTO_MANUAIS.md`, fase M1), por decisão de 08/11.
 
 - **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
   - migração `0020` registrada no Drizzle;
