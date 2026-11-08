@@ -193,7 +193,15 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
    - **3b. Item avulso e metro linear:** concluída e em produção (PR #35, `3bedd0c`). Item sem produto (descrição e preço livres, sem estoque) no orçamento e no pedido; metro linear; unidade do cadastro no espelho. Migração `0023` (`product_id` opcional, `description`, `CHECK` produto ou descrição); produção via MCP antes do merge, com backup `backup_20261108_demo_avulso` e `demo.capture()`. Avisos de segurança sem itens.
 4. **Exportação em DOCX:** concluída e em produção (PR #36, `8a69cd6`). "Baixar em Word (DOCX)" no menu do orçamento; gerado no servidor sem dependência nova (`lib/zip.ts`). Sem migração. Conferido no ar: o arquivo da demo abre no LibreOffice.
 
-**Etapa 7 concluída.** Próximo: manuais de uso (`PLANEJAMENTO_MANUAIS.md`, fase M1), por decisão de 08/11.
+**Etapa 7 concluída.** Os manuais foram adiados pelo usuário; a etapa 8 veio antes.
+
+## Atualização de 08/11/2026, etapa 8 (parte 1)
+
+**Etapa 8, gestão: em andamento**, em três partes.
+
+1. **Assistente de precificação:** concluída e em produção (PR #37, `d146cbb`). Tela `/precificacao` (exige `costs.read`), markup divisor com rateio das despesas fixas, ponto de equilíbrio e "Aplicar" ao produto. Base do servidor em `GET /pricing/base`. Sem migração; conferido no ar.
+2. Dashboard modular com KPIs: próxima.
+3. Metas de venda (dependem do dashboard).
 
 - **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
   - migração `0020` registrada no Drizzle;
