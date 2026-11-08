@@ -19,6 +19,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | Só se ainda houver interesse | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
 | 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 10 |
 
+**Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). A posição na sequência depende da decisão 1 daquele arquivo.
+
 ## Por que esta ordem
 
 - **Estoque antes de relatórios:** o ajuste com motivo cria o registro de movimentos, que os relatórios de extrato e de movimentação de estoque precisam.
