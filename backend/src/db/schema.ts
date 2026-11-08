@@ -567,6 +567,9 @@ export const orders = pgTable(
     otherCharges: money().notNull().default(0),
     total: money().notNull().default(0),
     notes: varchar({ length: 500 }),
+    // Entrega: previsão combinada com o cliente e o dia em que foi entregue.
+    deliveryDate: date({ mode: 'string' }),
+    deliveredOn: date({ mode: 'string' }),
     createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },

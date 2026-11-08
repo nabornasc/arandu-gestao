@@ -7,7 +7,7 @@ import { EmptyState } from '../components/EmptyState.tsx';
 import { ListFilters, ListTotals, Pagination } from '../components/ListFilters.tsx';
 import { can, useProfile } from '../lib/auth.ts';
 import type { Order } from '../lib/documents.ts';
-import { formatCode, formatDate, formatMoney, label } from '../lib/format.ts';
+import { formatCode, formatDate, formatMoney, label, todayIso } from '../lib/format.ts';
 import { useListFilters, useServerList } from '../lib/listFilters.ts';
 
 const STATUSES = ORDER_STATUSES.map((status) => [status, label(status)] as const);
@@ -93,6 +93,7 @@ export default function OrdersPage() {
                           order.receivables.some((item) => item.paidAmount > 0) && (
                             <small className="muted"> · parcial</small>
                           )}
+                        <DeliveryNote order={order} />
                       </td>
                       <td>
                         <strong>{formatMoney(order.total)}</strong>
@@ -134,5 +135,18 @@ export default function OrdersPage() {
         </>
       )}
     </section>
+  );
+}
+
+// Situação da entrega ao lado do status: entregue, atrasada ou com a data prevista.
+function DeliveryNote({ order }: { order: Order }) {
+  if (order.status === 'cancelled') return null;
+  if (order.deliveredOn) return <small className="muted"> · entregue</small>;
+  if (!order.deliveryDate) return null;
+  const late = order.deliveryDate < todayIso();
+  return (
+    <small className={late ? 'negative' : 'muted'}>
+      {late ? ' · entrega atrasada' : ` · entrega ${formatDate(order.deliveryDate)}`}
+    </small>
   );
 }

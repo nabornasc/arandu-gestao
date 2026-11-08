@@ -37,6 +37,7 @@ const KIND_LABELS: Record<AgendaKind, string> = {
   task: 'Tarefas',
   opportunity: 'Próximas ações do CRM',
   quote: 'Validade de orçamentos',
+  delivery: 'Entregas de pedidos',
   receivable: 'Contas a receber',
   payable: 'Contas a pagar',
 };

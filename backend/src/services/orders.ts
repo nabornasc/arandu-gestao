@@ -2,9 +2,11 @@ import { can, type Permission } from '@arandue/shared/permissions';
 import {
   ORDER_STATUSES,
   type OrderCreateInput,
+  type OrderDeliveryInput,
   type OrderStatus,
   type OrderUpdateInput,
   orderCreateSchema,
+  orderDeliverySchema,
   orderUndoPaymentsSchema,
   orderUpdateSchema,
   passwordConfirmationSchema,
@@ -401,6 +403,8 @@ async function loadOrders(ctx: Ctx, where: SQL | undefined, window = { limit: 50
       otherCharges: orders.otherCharges,
       total: orders.total,
       notes: orders.notes,
+      deliveryDate: orders.deliveryDate,
+      deliveredOn: orders.deliveredOn,
       createdAt: orders.createdAt,
     })
     .from(orders)
@@ -623,6 +627,7 @@ export async function insertOrder(tx: Transaction, ctx: Ctx, data: OrderData, li
       otherCharges: data.otherCharges,
       total,
       notes: data.notes,
+      deliveryDate: data.deliveryDate ?? null,
       createdBy: ctx.userId,
     })
     .returning();
@@ -647,6 +652,7 @@ export async function insertOrder(tx: Transaction, ctx: Ctx, data: OrderData, li
       otherCharges: order.otherCharges,
       total,
       notes: order.notes,
+      deliveryDate: order.deliveryDate,
       bankAccount: await cashAccountName(tx, order.id),
     }),
     items: diffItems([], await namedLines(tx, lines)),
@@ -758,6 +764,7 @@ export async function updateOrder(ctx: Ctx, id: number, input: OrderUpdateInput,
         orderDate: data.orderDate ?? previous.orderDate,
         customerId: data.customerId === undefined ? previous.customerId : data.customerId,
         notes: data.notes === undefined ? previous.notes : data.notes,
+        deliveryDate: data.deliveryDate === undefined ? previous.deliveryDate : data.deliveryDate,
       })
       .where(scoped(ctx, id))
       .returning();
@@ -772,6 +779,7 @@ export async function updateOrder(ctx: Ctx, id: number, input: OrderUpdateInput,
         discount: previous.discount,
         total: previous.total,
         notes: previous.notes,
+        deliveryDate: previous.deliveryDate,
         bankAccount: previousAccount,
       },
       {
@@ -781,6 +789,7 @@ export async function updateOrder(ctx: Ctx, id: number, input: OrderUpdateInput,
         discount: order.discount,
         total: order.total,
         notes: order.notes,
+        deliveryDate: order.deliveryDate,
         bankAccount: await cashAccountName(tx, id),
       },
     );
@@ -1227,4 +1236,25 @@ export async function reversePayment(ctx: Ctx, id: number, input: unknown) {
 
   const [row] = await loadOrders(ctx, and(eq(orders.id, orderId), eq(orders.companyId, ctx.companyId)));
   return row;
+}
+
+// Entrega: marcar como entregue (no dia informado ou hoje) ou desfazer. Pedido cancelado não entrega.
+export async function setOrderDelivery(ctx: Ctx, id: number, input: OrderDeliveryInput) {
+  authorize(ctx, 'orders.update');
+  const data = parse(orderDeliverySchema, input);
+  await db.transaction(async (tx) => {
+    const [previous] = await tx.select().from(orders).where(scoped(ctx, id)).for('update');
+    if (!previous) throw notFound('Pedido não encontrado.');
+    if (data.delivered && previous.status === 'cancelled') {
+      throw conflict('Pedido cancelado não pode ser marcado como entregue.');
+    }
+    const deliveredOn = data.delivered ? (data.date ?? todayInBrazil()) : null;
+    if (deliveredOn === previous.deliveredOn) return;
+    await tx.update(orders).set({ deliveredOn }).where(scoped(ctx, id));
+    await audit(tx, ctx, 'update', 'order', id, {
+      number: previous.number,
+      changes: diffFields({ deliveredOn: previous.deliveredOn }, { deliveredOn }),
+    });
+  });
+  return getOrder(ctx, id);
 }

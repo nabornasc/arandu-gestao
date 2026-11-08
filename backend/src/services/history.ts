@@ -200,6 +200,8 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   active: { label: 'Ativo', kind: 'boolean' },
   terms: { label: 'Entrada e prazos', kind: 'text' },
   goal: { label: 'Meta da empresa', kind: 'money' },
+  deliveryDate: { label: 'Previsão de entrega', kind: 'date' },
+  deliveredOn: { label: 'Entregue em', kind: 'date' },
   clauses: { label: 'Cláusulas', kind: 'text' },
   body: { label: 'Texto', kind: 'text' },
   templateItems: { label: 'Itens do modelo', kind: 'text' },

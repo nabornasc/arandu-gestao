@@ -23,6 +23,7 @@ import {
   ThumbsDown,
   Trash2,
   Trophy,
+  Truck,
   Undo2,
   UserPlus,
   XCircle,
@@ -350,6 +351,28 @@ const baseOrderActions: RecordAction<Order>[] = [
               kit.request(`/orders/${o.id}`, { method: 'PUT', body: { status: 'cancelled', reason } }),
         message: `Pedido ${formatCode(o.number)} cancelado.`,
       }),
+  },
+  {
+    id: 'order.deliver',
+    label: 'Marcar como entregue',
+    icon: Truck,
+    permissions: ['orders.update'],
+    when: (o) => o.status !== 'cancelled' && !o.deliveredOn,
+    run: (o, kit) =>
+      kit
+        .request(`/orders/${o.id}/delivery`, { method: 'POST', body: { delivered: true } })
+        .then(() => kit.done(`Pedido ${formatCode(o.number)} entregue.`)),
+  },
+  {
+    id: 'order.undeliver',
+    label: 'Desfazer entrega',
+    icon: Undo2,
+    permissions: ['orders.update'],
+    when: (o) => Boolean(o.deliveredOn),
+    run: (o, kit) =>
+      kit
+        .request(`/orders/${o.id}/delivery`, { method: 'POST', body: { delivered: false } })
+        .then(() => kit.done(`Entrega do pedido ${formatCode(o.number)} desfeita.`)),
   },
   {
     id: 'order.reactivate',

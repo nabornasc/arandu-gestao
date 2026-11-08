@@ -16,10 +16,10 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
 | 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
-| 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | Só se ainda houver interesse | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
+| 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | **Em andamento** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
 | 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 10 |
 
-**Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Entram depois da etapa 7, por decisão de 08/11/2026. Adiados a pedido do usuário em 08/11, depois da etapa 7: a etapa 8 veio antes.
+**Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Ordem decidida pelo usuário em 08/11/2026: etapa 9 inteira, depois os manuais e, por último, a etapa 10 (IA e bot).
 
 ## Por que esta ordem
 
@@ -97,10 +97,12 @@ Em quatro partes:
 
 ### Etapa 9: operações opcionais
 
-- Compras simples: entrada de estoque, custo e título a pagar.
-- Situação e previsão de entrega no pedido.
-- Baixa parcial, em lote e com estorno nas contas a pagar, que hoje seguem em lançamento único.
-- Renegociação de títulos e adiantamentos.
+Em quatro partes:
+
+1. **9a. Entrega no pedido.** Feito em 08/11/2026: previsão de entrega no pedido, "Marcar como entregue" e "Desfazer entrega" no menu, situação na lista (data, atrasada ou entregue) e entregas pendentes na agenda. Migração `0026_entrega_pedido`.
+2. 9b. Baixa parcial, em lote e com estorno nas contas a pagar, que hoje seguem em lançamento único.
+3. 9c. Compras simples: entrada de estoque, custo e título a pagar.
+4. 9d. Renegociação de títulos e adiantamentos.
 
 ### Etapa 10: assistente de IA
 

@@ -2841,3 +2841,7 @@ a.nav-label.active {
 .goals .panel .muted {
   font-size: 13px;
 }
+.agenda-item.delivery,
+.agenda-kind.delivery {
+  --kind-color: #2f7f8f;
+}

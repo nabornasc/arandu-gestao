@@ -5,7 +5,7 @@ import {
   agendaEventSchema,
   agendaQuerySchema,
 } from '@arandue/shared/schemas';
-import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { db } from '../db/client.ts';
 import { agendaEvents, expenses, opportunities, orders, people, quotes, receivables } from '../db/schema.ts';
 import { diffFields, initialFields, pick, removedFields } from '../lib/changes.ts';
@@ -138,6 +138,43 @@ export async function getAgenda(ctx: Ctx, input: unknown) {
           row.customer,
           row.total,
           `/orcamentos/${row.id}`,
+        ),
+      );
+    }
+  }
+
+  // Entregas previstas e ainda não feitas, de pedidos não cancelados.
+  if (can(ctx.permissions, 'orders.read')) {
+    const rows = await db
+      .select({
+        id: orders.id,
+        date: orders.deliveryDate,
+        number: orders.number,
+        customer: people.name,
+        total: orders.total,
+      })
+      .from(orders)
+      .leftJoin(people, eq(people.id, orders.customerId))
+      .where(
+        and(
+          eq(orders.companyId, ctx.companyId),
+          ownScope(ctx, orders.createdBy),
+          sql`${orders.status} <> 'cancelled'`,
+          isNull(orders.deliveredOn),
+          gte(orders.deliveryDate, from),
+          lte(orders.deliveryDate, to),
+        ),
+      );
+    for (const row of rows) {
+      items.push(
+        item(
+          'delivery',
+          row.id,
+          row.date ?? from,
+          `Entrega do pedido ${formatCode(row.number)}`,
+          row.customer,
+          row.total,
+          `/pedidos/${row.id}`,
         ),
       );
     }

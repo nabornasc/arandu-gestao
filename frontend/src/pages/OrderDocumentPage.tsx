@@ -34,7 +34,7 @@ import { TracePanel } from '../components/TracePanel.tsx';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { type Order, useOrder } from '../lib/documents.ts';
-import { formatCode, label, todayIso } from '../lib/format.ts';
+import { formatCode, formatDate, label, todayIso } from '../lib/format.ts';
 import { useTab, useTabDirty, useTabTitle } from '../workspace/tab.ts';
 
 // Tela do pedido. Novo: itens, pagamento e conta. Existente: itens fixos (já baixaram o estoque);
@@ -73,6 +73,7 @@ function OrderEditor({ order }: { order: Order | null }) {
   const [orderDate, setOrderDate] = useState(order?.orderDate ?? todayIso());
   const discount = useDiscount(order?.discount ?? 0);
   const [notes, setNotes] = useState(order?.notes ?? '');
+  const [deliveryDate, setDeliveryDate] = useState(order?.deliveryDate ?? '');
   const [status, setStatus] = useState<'pending' | 'paid'>('pending');
   const [bankAccountId, setBankAccountId] = useState('');
   const [lines, setLines] = useState<Line[]>(() =>
@@ -90,6 +91,7 @@ function OrderEditor({ order }: { order: Order | null }) {
     orderDate,
     discount: discountValue,
     notes,
+    deliveryDate: deliveryDate || null,
   };
   const payload = order
     ? header
@@ -209,6 +211,19 @@ function OrderEditor({ order }: { order: Order | null }) {
               value={orderDate}
               onChange={(event) => setOrderDate(event.target.value)}
             />
+          </label>
+          <label>
+            Previsão de entrega
+            <input
+              name="deliveryDate"
+              type="date"
+              disabled={!editable}
+              value={deliveryDate}
+              onChange={(event) => setDeliveryDate(event.target.value)}
+            />
+            {order?.deliveredOn && (
+              <small className="muted">Entregue em {formatDate(order.deliveredOn)}</small>
+            )}
           </label>
 
           {order ? (

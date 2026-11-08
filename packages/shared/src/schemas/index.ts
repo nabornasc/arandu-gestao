@@ -253,7 +253,7 @@ export const agendaEventSchema = z.object({
   done: z.boolean().default(false),
 });
 export type AgendaEventInput = z.input<typeof agendaEventSchema>;
-export const AGENDA_KINDS = ['task', 'opportunity', 'quote', 'receivable', 'payable'] as const;
+export const AGENDA_KINDS = ['task', 'opportunity', 'quote', 'delivery', 'receivable', 'payable'] as const;
 export type AgendaKind = (typeof AGENDA_KINDS)[number];
 export const agendaQuerySchema = z
   .object({ from: isoDate, to: isoDate })
@@ -536,6 +536,8 @@ export const orderCreateSchema = z.object({
   freight: money.default(0),
   otherCharges: money.default(0),
   notes: optionalText(500),
+  // Previsão de entrega combinada com o cliente.
+  deliveryDate: isoDate.nullish(),
   bankAccountId: id.nullish(),
   items: z.array(orderItemSchema).min(1, 'Inclua ao menos um item').max(100),
   // Só em pedido pendente. Sem parcelas, o pedido tem uma única conta, com vencimento na data da venda.
@@ -549,11 +551,19 @@ export const orderUpdateSchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
   discount: money.optional(),
   notes: optionalText(500).optional(),
+  deliveryDate: isoDate.nullish(),
   bankAccountId: id.nullish(),
   // Obrigatório ao cancelar (conferido no servidor, que sabe o status anterior).
   reason: optionalText(255).optional(),
 });
 export type OrderUpdateInput = z.input<typeof orderUpdateSchema>;
+
+// Marcar o pedido como entregue (com o dia) ou desfazer.
+export const orderDeliverySchema = z.object({
+  delivered: z.boolean(),
+  date: isoDate.optional(),
+});
+export type OrderDeliveryInput = z.input<typeof orderDeliverySchema>;
 
 // Baixa de um pedido pendente pelo contas a receber (vira "pago" e entra no caixa).
 export const receivableSettleSchema = z.object({

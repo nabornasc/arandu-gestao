@@ -183,6 +183,13 @@
       "when": 1794171335856,
       "tag": "0025_metas_venda",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794172620544,
+      "tag": "0026_entrega_pedido",
+      "breakpoints": true
     }
   ]
 }
