@@ -26,6 +26,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Metro linear:** com as medidas ligadas, deixar a largura vazia e informar só o comprimento calcula a quantidade em metros. O espelho mostra a unidade do cadastro do produto (CX, KG, L...).
 - **Orçamento em Word (DOCX):** "Baixar em Word (DOCX)" no menu de ações do orçamento. O arquivo tem o mesmo conteúdo do espelho do cliente, abre no Word e no LibreOffice e fica registrado no histórico.
 - **Precificação** (Gestão): preço sugerido a partir do custo, das despesas fixas do mês (média dos três últimos meses fechados, com as categorias que você marcar como fixas), dos custos da venda em % e da margem desejada. Mostra lucro, margem de contribuição, ponto de equilíbrio e a comparação com o preço atual do produto, e aplica o preço sugerido com um clique. Exige ver custos.
+- **Visão geral personalizável:** "Personalizar" deixa cada usuário escolher os blocos (faturamento, despesas, saldo, pedidos pendentes, a receber, orçamentos aguardando, resultado do mês, estoque baixo, vendas por mês, mais vendidos, últimos pedidos, CRM, limite do MEI, acesso rápido e ODS), a ordem e o tamanho. Cada um guarda o seu layout; quem não pode ver um módulo não vê o bloco dele.
 - **Exportação em CSV** com a permissão nova `reports.export`, concedida a quem vê os indicadores. O arquivo abre no Excel em português, neutraliza textos que seriam lidos como fórmula e fica registrado no histórico. Nenhum relatório traz CPF/CNPJ, telefone ou endereço.
 
 ### Alterado

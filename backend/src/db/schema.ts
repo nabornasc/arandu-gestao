@@ -187,6 +187,15 @@ export const paymentConditions = pgTable(
   (t) => [uniqueIndex('payment_conditions_name_unique').on(t.companyId, sql`lower(${t.name})`)],
 );
 
+// Preferências de cada usuário. Hoje, só o dashboard; vazio usa o padrão.
+export const userPreferences = pgTable('user_preferences', {
+  userId: integer()
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  dashboard: jsonb().$type<{ blocks: { id: string; size: 'S' | 'M' | 'L' }[] }>(),
+  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
 // Biblioteca de textos: cláusulas e trechos prontos para inserir no orçamento.
 export const textSnippets = pgTable(
   'text_snippets',

@@ -406,6 +406,25 @@ export const itemTemplateSchema = z.object({
 });
 export type ItemTemplateInput = z.input<typeof itemTemplateSchema>;
 
+// Dashboard de cada usuário: blocos na ordem escolhida, cada um num tamanho (P, M ou G). O catálogo
+// de blocos fica no front; o servidor só confere o formato.
+export const DASHBOARD_SIZES = ['S', 'M', 'L'] as const;
+export type DashboardSize = (typeof DASHBOARD_SIZES)[number];
+export const dashboardLayoutSchema = z.object({
+  blocks: z
+    .array(
+      z.object({
+        id: z.string().regex(/^[a-z0-9_]{1,40}$/, 'Bloco inválido'),
+        size: z.enum(DASHBOARD_SIZES),
+      }),
+    )
+    .max(40, 'No máximo 40 blocos')
+    .refine((blocks) => new Set(blocks.map((block) => block.id)).size === blocks.length, {
+      message: 'O mesmo bloco aparece mais de uma vez',
+    }),
+});
+export type DashboardLayout = z.output<typeof dashboardLayoutSchema>;
+
 // Ajuste de estoque: entrada, saída ou contagem (o saldo passa a ser a quantidade informada).
 export const STOCK_ADJUSTMENT_KINDS = ['in', 'out', 'count'] as const;
 export const stockAdjustmentSchema = z.object({

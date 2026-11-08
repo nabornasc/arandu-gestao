@@ -94,7 +94,7 @@ test('condição de pagamento: cadastrada nas configurações, gera parcelas com
   );
 
   await page.goto('/orcamentos/novo');
-  await chooseOption(page.getByLabel('Cliente'), CUSTOMER);
+  await chooseOption(page.locator('select[name="customerId"]:visible'), CUSTOMER);
   await chooseOption(itemSelect(page, 0), SERVICE);
   await page.locator('input[name="items.0.unitPrice"]:visible').fill('100');
   await page.getByText('Parcelas', { exact: true }).click();
@@ -125,7 +125,7 @@ test('biblioteca: texto vira cláusula no espelho; grupo salvo como modelo entra
   await expect(dialog).toBeHidden();
 
   await page.goto('/orcamentos/novo');
-  await chooseOption(page.getByLabel('Cliente'), CUSTOMER);
+  await chooseOption(page.locator('select[name="customerId"]:visible'), CUSTOMER);
   await chooseOption(itemSelect(page, 0), SERVICE);
   await page.locator('input[name="items.0.groupName"]:visible').fill(`Kit ${tag}`);
   await page.getByText('Cláusulas e condições', { exact: true }).click();

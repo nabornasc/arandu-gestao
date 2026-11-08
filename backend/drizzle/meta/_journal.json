@@ -169,6 +169,13 @@
       "when": 1794157399129,
       "tag": "0023_item_avulso",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794169677004,
+      "tag": "0024_preferencias_usuario",
+      "breakpoints": true
     }
   ]
 }

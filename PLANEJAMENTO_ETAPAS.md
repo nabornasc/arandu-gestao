@@ -92,7 +92,7 @@ Em quatro partes:
 ### Etapa 8: gestão
 
 - Assistente de precificação, com rateio de custos fixos. Feito em 08/11/2026: tela `/precificacao` (exige `costs.read`) com markup divisor, preço = custo ÷ (1 − rateio − custos da venda − margem). O servidor dá a média mensal dos três meses fechados de faturamento e de despesas pagas por categoria; a tela deixa marcar quais são fixas. Mostra lucro, margem de contribuição, ponto de equilíbrio e a comparação com o preço atual, e aplica o preço ao produto. Cálculo em `packages/shared/src/pricing.ts`.
-- Dashboard modular com KPIs.
+- Dashboard modular com KPIs. Feito em 08/11/2026: catálogo de 15 blocos no front (`frontend/src/dashboard/blocks.tsx`), cada um com permissão e tamanhos; "Personalizar" adiciona, remove, move com botões (acessível pelo teclado), muda o tamanho (P, M, G) e restaura o padrão. Layout por usuário em `user_preferences` (migração `0024`). O `/dashboard` passou a mandar a receber, orçamentos aguardando, vendas de 12 meses, mais vendidos e CRM, cada um só para quem lê o módulo. Gráficos em CSS, sem biblioteca nova. Arrastar e soltar e o padrão por empresa ficaram para depois.
 - Metas de venda.
 
 ### Etapa 9: operações opcionais
