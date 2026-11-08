@@ -2550,3 +2550,58 @@ a.nav-label.active {
 .order-line .order-line-description {
   grid-column: 1 / -1;
 }
+
+/* Precificação */
+.pricing {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .pricing {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.pricing-expenses {
+  border: 1px solid #e2ddea;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+.pricing-result .pricing-price {
+  margin: 4px 0 12px;
+  color: #3b2a6b;
+  font-size: 30px;
+  font-weight: 700;
+}
+.pricing-result dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0 0 14px;
+}
+.pricing-result dt {
+  color: #665d7a;
+}
+.pricing-result dd {
+  margin: 0;
+  font-weight: 600;
+}
+.pricing-current {
+  margin-top: 16px;
+  border-top: 1px solid #e2ddea;
+  padding-top: 12px;
+}
+.pricing .muted,
+.pricing .pricing-expenses p,
+.pricing .pricing-expenses legend,
+.pricing .pricing-result dl,
+.pricing .pricing-current p {
+  font-size: 13px;
+}
+.pricing .pricing-expenses legend {
+  font-weight: 700;
+  padding: 0 4px;
+}

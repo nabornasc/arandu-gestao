@@ -22,6 +22,7 @@ import * as orders from '../services/orders.ts';
 import * as paymentConditions from '../services/paymentConditions.ts';
 import * as people from '../services/people.ts';
 import * as pipeline from '../services/pipeline.ts';
+import * as pricing from '../services/pricing.ts';
 import * as products from '../services/products.ts';
 import * as quoteDocx from '../services/quoteDocx.ts';
 import * as quotes from '../services/quotes.ts';
@@ -383,6 +384,7 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     protectedApp.put('/item-templates/:id', (request) =>
       library.updateTemplate(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
     );
+    protectedApp.get('/pricing/base', (request) => pricing.getPricingBase(ctxOf(request)));
     protectedApp.get('/payment-conditions', (request) =>
       paymentConditions.listPaymentConditions(ctxOf(request), {
         all: (request.query as { all?: string }).all === '1',

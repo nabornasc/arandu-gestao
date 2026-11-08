@@ -6,6 +6,7 @@
   "exports": {
     "./br": "./src/br.ts",
     "./permissions": "./src/permissions.ts",
+    "./pricing": "./src/pricing.ts",
     "./schemas": "./src/schemas/index.ts"
   },
   "dependencies": {

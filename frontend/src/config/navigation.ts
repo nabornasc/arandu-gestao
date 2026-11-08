@@ -2,6 +2,7 @@ import type { Permission } from '@arandue/shared/permissions';
 import {
   Banknote,
   Boxes,
+  Calculator,
   CalendarDays,
   ChartColumn,
   CircleDollarSign,
@@ -162,6 +163,14 @@ export const navigation: NavItem[] = [
     module: 'cadastros',
     description: 'Quem faz as entregas.',
     create: { path: '/transportadoras/novo', label: 'Nova transportadora', permission: 'suppliers.create' },
+  },
+  {
+    path: '/precificacao',
+    label: 'Precificação',
+    icon: Calculator,
+    permission: 'costs.read',
+    module: 'gestao',
+    description: 'Preço sugerido pelo custo, despesas fixas, custos da venda e margem desejada.',
   },
   {
     path: '/relatorios',
