@@ -203,7 +203,16 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 2. **Dashboard modular:** concluída e em produção (PR #38, `5232847`). 15 blocos com permissão e tamanhos, "Personalizar" por usuário (`user_preferences`, migração `0024`), dados novos no `/dashboard`. Produção via MCP antes do merge: `GRANT`, RLS, policy, `demo.table_list()` com `user_preferences`, backup `backup_20261108_demo_dashboard` e `demo.capture()`. Avisos de segurança sem itens.
 3. **Metas de venda:** concluída e em produção (PR #39, `b1f9497`). Tabela `sales_goals` (migração `0025`), tela `/metas` com projeção e bloco "Metas do mês". Produção via MCP antes do merge, com backup `backup_20261108_demo_metas` e `demo.capture()`. Avisos de segurança sem itens.
 
-**Etapa 8 concluída.** Próximas opções: etapa 9 (operações opcionais, só se ainda houver interesse), etapa 10 (assistente de IA) ou os manuais adiados.
+**Etapa 8 concluída.** Ordem decidida pelo usuário: etapa 9 inteira, depois os manuais e, por último, a etapa 10 (IA e bot).
+
+## Atualização de 08/11/2026, etapa 9
+
+**Etapa 9, operações: em andamento**, em quatro partes.
+
+1. **9a. Entrega no pedido:** concluída e em produção (PR #40, `15758d2`). Previsão, marcar/desfazer entrega, situação na lista e agenda. Migração `0026` (colunas novas); backup `backup_20261108_demo_entrega` e `demo.capture()`.
+2. 9b. Contas a pagar com baixa parcial, em lote e estorno: próxima.
+3. 9c. Compras simples.
+4. 9d. Renegociação e adiantamentos.
 
 - **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
   - migração `0020` registrada no Drizzle;
@@ -220,5 +229,6 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   DROP SCHEMA backup_20261108_demo_avulso CASCADE;
   DROP SCHEMA backup_20261108_demo_dashboard CASCADE;
   DROP SCHEMA backup_20261108_demo_metas CASCADE;
+  DROP SCHEMA backup_20261108_demo_entrega CASCADE;
   ```
 - **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
