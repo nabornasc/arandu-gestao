@@ -118,3 +118,20 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 - **Próxima:** etapa 4, relatórios.
 - **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
 
+## Atualização de 08/11/2026, etapa 4
+
+**Etapa 4, relatórios: concluída e em produção** (PR #21, `97d0e15`).
+
+- **Relatórios:** 17 relatórios de vendas, financeiro, estoque e gestão, em `/relatorios`, calculados no servidor. Cada grupo vê só os relatórios dos módulos que pode ver; custo e margem exigem `costs.read`.
+- **Exportação em CSV:** pela permissão própria `reports.export`, por decisão do usuário. O arquivo é para o Excel em português, neutraliza fórmulas e entra no histórico.
+- **Produção, aplicada pelo Claude do notebook via MCP:**
+  - migração `0018_relatorios`, só com permissões, registrada no Drizzle;
+  - backup `backup_20261108_demo_relatorios` (26 tabelas) e `demo.capture()`.
+  - Conferido no ar: 17 relatórios e CSV respondendo.
+- **Backups para apagar no SQL Editor**, porque o MCP recusa `DROP` nesta sessão:
+  ```sql
+  DROP SCHEMA backup_20261108_demo CASCADE;
+  DROP SCHEMA backup_20261108_demo_relatorios CASCADE;
+  ```
+- **Próxima:** etapa 5, agenda.
+
