@@ -737,7 +737,13 @@ export const purchaseItems = pgTable(
   (t) => [index().on(t.purchaseId), index().on(t.productId)],
 );
 
-export const receivableStatusEnum = pgEnum('receivable_status', ['open', 'settled', 'cancelled']);
+// Renegociada: parcela substituída por outras (fica só no histórico, fora das somas do pedido).
+export const receivableStatusEnum = pgEnum('receivable_status', [
+  'open',
+  'settled',
+  'cancelled',
+  'renegotiated',
+]);
 
 // Contas a receber: cada pedido tem uma ou mais, e a baixa é feita em cada uma.
 export const receivables = pgTable(

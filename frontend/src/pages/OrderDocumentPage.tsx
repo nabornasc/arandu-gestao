@@ -29,6 +29,7 @@ import {
   type Product,
 } from '../components/ItemLines.tsx';
 import { OrderPayments } from '../components/OrderPayments.tsx';
+import { RenegotiateButton } from '../components/RenegotiateButton.tsx';
 import { useToast } from '../components/Toast.tsx';
 import { TracePanel } from '../components/TracePanel.tsx';
 import { api } from '../lib/api.ts';
@@ -277,6 +278,7 @@ function OrderEditor({ order }: { order: Order | null }) {
             </details>
           )}
           {order && <ReceivablesTable receivables={order.receivables} />}
+          {order && <RenegotiateButton order={order} />}
           <label className="full-row">
             Observações
             <input

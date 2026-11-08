@@ -1,0 +1,1 @@
+ALTER TYPE "public"."receivable_status" ADD VALUE 'renegotiated';

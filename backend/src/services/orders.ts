@@ -11,11 +11,13 @@ import {
   orderUpdateSchema,
   passwordConfirmationSchema,
   type ReceivableSettleInput,
+  type ReceivablesRenegotiateInput,
   type ReceivablesSettleInput,
   receivableSettleSchema,
+  receivablesRenegotiateSchema,
   receivablesSettleSchema,
 } from '@arandue/shared/schemas';
-import { and, asc, desc, eq, inArray, isNull, type SQL, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, ne, type SQL, sql } from 'drizzle-orm';
 import { db, type Transaction } from '../db/client.ts';
 import {
   bankAccounts,
@@ -272,7 +274,8 @@ async function syncReceivables(
   options: { previous?: Order; accountId?: number | null; settledOn?: string; reason?: string | null } = {},
 ) {
   const { previous, accountId: requested, settledOn = order.orderDate, reason } = options;
-  const whereOrder = eq(receivables.orderId, order.id);
+  // A renegociada saiu das contas do pedido: não soma, não reabre e não cancela.
+  const whereOrder = and(eq(receivables.orderId, order.id), ne(receivables.status, 'renegotiated'));
   const cashOfOrder = eq(cashTransactions.orderId, order.id);
   const activePayments = and(eq(receivablePayments.orderId, order.id), isNull(receivablePayments.reversedAt));
 
@@ -452,9 +455,12 @@ async function loadOrders(ctx: Ctx, where: SQL | undefined, window = { limit: 50
     })
     .from(receivables)
     .where(
-      inArray(
-        receivables.orderId,
-        rows.map((row) => row.id),
+      and(
+        inArray(
+          receivables.orderId,
+          rows.map((row) => row.id),
+        ),
+        ne(receivables.status, 'renegotiated'),
       ),
     )
     .orderBy(asc(receivables.position));
@@ -1079,7 +1085,7 @@ export async function settleReceivables(ctx: Ctx, input: ReceivablesSettleInput)
       const titles = await tx
         .select()
         .from(receivables)
-        .where(eq(receivables.orderId, order.id))
+        .where(and(eq(receivables.orderId, order.id), ne(receivables.status, 'renegotiated')))
         .orderBy(asc(receivables.position))
         .for('update');
       const accountId = await resolveAccount(tx, ctx, order.id, data.bankAccountId);
@@ -1179,7 +1185,7 @@ export async function reversePayment(ctx: Ctx, id: number, input: unknown) {
     const titles = await tx
       .select()
       .from(receivables)
-      .where(eq(receivables.orderId, order.id))
+      .where(and(eq(receivables.orderId, order.id), ne(receivables.status, 'renegotiated')))
       .orderBy(asc(receivables.position))
       .for('update');
     const [payment] = await tx.select().from(receivablePayments).where(companyPayment).for('update');
@@ -1257,4 +1263,86 @@ export async function setOrderDelivery(ctx: Ctx, id: number, input: OrderDeliver
     });
   });
   return getOrder(ctx, id);
+}
+
+// Renegociação: o saldo em aberto vira novas parcelas. A parcela com pagamento parcial fica quitada
+// no valor já pago; as sem pagamento viram "renegociadas" e saem das somas. As parcelas que valem
+// são renumeradas (1/n, 2/n...). Sem juros nem desconto: o total do pedido não muda.
+export async function renegotiateReceivables(ctx: Ctx, orderId: number, input: ReceivablesRenegotiateInput) {
+  authorize(ctx, 'receivables.renegotiate');
+  const data = parse(receivablesRenegotiateSchema, input);
+  await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.companyId, ctx.companyId)))
+      .for('update');
+    if (!order) throw notFound('Pedido não encontrado.');
+    if (order.status !== 'pending') throw conflict('Só pedidos pendentes têm parcelas a renegociar.');
+    const titles = await tx
+      .select()
+      .from(receivables)
+      .where(and(eq(receivables.orderId, order.id), ne(receivables.status, 'renegotiated')))
+      .orderBy(asc(receivables.position))
+      .for('update');
+    const open = titles.filter((title) => title.status === 'open');
+    if (!open.length) throw conflict('Este pedido não tem parcelas em aberto.');
+    const balance = round2(open.reduce((sum, title) => sum + title.amount - title.paidAmount, 0));
+    const sum = round2(data.installments.reduce((value, item) => value + item.amount, 0));
+    if (sum !== balance) {
+      throw badRequest(
+        `A soma das novas parcelas (${sum.toFixed(2)}) precisa ser igual ao saldo em aberto (${balance.toFixed(2)}).`,
+      );
+    }
+    const before = titles.map(
+      (title) => `${titleLabel(title, titles.length)} ${title.dueDate} ${title.amount.toFixed(2)}`,
+    );
+
+    // Posições negativas temporárias liberam a numeração (índice único por pedido e posição).
+    for (const title of titles) {
+      await tx.update(receivables).set({ position: -title.id }).where(eq(receivables.id, title.id));
+    }
+    for (const title of open) {
+      if (title.paidAmount > 0) {
+        await tx
+          .update(receivables)
+          .set({ amount: title.paidAmount, status: 'settled' })
+          .where(eq(receivables.id, title.id));
+      } else {
+        await tx.update(receivables).set({ status: 'renegotiated' }).where(eq(receivables.id, title.id));
+      }
+    }
+    const kept = titles.filter((title) => title.status === 'settled' || title.paidAmount > 0);
+    let position = 0;
+    for (const title of kept) {
+      position += 1;
+      await tx.update(receivables).set({ position }).where(eq(receivables.id, title.id));
+    }
+    await tx.insert(receivables).values(
+      data.installments.map((item) => ({
+        companyId: ctx.companyId,
+        orderId: order.id,
+        position: ++position,
+        dueDate: item.dueDate,
+        amount: item.amount,
+        method: item.method,
+      })),
+    );
+    const after = data.installments.map(
+      (item, index) => `${kept.length + index + 1}/${position} ${item.dueDate} ${item.amount.toFixed(2)}`,
+    );
+    await audit(
+      tx,
+      ctx,
+      'update',
+      'order',
+      order.id,
+      {
+        number: order.number,
+        changes: diffFields({ installments: before.join('; ') }, { installments: after.join('; ') }),
+      },
+      data.reason,
+    );
+  });
+  return getOrder(ctx, orderId);
 }

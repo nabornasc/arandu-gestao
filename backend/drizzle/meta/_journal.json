@@ -204,6 +204,13 @@
       "when": 1794175169524,
       "tag": "0028_compras",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794176487520,
+      "tag": "0029_renegociacao",
+      "breakpoints": true
     }
   ]
 }

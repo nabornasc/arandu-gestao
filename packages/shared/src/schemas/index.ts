@@ -653,6 +653,13 @@ export const receivablesSettleSchema = z.object({
 });
 export type ReceivablesSettleInput = z.input<typeof receivablesSettleSchema>;
 
+// Renegociação: o saldo em aberto do pedido vira novas parcelas, com o motivo no histórico.
+export const receivablesRenegotiateSchema = z.object({
+  reason: requiredText(255, 'Informe o motivo'),
+  installments: z.array(quoteInstallmentSchema).min(1, 'Informe ao menos uma parcela').max(60),
+});
+export type ReceivablesRenegotiateInput = z.input<typeof receivablesRenegotiateSchema>;
+
 export const QUOTE_STATUSES = ['draft', 'sent', 'approved', 'rejected', 'cancelled'] as const;
 export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 

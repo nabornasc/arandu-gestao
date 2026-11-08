@@ -219,6 +219,13 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       );
     });
 
+    protectedApp.post('/orders/:id/renegotiate', (request) =>
+      orders.renegotiateReceivables(
+        ctxOf(request),
+        idParamSchema.parse(request.params).id,
+        request.body as never,
+      ),
+    );
     protectedApp.post('/orders/:id/delivery', (request) =>
       orders.setOrderDelivery(ctxOf(request), idParamSchema.parse(request.params).id, request.body as never),
     );

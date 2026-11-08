@@ -18,6 +18,7 @@ export const ACTION_LABELS = {
   configure: 'Configurar etapas do funil',
   adjust: 'Ajustar estoque',
   receive: 'Receber',
+  renegotiate: 'Renegociar parcelas',
   export: 'Exportar em CSV',
 } as const;
 export type ActionKey = keyof typeof ACTION_LABELS;
@@ -50,7 +51,10 @@ export const AREAS = {
     actions: [...CRUD, 'configure'],
     scoped: true,
   },
-  receivables: { label: 'Contas a receber', actions: ['read', 'settle', 'reverse'] },
+  receivables: {
+    label: 'Contas a receber',
+    actions: ['read', 'settle', 'reverse', 'renegotiate'],
+  },
   payables: {
     label: 'Contas a pagar (despesas)',
     actions: ['read', 'create', 'update', 'pay', 'reverse', 'delete'],
