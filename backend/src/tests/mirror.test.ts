@@ -116,6 +116,8 @@ describe('espelho do cliente', () => {
         width: null,
         length: null,
         measureUnit: null,
+        // Unidade do cadastro, para o espelho mostrar "2 CX", "3 KG"...
+        unit: 'UN',
       },
     ]);
     expect(JSON.stringify(body)).not.toContain('Margem apertada');

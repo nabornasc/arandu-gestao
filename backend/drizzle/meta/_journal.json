@@ -162,6 +162,13 @@
       "when": 1794154135776,
       "tag": "0022_biblioteca_orcamento",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794157399129,
+      "tag": "0023_item_avulso",
+      "breakpoints": true
     }
   ]
 }

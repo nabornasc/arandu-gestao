@@ -11,7 +11,9 @@ import { api } from './api.ts';
 // Formatos de orçamento e pedido devolvidos pela API (com itens), usados por listas, telas e ações.
 export interface DocumentItem {
   id: number;
-  productId: number;
+  // Vazio no item avulso: o nome é a descrição.
+  productId: number | null;
+  description?: string | null;
   productName: string;
   quantity: number;
   unitPrice: number;
@@ -116,6 +118,8 @@ export interface QuoteMirror {
     measureUnit?: MeasureUnit | null;
     // Só no espelho interno: no do cliente, o item oculto não vem.
     hiddenInMirror?: boolean;
+    // Unidade do cadastro (UN, CX, KG...). Vazio no item avulso e em cópias antigas.
+    unit?: string | null;
   }[];
   // Somas com os itens ocultos, para fechar com o total.
   subtotal: number;

@@ -504,9 +504,9 @@ export const quoteItems = pgTable(
     quoteId: integer()
       .notNull()
       .references(() => quotes.id, { onDelete: 'cascade' }),
-    productId: integer()
-      .notNull()
-      .references(() => products.id, { onDelete: 'restrict' }),
+    // Vazio no item avulso, que tem só descrição e preço.
+    productId: integer().references(() => products.id, { onDelete: 'restrict' }),
+    description: varchar({ length: 160 }),
     quantity: quantity().notNull(),
     unitPrice: money().notNull(),
     subtotal: money().notNull(),
@@ -564,9 +564,9 @@ export const orderItems = pgTable(
     orderId: integer()
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),
-    productId: integer()
-      .notNull()
-      .references(() => products.id, { onDelete: 'restrict' }),
+    // Vazio no item avulso, que tem só descrição e preço.
+    productId: integer().references(() => products.id, { onDelete: 'restrict' }),
+    description: varchar({ length: 160 }),
     quantity: quantity().notNull(),
     unitPrice: money().notNull(),
     subtotal: money().notNull(),

@@ -31,17 +31,24 @@ export async function audit(
 // Linhas de documento com o nome do produto, para o histórico.
 export async function namedLines(
   tx: DbOrTx,
-  lines: { productId: number; quantity: number; unitPrice?: number | null }[],
+  lines: {
+    productId: number | null;
+    description?: string | null;
+    quantity: number;
+    unitPrice?: number | null;
+  }[],
 ): Promise<ItemLine[]> {
-  const ids = [...new Set(lines.map((line) => line.productId))];
-  const rows = await tx
-    .select({ id: products.id, name: products.name })
-    .from(products)
-    .where(inArray(products.id, ids));
+  const ids = [...new Set(lines.flatMap((line) => (line.productId ? [line.productId] : [])))];
+  const rows = ids.length
+    ? await tx
+        .select({ id: products.id, name: products.name })
+        .from(products)
+        .where(inArray(products.id, ids))
+    : [];
   const names = new Map(rows.map((row) => [row.id, row.name]));
-  return lines.map(({ productId, quantity, unitPrice }) => ({
+  return lines.map(({ productId, description, quantity, unitPrice }) => ({
     productId,
-    name: names.get(productId) ?? 'Produto removido',
+    name: productId ? (names.get(productId) ?? 'Produto removido') : (description ?? 'Item avulso'),
     quantity,
     unitPrice: unitPrice ?? null,
   }));

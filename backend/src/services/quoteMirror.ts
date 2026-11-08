@@ -1,5 +1,5 @@
 import { formatAddress, formatDocument } from '@arandue/shared/br';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
 import type { DbOrTx } from '../db/client.ts';
 import { companies, people, products, quoteItems, users } from '../db/schema.ts';
 import { notFound } from '../lib/errors.ts';
@@ -34,7 +34,8 @@ export async function buildMirrorSnapshot(
     : [];
   const items = await db
     .select({
-      name: products.name,
+      name: sql<string>`coalesce(${products.name}, ${quoteItems.description})`,
+      unit: products.unit,
       quantity: quoteItems.quantity,
       unitPrice: quoteItems.unitPrice,
       subtotal: quoteItems.subtotal,
@@ -45,7 +46,7 @@ export async function buildMirrorSnapshot(
       hiddenInMirror: quoteItems.hiddenInMirror,
     })
     .from(quoteItems)
-    .innerJoin(products, eq(products.id, quoteItems.productId))
+    .leftJoin(products, eq(products.id, quoteItems.productId))
     .where(eq(quoteItems.quoteId, quote.id))
     .orderBy(asc(quoteItems.id));
 

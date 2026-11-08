@@ -65,11 +65,16 @@ export function ItemsTable({ items }: { items: DocumentItem[] }) {
             <tr key={item.id}>
               <td>
                 {item.productName}
-                {(item.groupName || item.width) && (
+                {(item.groupName || item.length || !item.productId) && (
                   <small className="item-details">
                     {[
+                      item.productId ? null : 'avulso',
                       item.groupName,
-                      item.width ? `${item.width} × ${item.length} ${item.measureUnit ?? 'm'}` : null,
+                      item.width
+                        ? `${item.width} × ${item.length} ${item.measureUnit ?? 'm'}`
+                        : item.length
+                          ? `${item.length} ${item.measureUnit ?? 'm'} linear`
+                          : null,
                     ]
                       .filter(Boolean)
                       .join(' · ')}

@@ -114,9 +114,9 @@ const REPORTS: ReportDefinition[] = [
       money('subtotal', 'Subtotal'),
     ],
     query: (ctx, range) => sql`
-      SELECT q.number, ${localDate(sql`q.created_at`)} AS date, pr.name AS product, i.group_name AS "group",
-             i.quantity, i.unit_price AS "unitPrice", i.subtotal
-      FROM quote_items i JOIN quotes q ON q.id = i.quote_id JOIN products pr ON pr.id = i.product_id
+      SELECT q.number, ${localDate(sql`q.created_at`)} AS date, coalesce(pr.name, i.description) AS product,
+             i.group_name AS "group", i.quantity, i.unit_price AS "unitPrice", i.subtotal
+      FROM quote_items i JOIN quotes q ON q.id = i.quote_id LEFT JOIN products pr ON pr.id = i.product_id
       WHERE q.company_id = ${ctx.companyId} ${own(ctx, sql`q.created_by`)}
         ${between(localDate(sql`q.created_at`), range)}
       ORDER BY q.created_at DESC, i.id`,
@@ -205,8 +205,9 @@ const REPORTS: ReportDefinition[] = [
       money('subtotal', 'Subtotal'),
     ],
     query: (ctx, range) => sql`
-      SELECT o.number, o.order_date AS date, pr.name AS product, i.quantity, i.unit_price AS "unitPrice", i.subtotal
-      FROM order_items i JOIN orders o ON o.id = i.order_id JOIN products pr ON pr.id = i.product_id
+      SELECT o.number, o.order_date AS date, coalesce(pr.name, i.description) AS product, i.quantity,
+             i.unit_price AS "unitPrice", i.subtotal
+      FROM order_items i JOIN orders o ON o.id = i.order_id LEFT JOIN products pr ON pr.id = i.product_id
       WHERE o.company_id = ${ctx.companyId} ${own(ctx, sql`o.created_by`)} ${between(sql`o.order_date`, range)}
       ORDER BY o.order_date DESC, i.id`,
   },

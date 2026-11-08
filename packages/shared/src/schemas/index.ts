@@ -100,6 +100,14 @@ const METERS_PER_UNIT: Record<MeasureUnit, number> = { mm: 0.001, cm: 0.01, m: 1
 export const areaInSquareMeters = (width: number, length: number, unit: MeasureUnit) =>
   Math.round((width * METERS_PER_UNIT[unit] * length * METERS_PER_UNIT[unit] + Number.EPSILON) * 100) / 100;
 
+// Metro linear: só o comprimento, convertido para metros.
+export const lengthInMeters = (length: number, unit: MeasureUnit) =>
+  Math.round((length * METERS_PER_UNIT[unit] + Number.EPSILON) * 100) / 100;
+
+// Quantidade calculada pelas medidas: largura e comprimento dão m²; só o comprimento dá metros.
+export const measuredQuantity = (width: number | null | undefined, length: number, unit: MeasureUnit) =>
+  width ? areaInSquareMeters(width, length, unit) : lengthInMeters(length, unit);
+
 export const companySettingsSchema = z.object({
   name: requiredText(160, 'Informe o nome da empresa'),
   cnpj: optionalText(18),
@@ -464,11 +472,25 @@ export const quoteInstallmentSchema = z.object({
 });
 export type QuoteInstallment = z.output<typeof quoteInstallmentSchema>;
 
-export const orderItemSchema = z.object({
-  productId: id,
+// Item do catálogo (produto) ou avulso (descrição e preço livres, sem estoque).
+const itemBase = z.object({
+  productId: id.nullish(),
+  description: optionalText(160),
   quantity: z.number().positive('A quantidade deve ser maior que zero').max(1e6),
   unitPrice: money.optional(),
 });
+const itemRules = <T extends { productId?: number | null; description?: string | null; unitPrice?: number }>(
+  item: T,
+  context: z.RefinementCtx,
+) => {
+  if (!item.productId && !item.description) {
+    context.addIssue({ code: 'custom', message: 'Escolha o produto ou descreva o item avulso' });
+  }
+  if (!item.productId && item.unitPrice === undefined) {
+    context.addIssue({ code: 'custom', message: 'Informe o preço do item avulso' });
+  }
+};
+export const orderItemSchema = itemBase.superRefine(itemRules);
 
 export const orderCreateSchema = z.object({
   opportunityId: id.nullish(),
@@ -546,9 +568,9 @@ export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 
 const measure = z.number().positive('A medida deve ser maior que zero').max(1e5).nullish();
 
-// Item de orçamento: pode ter grupo (ambiente, etapa, kit) e medidas. Com medidas, a quantidade é a
-// área em m², calculada no servidor.
-export const quoteItemSchema = orderItemSchema
+// Item de orçamento: pode ter grupo (ambiente, etapa, kit) e medidas. Com medidas, a quantidade é
+// calculada no servidor: área em m² (largura × comprimento) ou metros lineares (só o comprimento).
+export const quoteItemSchema = itemBase
   .extend({
     groupName: optionalText(80),
     width: measure,
@@ -557,16 +579,15 @@ export const quoteItemSchema = orderItemSchema
     // Entra no total, mas não sai no espelho do cliente.
     hiddenInMirror: z.boolean().default(false),
   })
-  .refine((item) => !item.width === !item.length, {
-    message: 'Informe a largura e o comprimento, ou deixe os dois em branco',
+  .superRefine(itemRules)
+  // Só o comprimento é metro linear; largura sem comprimento não fecha a conta.
+  .refine((item) => !item.width || item.length, {
+    message: 'Informe o comprimento junto com a largura',
   })
   .refine(
-    (item) =>
-      !item.width ||
-      !item.length ||
-      areaInSquareMeters(item.width, item.length, item.measureUnit ?? 'm') >= 0.01,
+    (item) => !item.length || measuredQuantity(item.width, item.length, item.measureUnit ?? 'm') >= 0.01,
     {
-      message: 'As medidas resultam em uma área pequena demais',
+      message: 'As medidas resultam em uma quantidade pequena demais',
     },
   );
 

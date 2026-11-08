@@ -1,4 +1,4 @@
-import { areaInSquareMeters, type MeasureUnit } from '@arandue/shared/schemas';
+import { type MeasureUnit, measuredQuantity } from '@arandue/shared/schemas';
 import { Copy, Plus, Trash2 } from 'lucide-react';
 import { type Dispatch, type SetStateAction, useId } from 'react';
 import { GroupTemplates } from './GroupTemplates.tsx';
@@ -9,11 +9,18 @@ export interface Product {
   name: string;
   price: number;
   stock: number | null;
+  unit?: string;
 }
+
+// Valor do campo de produto para o item avulso (fora do catálogo).
+export const LOOSE = 'avulso';
 
 export interface Line {
   key: number;
+  // Id do produto, ou LOOSE no item avulso.
   productId: string;
+  // Só no item avulso.
+  description: string;
   quantity: string;
   unitPrice: string;
   groupName: string;
@@ -27,7 +34,8 @@ export interface Line {
 
 let lineKey = 0;
 export const newLine = (initial?: {
-  productId: number;
+  productId: number | null;
+  description?: string | null;
   quantity: number;
   unitPrice: number;
   groupName?: string | null;
@@ -37,24 +45,31 @@ export const newLine = (initial?: {
   hiddenInMirror?: boolean;
 }): Line => ({
   key: ++lineKey,
-  productId: initial ? String(initial.productId) : '',
+  productId: initial ? (initial.productId ? String(initial.productId) : LOOSE) : '',
+  description: initial?.description ?? '',
   quantity: initial ? String(initial.quantity) : '1',
   unitPrice: initial ? String(initial.unitPrice) : '0',
   groupName: initial?.groupName ?? '',
   width: initial?.width ? String(initial.width) : '',
   length: initial?.length ? String(initial.length) : '',
-  measureUnit: initial?.width ? (initial.measureUnit ?? 'm') : '',
+  measureUnit: initial?.length ? (initial.measureUnit ?? 'm') : '',
   hiddenInMirror: initial?.hiddenInMirror ?? false,
 });
 
 export const linesSubtotal = (lines: Line[]) =>
   lines.reduce((sum, line) => sum + Number(line.quantity || 0) * Number(line.unitPrice || 0), 0);
 
+// Produto do catálogo, ou descrição no item avulso.
+const itemOf = (line: Line) =>
+  line.productId === LOOSE
+    ? { productId: null, description: line.description }
+    : { productId: Number(line.productId), description: null };
+
 export const linesToItems = (lines: Line[]) =>
   lines
     .filter((line) => line.productId)
     .map((line) => ({
-      productId: Number(line.productId),
+      ...itemOf(line),
       quantity: Number(line.quantity),
       unitPrice: Number(line.unitPrice),
     }));
@@ -63,13 +78,13 @@ export const linesToQuoteItems = (lines: Line[], defaultUnit: MeasureUnit) =>
   lines
     .filter((line) => line.productId)
     .map((line) => ({
-      productId: Number(line.productId),
+      ...itemOf(line),
       quantity: Number(line.quantity),
       unitPrice: Number(line.unitPrice),
       groupName: line.groupName,
       width: line.width ? Number(line.width) : null,
       length: line.length ? Number(line.length) : null,
-      measureUnit: line.width || line.length ? line.measureUnit || defaultUnit : null,
+      measureUnit: line.length ? line.measureUnit || defaultUnit : null,
       hiddenInMirror: line.hiddenInMirror,
     }));
 
@@ -84,8 +99,9 @@ export function duplicateGroup(lines: Line[], name: string): Line[] {
   return [...lines, ...copies];
 }
 
-const area = (width: string, length: string, unit: MeasureUnit) =>
-  width && length ? String(areaInSquareMeters(Number(width), Number(length), unit)) : null;
+// Com comprimento, a quantidade sai das medidas: com largura é m², sem largura é metro linear.
+const measured = (width: string, length: string, unit: MeasureUnit) =>
+  length ? String(measuredQuantity(width ? Number(width) : null, Number(length), unit)) : null;
 
 interface Props {
   lines: Line[];
@@ -145,6 +161,7 @@ export function ItemLines({
                   {product.name} {product.stock === null ? '(serviço)' : `(estoque: ${product.stock})`}
                 </option>
               ))}
+              <option value={LOOSE}>Item avulso (fora do catálogo)</option>
             </select>
           </label>
           <label>
@@ -155,7 +172,7 @@ export function ItemLines({
               min="0.01"
               step="0.01"
               name={`items.${index}.quantity`}
-              readOnly={Boolean(line.width && line.length)}
+              readOnly={Boolean(line.length)}
               value={line.quantity}
               onChange={(event) => updateLine(line.key, { quantity: event.target.value })}
             />
@@ -181,6 +198,18 @@ export function ItemLines({
           >
             <Trash2 size={14} />
           </button>
+          {line.productId === LOOSE && (
+            <label className="order-line-description">
+              Descrição do item avulso
+              <input
+                type="text"
+                maxLength={160}
+                name={`items.${index}.description`}
+                value={line.description}
+                onChange={(event) => updateLine(line.key, { description: event.target.value })}
+              />
+            </label>
+          )}
           {groups && (
             <div className="order-line-details">
               <label>
@@ -214,12 +243,13 @@ export function ItemLines({
                       min="0.01"
                       step="0.01"
                       name={`items.${index}.width`}
+                      placeholder="Vazio: metro linear"
                       value={line.width}
                       onChange={(event) =>
                         updateLine(line.key, {
                           width: event.target.value,
                           quantity:
-                            area(event.target.value, line.length, line.measureUnit || measureUnit) ??
+                            measured(event.target.value, line.length, line.measureUnit || measureUnit) ??
                             line.quantity,
                         })
                       }
@@ -238,7 +268,7 @@ export function ItemLines({
                         updateLine(line.key, {
                           length: event.target.value,
                           quantity:
-                            area(line.width, event.target.value, line.measureUnit || measureUnit) ??
+                            measured(line.width, event.target.value, line.measureUnit || measureUnit) ??
                             line.quantity,
                         })
                       }

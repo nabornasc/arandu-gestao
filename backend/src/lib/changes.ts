@@ -32,7 +32,8 @@ const PROTECTED = new Set([
 ]);
 
 export interface ItemLine {
-  productId: number;
+  // Vazio no item avulso, que é comparado pela descrição.
+  productId: number | null;
   name: string;
   quantity: number;
   unitPrice: number | null;
@@ -80,7 +81,11 @@ export function diffItems(before: ItemLine[], after: ItemLine[]): ItemChange[] {
   const changes: ItemChange[] = [];
   for (const line of after) {
     const { name, quantity, unitPrice } = line;
-    const index = remaining.findIndex((item) => item.productId === line.productId);
+    const index = remaining.findIndex((item) =>
+      line.productId === null
+        ? item.productId === null && item.name === line.name
+        : item.productId === line.productId,
+    );
     const previous = index === -1 ? undefined : remaining.splice(index, 1)[0];
     if (!previous) changes.push({ change: 'added', name, quantity, unitPrice });
     else if (previous.quantity !== quantity || previous.unitPrice !== unitPrice) {

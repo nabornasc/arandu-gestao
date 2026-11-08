@@ -121,17 +121,22 @@ export function groupItems<T extends MirrorItem>(items: T[], subtotals: Record<s
   }));
 }
 
+// Medidas mandam na unidade (m² ou m linear); sem medidas, vale a do cadastro, menos a padrão UN.
+const unitSuffix = (item: MirrorItem) =>
+  item.width ? ' m²' : item.length ? ' m' : item.unit && item.unit !== 'UN' ? ` ${item.unit}` : '';
+
 export const quantityLabel = (item: MirrorItem) =>
-  `${item.quantity.toLocaleString('pt-BR')}${item.width ? ' m²' : ''}`;
+  `${item.quantity.toLocaleString('pt-BR')}${unitSuffix(item)}`;
 
 export function ItemName({ item }: { item: MirrorItem }) {
   return (
     <>
       {item.name}
-      {item.width && item.length && (
+      {item.length && (
         <small className="mirror-measures">
-          {item.width.toLocaleString('pt-BR')} × {item.length.toLocaleString('pt-BR')}{' '}
-          {item.measureUnit ?? 'm'}
+          {item.width
+            ? `${item.width.toLocaleString('pt-BR')} × ${item.length.toLocaleString('pt-BR')} ${item.measureUnit ?? 'm'}`
+            : `${item.length.toLocaleString('pt-BR')} ${item.measureUnit ?? 'm'} linear`}
         </small>
       )}
       {item.hiddenInMirror && <small className="mirror-hidden">oculto no espelho do cliente</small>}

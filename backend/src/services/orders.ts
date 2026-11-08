@@ -69,11 +69,14 @@ const scoped = (ctx: Ctx, id: number) =>
 async function moveStock(
   tx: Transaction,
   ctx: Ctx,
-  items: { productId: number; quantity: number }[],
+  items: { productId?: number | null; quantity: number }[],
   sign: 1 | -1,
 ): Promise<StockChange[]> {
+  // Item avulso não tem produto nem estoque.
   const totals = new Map<number, number>();
-  for (const item of items) totals.set(item.productId, (totals.get(item.productId) ?? 0) + item.quantity);
+  for (const { productId, quantity } of items) {
+    if (productId) totals.set(productId, (totals.get(productId) ?? 0) + quantity);
+  }
   const ids = [...totals.keys()].sort((a, b) => a - b);
   if (!ids.length) return [];
 
@@ -415,13 +418,15 @@ async function loadOrders(ctx: Ctx, where: SQL | undefined, window = { limit: 50
       id: orderItems.id,
       orderId: orderItems.orderId,
       productId: orderItems.productId,
-      productName: products.name,
+      // Item avulso não tem produto: o nome é a descrição.
+      productName: sql<string>`coalesce(${products.name}, ${orderItems.description})`,
+      description: orderItems.description,
       quantity: orderItems.quantity,
       unitPrice: orderItems.unitPrice,
       subtotal: orderItems.subtotal,
     })
     .from(orderItems)
-    .innerJoin(products, eq(products.id, orderItems.productId))
+    .leftJoin(products, eq(products.id, orderItems.productId))
     .where(
       inArray(
         orderItems.orderId,
@@ -540,20 +545,28 @@ export async function buildLines(
   discount: number,
   charges: number,
 ) {
-  const productIds = [...new Set(items.map((item) => item.productId))];
-  const catalog = await tx
-    .select({ id: products.id, price: products.price })
-    .from(products)
-    .where(
-      and(inArray(products.id, productIds), eq(products.companyId, ctx.companyId), eq(products.active, true)),
-    );
+  const productIds = [...new Set(items.flatMap((item) => (item.productId ? [item.productId] : [])))];
+  const catalog = productIds.length
+    ? await tx
+        .select({ id: products.id, price: products.price })
+        .from(products)
+        .where(
+          and(
+            inArray(products.id, productIds),
+            eq(products.companyId, ctx.companyId),
+            eq(products.active, true),
+          ),
+        )
+    : [];
   if (catalog.length !== productIds.length) throw badRequest('Produto não encontrado ou arquivado.');
   const priceOf = new Map(catalog.map((product) => [product.id, product.price]));
 
+  // Item avulso: sem produto, com descrição e o preço informado.
   const lines = items.map((item) => {
-    const unitPrice = item.unitPrice ?? priceOf.get(item.productId) ?? 0;
+    const unitPrice = item.unitPrice ?? (item.productId ? priceOf.get(item.productId) : undefined) ?? 0;
     return {
-      productId: item.productId,
+      productId: item.productId ?? null,
+      description: item.productId ? null : (item.description ?? null),
       quantity: item.quantity,
       unitPrice,
       subtotal: round2(item.quantity * unitPrice),

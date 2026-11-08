@@ -2547,3 +2547,6 @@ a.nav-label.active {
 .group-templates label {
   flex: 1 1 220px;
 }
+.order-line .order-line-description {
+  grid-column: 1 / -1;
+}

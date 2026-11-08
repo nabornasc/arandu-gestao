@@ -1,8 +1,8 @@
 import { can, type Permission } from '@arandue/shared/permissions';
 import {
-  areaInSquareMeters,
   type DocumentReasonInput,
   documentReasonSchema,
+  measuredQuantity,
   QUOTE_STATUSES,
   type QuoteConvertInput,
   type QuoteInput,
@@ -90,9 +90,14 @@ type Composed = {
 };
 const compositionText = (lines: Composed[]) =>
   lines
-    .filter((line) => line.groupName || line.width || line.hiddenInMirror)
+    .filter((line) => line.groupName || line.length || line.hiddenInMirror)
     .map((line) => {
-      const measures = line.width ? ` (${line.width} × ${line.length} ${line.measureUnit ?? 'm'})` : '';
+      const unit = line.measureUnit ?? 'm';
+      const measures = line.width
+        ? ` (${line.width} × ${line.length} ${unit})`
+        : line.length
+          ? ` (${line.length} ${unit} linear)`
+          : '';
       const hidden = line.hiddenInMirror ? ' [oculto no espelho]' : '';
       return `${line.groupName ? `${line.groupName}: ` : ''}${line.name}${measures}${hidden}`;
     })
@@ -155,7 +160,9 @@ async function loadQuotes(ctx: Ctx, where: SQL | undefined, window = { limit: 50
       id: quoteItems.id,
       quoteId: quoteItems.quoteId,
       productId: quoteItems.productId,
-      productName: products.name,
+      // Item avulso não tem produto: o nome é a descrição.
+      productName: sql<string>`coalesce(${products.name}, ${quoteItems.description})`,
+      description: quoteItems.description,
       quantity: quoteItems.quantity,
       unitPrice: quoteItems.unitPrice,
       subtotal: quoteItems.subtotal,
@@ -166,7 +173,7 @@ async function loadQuotes(ctx: Ctx, where: SQL | undefined, window = { limit: 50
       hiddenInMirror: quoteItems.hiddenInMirror,
     })
     .from(quoteItems)
-    .innerJoin(products, eq(products.id, quoteItems.productId))
+    .leftJoin(products, eq(products.id, quoteItems.productId))
     .where(
       inArray(
         quoteItems.quoteId,
@@ -189,7 +196,8 @@ const lineItems = (tx: Transaction, id: number) =>
   tx
     .select({
       productId: quoteItems.productId,
-      name: products.name,
+      name: sql<string>`coalesce(${products.name}, ${quoteItems.description})`,
+      description: quoteItems.description,
       quantity: quoteItems.quantity,
       unitPrice: quoteItems.unitPrice,
       groupName: quoteItems.groupName,
@@ -199,7 +207,7 @@ const lineItems = (tx: Transaction, id: number) =>
       hiddenInMirror: quoteItems.hiddenInMirror,
     })
     .from(quoteItems)
-    .innerJoin(products, eq(products.id, quoteItems.productId))
+    .leftJoin(products, eq(products.id, quoteItems.productId))
     .where(eq(quoteItems.quoteId, id))
     .orderBy(asc(quoteItems.id));
 
@@ -323,12 +331,14 @@ export async function getQuoteInternalMirror(ctx: Ctx, id: number) {
       currentCost: products.cost,
     })
     .from(quoteItems)
-    .innerJoin(products, eq(products.id, quoteItems.productId))
+    .leftJoin(products, eq(products.id, quoteItems.productId))
     .where(eq(quoteItems.quoteId, id))
     .orderBy(asc(quoteItems.id));
   // Depois do envio, o custo fica fixo: mudar o cadastro não muda a margem do que já foi enviado.
-  const lines = costs.map(({ sentCost, currentCost, ...line }) => ({
+  // Item avulso não tem cadastro: entra como serviço, com custo desconhecido.
+  const lines = costs.map(({ sentCost, currentCost, type, ...line }) => ({
     ...line,
+    type: type ?? ('service' as const),
     unitCost: mirror.status === 'draft' ? currentCost : sentCost,
   }));
   return {
@@ -348,11 +358,12 @@ export async function getQuoteInternalMirror(ctx: Ctx, id: number) {
 // Orçamento não mexe em estoque nem no caixa: isso só acontece ao converter em pedido.
 type QuoteData = ReturnType<typeof quoteSchema.parse>;
 
-// Linhas do orçamento: com medidas, a quantidade é a área, e as parcelas precisam fechar com o total.
+// Linhas do orçamento: com medidas, a quantidade é a área (m²) ou o comprimento (metro linear), e as
+// parcelas precisam fechar com o total.
 async function buildQuoteLines(tx: Transaction, ctx: Ctx, data: QuoteData) {
   const items = data.items.map((item) =>
-    item.width && item.length
-      ? { ...item, quantity: areaInSquareMeters(item.width, item.length, item.measureUnit ?? 'm') }
+    item.length
+      ? { ...item, quantity: measuredQuantity(item.width, item.length, item.measureUnit ?? 'm') }
       : item,
   );
   const { lines, total } = await buildLines(tx, ctx, items, data.discount, data.freight + data.otherCharges);
@@ -371,7 +382,7 @@ async function buildQuoteLines(tx: Transaction, ctx: Ctx, data: QuoteData) {
       groupName: items[index]?.groupName ?? null,
       width: items[index]?.width ?? null,
       length: items[index]?.length ?? null,
-      measureUnit: items[index]?.width ? (items[index]?.measureUnit ?? 'm') : null,
+      measureUnit: items[index]?.length ? (items[index]?.measureUnit ?? 'm') : null,
       hiddenInMirror: items[index]?.hiddenInMirror ?? false,
     })),
   };
@@ -635,6 +646,7 @@ export async function convertQuote(ctx: Ctx, id: number, input: QuoteConvertInpu
     const items = await tx
       .select({
         productId: quoteItems.productId,
+        description: quoteItems.description,
         quantity: quoteItems.quantity,
         unitPrice: quoteItems.unitPrice,
       })

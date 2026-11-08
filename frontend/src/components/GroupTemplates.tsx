@@ -4,7 +4,7 @@ import { type Dispatch, type SetStateAction, useId, useState } from 'react';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { useTemplates } from '../lib/library.ts';
-import { type Line, newLine, type Product } from './ItemLines.tsx';
+import { type Line, LOOSE, newLine, type Product } from './ItemLines.tsx';
 import { useToast } from './Toast.tsx';
 
 // Modelos de grupo no orçamento: inserir um modelo salvo (procurando pelo nome) e salvar um grupo
@@ -64,7 +64,8 @@ export function GroupTemplates({
 
   function saveGroup(name: string) {
     const items = lines
-      .filter((line) => line.groupName.trim() === name && line.productId)
+      // Modelo guarda só itens do catálogo; o avulso fica de fora.
+      .filter((line) => line.groupName.trim() === name && line.productId && line.productId !== LOOSE)
       .map((line) => ({
         productId: Number(line.productId),
         quantity: Number(line.quantity),

@@ -30,7 +30,8 @@ type Source = {
   siteAddress?: string | null;
   clauses?: string | null;
   items: {
-    productId: number;
+    productId: number | null;
+    description?: string | null;
     quantity: number;
     unitPrice: number;
     // Só o item de orçamento tem estes campos.
@@ -43,7 +44,12 @@ type Source = {
 };
 
 const itemsOf = (doc: Source) =>
-  doc.items.map(({ productId, quantity, unitPrice }) => ({ productId, quantity, unitPrice }));
+  doc.items.map(({ productId, description, quantity, unitPrice }) => ({
+    productId,
+    description: description ?? null,
+    quantity,
+    unitPrice,
+  }));
 
 const quoteFrom = (source: Source) => ({
   customerId: source.customerId,
@@ -58,8 +64,19 @@ const quoteFrom = (source: Source) => ({
   siteAddress: source.siteAddress ?? null,
   clauses: source.clauses ?? null,
   items: source.items.map(
-    ({ productId, quantity, unitPrice, groupName, width, length, measureUnit, hiddenInMirror }) => ({
+    ({
       productId,
+      description,
+      quantity,
+      unitPrice,
+      groupName,
+      width,
+      length,
+      measureUnit,
+      hiddenInMirror,
+    }) => ({
+      productId,
+      description: description ?? null,
       quantity,
       unitPrice,
       groupName: groupName ?? null,

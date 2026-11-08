@@ -86,7 +86,7 @@ Em quatro partes:
 2. **Condições de pagamento cadastráveis.** Feito em 08/11/2026: tabela `payment_conditions` (migração `0021_condicoes_pagamento`, que cria cinco condições padrão em cada empresa), cadastro em Configurações e escolha nas parcelas do orçamento e do pedido. A entrada em % vence no dia do documento com a sua forma; os prazos em dias geram as demais parcelas com outra forma. As parcelas continuam editáveis e são copiadas para o documento: mudar a condição depois não altera documentos antigos.
 3. Em duas entregas:
    - **3a. Biblioteca do orçamento.** Feito em 08/11/2026: cláusulas próprias de cada orçamento (`quotes.clauses`; vazio usa o texto padrão da empresa no espelho), textos prontos (`text_snippets`) inseridos nas cláusulas e modelos de grupo (`item_templates`): "Criar modelo do grupo" no orçamento e "Inserir modelo" procurando pelo nome. Manutenção em Configurações. Migração `0022_biblioteca_orcamento`.
-   - **3b.** Unidades além de m² e item avulso. O item avulso saiu da parte 1 porque mexe em pedido, estoque e relatórios, que hoje exigem produto em todo item.
+   - **3b. Unidades e item avulso.** Feito em 08/11/2026: metro linear (só o comprimento vira a quantidade em metros) ao lado do m²; a unidade do cadastro (CX, KG, L...) aparece no espelho; item avulso no orçamento e no pedido, com descrição e preço livres, sem estoque, presente no histórico, nos espelhos e nos relatórios de itens. Migração `0023_item_avulso` (`product_id` opcional, `description` e uma regra no banco: produto ou descrição). Modelos de grupo guardam só itens do catálogo.
 4. Exportação em DOCX.
 
 ### Etapa 8: gestão

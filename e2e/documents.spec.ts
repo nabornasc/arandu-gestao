@@ -141,3 +141,15 @@ test('biblioteca: texto vira cláusula no espelho; grupo salvo como modelo entra
   await expect(itemSelect(page, 0).locator('option:checked')).toContainText(SERVICE);
   await expect(page.locator('input[name="items.0.groupName"]:visible')).toHaveValue(`Kit ${tag}`);
 });
+
+test('item avulso entra no pedido com descrição e preço livres', async ({ page }) => {
+  const tag = Date.now().toString().slice(-5);
+  await page.goto('/pedidos/novo');
+  await chooseOption(page.getByLabel('Cliente'), CUSTOMER);
+  await itemSelect(page, 0).selectOption('avulso');
+  await page.locator('input[name="items.0.description"]:visible').fill(`Taxa de entrega ${tag}`);
+  await page.locator('input[name="items.0.unitPrice"]:visible').fill('15');
+  await page.getByRole('button', { name: 'Criar pedido' }).click();
+  await expect(page).toHaveURL(/\/pedidos\/\d+$/);
+  await expect(page.getByRole('cell', { name: new RegExp(`Taxa de entrega ${tag}`) })).toBeVisible();
+});
