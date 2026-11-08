@@ -200,8 +200,8 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
 **Etapa 8, gestão: em andamento**, em três partes.
 
 1. **Assistente de precificação:** concluída e em produção (PR #37, `d146cbb`). Tela `/precificacao` (exige `costs.read`), markup divisor com rateio das despesas fixas, ponto de equilíbrio e "Aplicar" ao produto. Base do servidor em `GET /pricing/base`. Sem migração; conferido no ar.
-2. Dashboard modular com KPIs: próxima.
-3. Metas de venda (dependem do dashboard).
+2. **Dashboard modular:** concluída e em produção (PR #38, `5232847`). 15 blocos com permissão e tamanhos, "Personalizar" por usuário (`user_preferences`, migração `0024`), dados novos no `/dashboard`. Produção via MCP antes do merge: `GRANT`, RLS, policy, `demo.table_list()` com `user_preferences`, backup `backup_20261108_demo_dashboard` e `demo.capture()`. Avisos de segurança sem itens.
+3. Metas de venda: próxima.
 
 - **Produção, aplicada pelo Claude do notebook via MCP, antes do merge:**
   - migração `0020` registrada no Drizzle;
@@ -216,5 +216,6 @@ No banco local do Windows, basta `npm run db:migrate`. `npm run db:seed` traz os
   DROP SCHEMA backup_20261108_demo_condicoes CASCADE;
   DROP SCHEMA backup_20261108_demo_biblioteca CASCADE;
   DROP SCHEMA backup_20261108_demo_avulso CASCADE;
+  DROP SCHEMA backup_20261108_demo_dashboard CASCADE;
   ```
 - **No Windows:** `git pull --ff-only` e `npm run db:migrate`.
