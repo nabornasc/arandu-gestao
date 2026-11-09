@@ -447,6 +447,10 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     );
     protectedApp.get('/goals', (request) => goals.getGoals(ctxOf(request), request.query));
     protectedApp.put('/goals', (request) => goals.saveGoals(ctxOf(request), request.body as never));
+    protectedApp.get('/preferences/columns', (request) => preferences.getListColumns(ctxOf(request)));
+    protectedApp.put('/preferences/columns/:list', (request) =>
+      preferences.saveListColumns(ctxOf(request), (request.params as { list: string }).list, request.body),
+    );
     protectedApp.get('/preferences/dashboard', (request) => preferences.getDashboardLayout(ctxOf(request)));
     protectedApp.put('/preferences/dashboard', (request) =>
       preferences.saveDashboardLayout(

@@ -232,6 +232,13 @@
       "when": 1794247777735,
       "tag": "0032_pedido_do_cliente",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794252303778,
+      "tag": "0033_colunas_das_listas",
+      "breakpoints": true
     }
   ]
 }

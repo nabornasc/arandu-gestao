@@ -426,6 +426,16 @@ export const dashboardLayoutSchema = z.object({
 });
 export type DashboardLayout = z.output<typeof dashboardLayoutSchema>;
 
+// Colunas escondidas em cada lista, por usuário. A primeira coluna de cada lista fica sempre à vista.
+export const LIST_KEYS = ['products', 'expenses', 'accounts', 'transactions', 'orders', 'quotes'] as const;
+export type ListKey = (typeof LIST_KEYS)[number];
+export const listColumnsSchema = z.object({
+  hidden: z
+    .array(z.string().regex(/^[a-zA-Z0-9_]{1,40}$/, 'Coluna inválida'))
+    .max(30)
+    .transform((keys) => [...new Set(keys)]),
+});
+
 // Metas de venda do mês: a da empresa e a de cada vendedor. Valor vazio apaga a meta.
 const goalMonth = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Mês inválido (use AAAA-MM)');
 const goalAmount = z.number().positive('A meta deve ser maior que zero').max(1e9).nullable();

@@ -3060,3 +3060,45 @@ a.nav-label.active {
 .inventory-count {
   width: 7rem;
 }
+/* Escolha das colunas da lista: abre um painel pequeno embaixo do botão. */
+.column-picker {
+  position: relative;
+  margin-left: auto;
+}
+.column-picker > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  cursor: pointer;
+}
+.column-picker > summary::-webkit-details-marker {
+  display: none;
+}
+.column-picker-count {
+  font-size: 11px;
+  opacity: 0.8;
+}
+.column-picker fieldset {
+  position: absolute;
+  right: 0;
+  z-index: 5;
+  display: grid;
+  gap: 6px;
+  min-width: 200px;
+  margin: 6px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #e9e4f2;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 30px #24173b26;
+}
+.column-picker .checkbox {
+  font-size: 13px;
+}
+.column-picker .column-picker-title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b6280;
+}

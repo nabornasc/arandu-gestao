@@ -25,6 +25,7 @@ A busca rápida encontra telas, clientes, produtos, orçamentos, pedidos e oport
 
 ## Dicas
 
+- Nas listas de pedidos, orçamentos, produtos, contas a pagar, contas bancárias e movimentações, o botão **Colunas** esconde o que você não usa. A escolha vale só para você e fica guardada. **Mostrar todas** volta ao padrão.
 - Os atalhos de criação só funcionam se o seu grupo tiver a permissão.
 - Dentro de um campo de texto, só valem a busca, salvar e a troca de aba.
 

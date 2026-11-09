@@ -3,14 +3,26 @@ import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { quoteActions } from '../actions/registry.ts';
+import { ColumnPicker } from '../components/ColumnPicker.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { ListFilters, ListTotals, Pagination } from '../components/ListFilters.tsx';
 import { can, useProfile } from '../lib/auth.ts';
 import type { Quote } from '../lib/documents.ts';
 import { formatCode, formatDate, formatMoney, label } from '../lib/format.ts';
+import { useListColumns } from '../lib/listColumns.ts';
 import { useListFilters, useServerList } from '../lib/listFilters.ts';
 
 const STATUSES = QUOTE_STATUSES.map((status) => [status, label(status)] as const);
+
+// Colunas da lista; a primeira não sai.
+const COLUMNS: [string, string][] = [
+  ['number', 'Orçamento'],
+  ['customer', 'Cliente'],
+  ['validUntil', 'Validade'],
+  ['items', 'Itens'],
+  ['status', 'Status'],
+  ['total', 'Total'],
+];
 
 export default function QuotesPage() {
   const profile = useProfile();
@@ -21,6 +33,8 @@ export default function QuotesPage() {
   const data = list.query.data;
   const visible = data?.rows ?? [];
   // Sem nenhum orçamento e sem filtro, a tela mostra só o convite para criar o primeiro.
+  const columns = useListColumns('quotes');
+  const show = columns.isVisible;
   const hasAny = control.active || (data?.total ?? 0) > 0;
 
   return (
@@ -47,6 +61,12 @@ export default function QuotesPage() {
         />
       )}
 
+      {hasAny && (
+        <div className="list-toolbar">
+          <ColumnPicker columns={COLUMNS} state={columns} />
+        </div>
+      )}
+
       <div className="panel table-panel">
         {list.query.isPending ? (
           <div className="loading">Carregando orçamentos...</div>
@@ -58,11 +78,11 @@ export default function QuotesPage() {
               <thead>
                 <tr>
                   <th>Orçamento</th>
-                  <th>Cliente</th>
-                  <th>Validade</th>
-                  <th>Itens</th>
-                  <th>Status</th>
-                  <th>Total</th>
+                  {show('customer') && <th>Cliente</th>}
+                  {show('validUntil') && <th>Validade</th>}
+                  {show('items') && <th>Itens</th>}
+                  {show('status') && <th>Status</th>}
+                  {show('total') && <th>Total</th>}
                   <th aria-label="Ações" />
                 </tr>
               </thead>
@@ -83,20 +103,26 @@ export default function QuotesPage() {
                           {code}
                         </button>
                       </td>
-                      <td>{quote.customerName ?? 'Cliente não informado'}</td>
-                      <td>{formatDate(quote.validUntil)}</td>
-                      <td title={summary} className="truncate">
-                        {summary}
-                      </td>
-                      <td>
-                        <span className={`status ${quote.status}`}>{label(quote.status)}</span>
-                        {quote.orderNumber !== null && (
-                          <small className="muted"> · pedido {formatCode(quote.orderNumber)}</small>
-                        )}
-                      </td>
-                      <td>
-                        <strong>{formatMoney(quote.total)}</strong>
-                      </td>
+                      {show('customer') && <td>{quote.customerName ?? 'Cliente não informado'}</td>}
+                      {show('validUntil') && <td>{formatDate(quote.validUntil)}</td>}
+                      {show('items') && (
+                        <td title={summary} className="truncate">
+                          {summary}
+                        </td>
+                      )}
+                      {show('status') && (
+                        <td>
+                          <span className={`status ${quote.status}`}>{label(quote.status)}</span>
+                          {quote.orderNumber !== null && (
+                            <small className="muted"> · pedido {formatCode(quote.orderNumber)}</small>
+                          )}
+                        </td>
+                      )}
+                      {show('total') && (
+                        <td>
+                          <strong>{formatMoney(quote.total)}</strong>
+                        </td>
+                      )}
                       <td className="actions">
                         <ActionMenu actions={quoteActions} record={quote} label={`orçamento ${code}`} />
                       </td>

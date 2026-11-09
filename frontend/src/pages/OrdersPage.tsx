@@ -3,14 +3,26 @@ import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ActionMenu } from '../actions/ActionMenu.tsx';
 import { orderActions } from '../actions/registry.ts';
+import { ColumnPicker } from '../components/ColumnPicker.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { ListFilters, ListTotals, Pagination } from '../components/ListFilters.tsx';
 import { can, useProfile } from '../lib/auth.ts';
 import type { Order } from '../lib/documents.ts';
 import { formatCode, formatDate, formatMoney, label, todayIso } from '../lib/format.ts';
+import { useListColumns } from '../lib/listColumns.ts';
 import { useListFilters, useServerList } from '../lib/listFilters.ts';
 
 const STATUSES = ORDER_STATUSES.map((status) => [status, label(status)] as const);
+
+// Colunas da lista; a primeira não sai.
+const COLUMNS: [string, string][] = [
+  ['number', 'Pedido'],
+  ['customer', 'Cliente'],
+  ['orderDate', 'Data'],
+  ['items', 'Itens'],
+  ['status', 'Status'],
+  ['total', 'Total'],
+];
 
 export default function OrdersPage() {
   const profile = useProfile();
@@ -20,6 +32,8 @@ export default function OrdersPage() {
   const list = useServerList<Order>('/orders', control);
   const data = list.query.data;
   const visible = data?.rows ?? [];
+  const columns = useListColumns('orders');
+  const show = columns.isVisible;
   const hasAny = control.active || (data?.total ?? 0) > 0;
 
   return (
@@ -46,6 +60,12 @@ export default function OrdersPage() {
         />
       )}
 
+      {hasAny && (
+        <div className="list-toolbar">
+          <ColumnPicker columns={COLUMNS} state={columns} />
+        </div>
+      )}
+
       <div className="panel table-panel">
         {list.query.isPending ? (
           <div className="loading">Carregando pedidos...</div>
@@ -57,11 +77,11 @@ export default function OrdersPage() {
               <thead>
                 <tr>
                   <th>Pedido</th>
-                  <th>Cliente</th>
-                  <th>Data</th>
-                  <th>Itens</th>
-                  <th>Status</th>
-                  <th>Total</th>
+                  {show('customer') && <th>Cliente</th>}
+                  {show('orderDate') && <th>Data</th>}
+                  {show('items') && <th>Itens</th>}
+                  {show('status') && <th>Status</th>}
+                  {show('total') && <th>Total</th>}
                   <th aria-label="Ações" />
                 </tr>
               </thead>
@@ -82,27 +102,35 @@ export default function OrdersPage() {
                           {code}
                         </button>
                       </td>
-                      <td>
-                        {order.customerName ?? 'Cliente não informado'}
-                        {order.customerOrderNumber && (
-                          <small className="muted cell-note">OC {order.customerOrderNumber}</small>
-                        )}
-                      </td>
-                      <td>{formatDate(order.orderDate)}</td>
-                      <td title={summary} className="truncate">
-                        {summary}
-                      </td>
-                      <td>
-                        <span className={`status ${order.status}`}>{label(order.status)}</span>
-                        {order.status === 'pending' &&
-                          order.receivables.some((item) => item.paidAmount > 0) && (
-                            <small className="muted"> · parcial</small>
+                      {show('customer') && (
+                        <td>
+                          {order.customerName ?? 'Cliente não informado'}
+                          {order.customerOrderNumber && (
+                            <small className="muted cell-note">OC {order.customerOrderNumber}</small>
                           )}
-                        <DeliveryNote order={order} />
-                      </td>
-                      <td>
-                        <strong>{formatMoney(order.total)}</strong>
-                      </td>
+                        </td>
+                      )}
+                      {show('orderDate') && <td>{formatDate(order.orderDate)}</td>}
+                      {show('items') && (
+                        <td title={summary} className="truncate">
+                          {summary}
+                        </td>
+                      )}
+                      {show('status') && (
+                        <td>
+                          <span className={`status ${order.status}`}>{label(order.status)}</span>
+                          {order.status === 'pending' &&
+                            order.receivables.some((item) => item.paidAmount > 0) && (
+                              <small className="muted"> · parcial</small>
+                            )}
+                          <DeliveryNote order={order} />
+                        </td>
+                      )}
+                      {show('total') && (
+                        <td>
+                          <strong>{formatMoney(order.total)}</strong>
+                        </td>
+                      )}
                       <td className="actions">
                         <ActionMenu actions={orderActions} record={order} label={`pedido ${code}`} />
                       </td>

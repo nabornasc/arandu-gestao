@@ -5,7 +5,9 @@ import { MONEY_COLUMNS, type ResourceConfig } from '../config/resources.ts';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { formatDate, formatMoney, label } from '../lib/format.ts';
+import { useListColumns } from '../lib/listColumns.ts';
 import { useListFilters, useServerList } from '../lib/listFilters.ts';
+import { ColumnPicker } from './ColumnPicker.tsx';
 import { EmptyState } from './EmptyState.tsx';
 import { FormModal } from './FormModal.tsx';
 import { ListFilters, ListTotals, Pagination } from './ListFilters.tsx';
@@ -38,6 +40,8 @@ export function ResourcePage({
   const profile = useProfile();
   const notify = useToast();
   const client = useQueryClient();
+  const columns = useListColumns(config.listKey);
+  const shown = config.columns.filter(([key], index) => index === 0 || columns.isVisible(key));
   const [editing, setEditing] = useState<Row | null>(null);
   const [copying, setCopying] = useState<Row | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -124,11 +128,10 @@ export function ResourcePage({
         />
       )}
 
-      {Toolbar && (
-        <div className="list-toolbar">
-          <Toolbar rows={visible} />
-        </div>
-      )}
+      <div className="list-toolbar">
+        {Toolbar && <Toolbar rows={visible} />}
+        <ColumnPicker columns={config.columns} state={columns} />
+      </div>
 
       <div className="panel table-panel">
         {list.isPending ? (
@@ -140,7 +143,7 @@ export function ResourcePage({
             <table>
               <thead>
                 <tr>
-                  {config.columns.map(([key, title]) => (
+                  {shown.map(([key, title]) => (
                     <th key={key}>{title}</th>
                   ))}
                   <th aria-label="Ações" />
@@ -151,7 +154,7 @@ export function ResourcePage({
                   const locked = config.isLocked?.(row) ?? false;
                   return (
                     <tr key={row.id}>
-                      {config.columns.map(([key]) => {
+                      {shown.map(([key]) => {
                         const badge = config.badge?.(key, row);
                         return (
                           <td key={key}>

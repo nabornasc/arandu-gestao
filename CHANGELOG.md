@@ -7,6 +7,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 ### Adicionado
 
 - **Código próprio do produto** (opcional): aparece na lista, entra na busca rápida e no histórico. É único por empresa entre os produtos ativos, sem diferenciar maiúsculas. Migração `0031`.
+- **Colunas das listas:** botão "Colunas" em pedidos, orçamentos, produtos, contas a pagar, contas bancárias e movimentações. Cada usuário esconde as colunas que não usa; a escolha fica guardada (`user_preferences.list_columns`, migração `0033`). A primeira coluna fica sempre à vista. Em produtos, "Nome" passa a ser a primeira coluna.
 - **Ficha cadastral para imprimir:** "Imprimir ficha cadastral" no menu ⋯ de clientes, fornecedores, transportadoras e representantes abre o cadastro em A4, com cabeçalho da empresa, identificação, dados comerciais, contatos e endereços.
 - **Inventário:** botão na lista de produtos para contar vários produtos de uma vez, com filtro por nome ou código e a diferença de cada um. Só os que mudaram são ajustados, numa transação só, cada um com uma contagem no extrato. Exige `products.adjust`.
 - **Ordem de compra do cliente** no pedido: campo "Ordem de compra (nº)", mostrado na lista como "OC", no filtro de texto, na busca rápida e no histórico. Cópia de pedido e conversão de orçamento começam sem ele. Migração `0032`.

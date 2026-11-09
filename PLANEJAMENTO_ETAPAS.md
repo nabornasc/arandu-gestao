@@ -115,7 +115,7 @@ Em quatro partes:
 
 **Pendência técnica (resolvida em 09/11/2026):** o tratador global de erros agora desembrulha o erro do Postgres que o Drizzle repassa (`backend/src/lib/pgError.ts`) e responde 409 na violação de unicidade, em vez de 500.
 
-**Itens pequenos, quando surgir a necessidade:** configurar colunas das listas. Feitos em 09/11/2026: copiar produto, código próprio do produto, número do pedido do cliente (ordem de compra), inventário e ficha cadastral para imprimir.
+**Itens pequenos:** todos feitos em 09/11/2026: copiar produto, código próprio do produto, número do pedido do cliente (ordem de compra), inventário, ficha cadastral para imprimir e colunas das listas.
 
 **Backlog sem etapa:** tabelas de preço, parceiro de indicação com comissão, indicação separada da origem, ordem de serviço, anexos, aviso de vencimento por e-mail, várias empresas por usuário e recuperação de senha por e-mail.
 

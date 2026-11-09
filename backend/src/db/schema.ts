@@ -209,6 +209,8 @@ export const userPreferences = pgTable('user_preferences', {
     .primaryKey()
     .references(() => users.id, { onDelete: 'cascade' }),
   dashboard: jsonb().$type<{ blocks: { id: string; size: 'S' | 'M' | 'L' }[] }>(),
+  // Colunas escondidas por lista (ex.: { orders: ['items'] }). null: todas à vista.
+  listColumns: jsonb().$type<Record<string, string[]>>(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
 

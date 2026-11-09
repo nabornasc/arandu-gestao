@@ -1,5 +1,5 @@
 import type { Area, Permission } from '@arandue/shared/permissions';
-import type { ListKind } from '@arandue/shared/schemas';
+import type { ListKey, ListKind } from '@arandue/shared/schemas';
 import { bankAccountSchema, expenseSchema, productSchema, transactionSchema } from '@arandue/shared/schemas';
 import type { z } from 'zod';
 
@@ -21,6 +21,8 @@ export interface Field {
 
 export interface ResourceConfig {
   title: string;
+  // Chave das colunas escondidas de cada usuário (preferências).
+  listKey: ListKey;
   endpoint: string;
   // Área de permissões com ver, criar, editar e excluir.
   area: Extract<Area, 'products' | 'payables' | 'bank_accounts' | 'cash'>;
@@ -47,6 +49,7 @@ export interface ResourceConfig {
 export const resources = {
   products: {
     title: 'Produtos e serviços',
+    listKey: 'products',
     endpoint: '/products',
     area: 'products',
     schema: productSchema,
@@ -83,8 +86,8 @@ export const resources = {
       { key: 'minStock', label: 'Estoque mínimo (aviso)', type: 'number' },
     ],
     columns: [
-      ['code', 'Código'],
       ['name', 'Nome'],
+      ['code', 'Código'],
       ['type', 'Tipo'],
       ['groupName', 'Grupo'],
       ['price', 'Preço'],
@@ -103,6 +106,7 @@ export const resources = {
   },
   expenses: {
     title: 'Contas a pagar (despesas)',
+    listKey: 'expenses',
     endpoint: '/expenses',
     area: 'payables',
     schema: expenseSchema,
@@ -158,6 +162,7 @@ export const resources = {
   },
   accounts: {
     title: 'Contas bancárias',
+    listKey: 'accounts',
     endpoint: '/bank-accounts',
     area: 'bank_accounts',
     schema: bankAccountSchema,
@@ -186,6 +191,7 @@ export const resources = {
   },
   transactions: {
     title: 'Movimentações de caixa',
+    listKey: 'transactions',
     endpoint: '/transactions',
     area: 'cash',
     schema: transactionSchema,
