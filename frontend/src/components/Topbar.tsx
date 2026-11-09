@@ -1,6 +1,6 @@
-import { CircleHelp, LogOut, Menu, Search } from 'lucide-react';
+import { CircleHelp, LogOut, Menu, Search, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { type Profile, useLogout } from '../lib/auth.ts';
+import { can, type Profile, useLogout } from '../lib/auth.ts';
 import { formatToday } from '../lib/format.ts';
 
 const initials = (name: string) =>
@@ -16,9 +16,10 @@ interface Props {
   onMenu: () => void;
   onSearch: () => void;
   onHelp: () => void;
+  onAssistant: () => void;
 }
 
-export function Topbar({ title, profile, onMenu, onSearch, onHelp }: Props) {
+export function Topbar({ title, profile, onMenu, onSearch, onHelp, onAssistant }: Props) {
   const logout = useLogout();
   const navigate = useNavigate();
 
@@ -37,6 +38,17 @@ export function Topbar({ title, profile, onMenu, onSearch, onHelp }: Props) {
         <button type="button" className="button secondary topbar-search" onClick={onSearch}>
           <Search size={15} aria-hidden="true" /> Buscar <kbd>Ctrl+K</kbd>
         </button>
+        {can(profile, 'assistant.use') && (
+          <button
+            type="button"
+            className="button secondary topbar-help"
+            onClick={onAssistant}
+            aria-label="Assistente de IA"
+            title="Assistente de IA"
+          >
+            <Sparkles size={16} aria-hidden="true" />
+          </button>
+        )}
         <button
           type="button"
           className="button secondary topbar-help"

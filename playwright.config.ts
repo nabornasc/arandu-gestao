@@ -49,6 +49,7 @@ export default defineConfig({
         PORT: String(API_PORT),
         DATABASE_URL,
         ALLOWED_ORIGINS: WEB_URL,
+        AI_PROVIDER: 'fake',
       },
     },
     {

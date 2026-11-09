@@ -7,6 +7,7 @@ import { ctxOf, requireAuth } from '../plugins/auth.ts';
 import * as accessGroups from '../services/accessGroups.ts';
 import * as advances from '../services/advances.ts';
 import * as agenda from '../services/agenda.ts';
+import * as assistant from '../services/assistant/index.ts';
 import * as bankAccounts from '../services/bankAccounts.ts';
 import * as company from '../services/company.ts';
 import * as copies from '../services/copies.ts';
@@ -447,6 +448,12 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     );
     protectedApp.get('/goals', (request) => goals.getGoals(ctxOf(request), request.query));
     protectedApp.put('/goals', (request) => goals.saveGoals(ctxOf(request), request.body as never));
+    // Assistente de IA: limite por minuto contra abuso e laço acidental; a cota mensal fica no serviço.
+    const assistantLimit = { rateLimit: { max: 20, timeWindow: '1 minute' } };
+    protectedApp.post('/assistant/messages', { config: assistantLimit }, (request) =>
+      assistant.askAssistant(ctxOf(request), request.body as never),
+    );
+    protectedApp.get('/assistant/usage', (request) => assistant.getAssistantUsage(ctxOf(request)));
     protectedApp.get('/preferences/columns', (request) => preferences.getListColumns(ctxOf(request)));
     protectedApp.put('/preferences/columns/:list', (request) =>
       preferences.saveListColumns(ctxOf(request), (request.params as { list: string }).list, request.body),

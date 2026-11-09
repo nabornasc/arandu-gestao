@@ -6,6 +6,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Adicionado
 
+- **Assistente de IA (etapa 10a):** botão no topo abre um chat que responde dúvidas de uso com base no manual inteiro, em cache de prompt, pelo Claude Haiku 5.5. Cada chamada fica em `ai_usage` com tokens e custo em reais; cota mensal por empresa (padrão R$ 200, aviso em 80%) e teto da plataforma. Permissão nova `assistant.use`, dada a todos os grupos na migração `0034`. O texto do manual vem de `npm run manual:ia`, e um teste falha se ele ficar desatualizado.
 - **Código próprio do produto** (opcional): aparece na lista, entra na busca rápida e no histórico. É único por empresa entre os produtos ativos, sem diferenciar maiúsculas. Migração `0031`.
 - **Colunas das listas:** botão "Colunas" em pedidos, orçamentos, produtos, contas a pagar, contas bancárias e movimentações. Cada usuário esconde as colunas que não usa; a escolha fica guardada (`user_preferences.list_columns`, migração `0033`). A primeira coluna fica sempre à vista. Em produtos, "Nome" passa a ser a primeira coluna.
 - **Ficha cadastral para imprimir:** "Imprimir ficha cadastral" no menu ⋯ de clientes, fornecedores, transportadoras e representantes abre o cadastro em A4, com cabeçalho da empresa, identificação, dados comerciais, contatos e endereços.

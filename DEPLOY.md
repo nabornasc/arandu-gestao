@@ -61,6 +61,10 @@ NODE_ENV=development DATABASE_URL="<conexão do postgres>?sslmode=require" node 
    | `SENTRY_DSN` | Opcional: DSN do projeto `arandu-gestao-api` no Sentry |
    | `VITE_SENTRY_DSN` | Opcional: DSN do projeto `arandu-gestao-web` no Sentry |
    | `SENTRY_AUTH_TOKEN` | Opcional e secreto: token da organização no Sentry, para enviar os source maps no build |
+   | `ANTHROPIC_API_KEY` | Opcional e secreta: chave da API da Anthropic. Sem ela, o assistente de IA responde que não está disponível |
+   | `AI_MODEL` | Opcional: modelo do assistente. Padrão `claude-haiku-5-5` |
+   | `AI_USD_BRL` | Opcional: cotação do dólar usada no custo em reais. Padrão `5.5` |
+   | `AI_PLATFORM_MONTHLY_BRL` | Opcional: teto do mês do assistente, somando todas as empresas. Padrão `1000` |
 
 3. Faça o deploy e abra `/api/health`. A resposta esperada é `{"status":"ok"}`.
 

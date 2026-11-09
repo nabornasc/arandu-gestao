@@ -239,6 +239,13 @@
       "when": 1794252303778,
       "tag": "0033_colunas_das_listas",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794256413057,
+      "tag": "0034_assistente_ia",
+      "breakpoints": true
     }
   ]
 }

@@ -426,6 +426,16 @@ export const dashboardLayoutSchema = z.object({
 });
 export type DashboardLayout = z.output<typeof dashboardLayoutSchema>;
 
+// Assistente de IA: a pergunta e as últimas mensagens da conversa (o servidor não guarda a conversa).
+export const assistantMessageSchema = z.object({
+  message: requiredText(2000, 'Escreva a pergunta'),
+  history: z
+    .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().trim().min(1).max(4000) }))
+    .max(10)
+    .default([]),
+});
+export type AssistantMessageInput = z.input<typeof assistantMessageSchema>;
+
 // Colunas escondidas em cada lista, por usuário. A primeira coluna de cada lista fica sempre à vista.
 export const LIST_KEYS = ['products', 'expenses', 'accounts', 'transactions', 'orders', 'quotes'] as const;
 export type ListKey = (typeof LIST_KEYS)[number];

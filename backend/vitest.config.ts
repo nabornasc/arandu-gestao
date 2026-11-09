@@ -13,6 +13,7 @@ export default defineConfig({
       NODE_ENV: 'test',
       DATABASE_URL: TEST_DATABASE_URL,
       ALLOWED_ORIGINS: 'http://localhost:5173',
+      AI_PROVIDER: 'fake',
     },
   },
 });

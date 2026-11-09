@@ -52,6 +52,8 @@ export const companies = pgTable('companies', {
   quoteTerms: varchar({ length: 2000 }),
   // Limite anual do MEI: cada empresa informa o valor vigente nas configurações (muda por lei).
   meiAnnualLimit: money(),
+  // Cota mensal do assistente de IA, em reais.
+  aiMonthlyQuota: money().notNull().default(200),
   // Mostra largura e comprimento nos itens do orçamento.
   useMeasures: boolean().notNull().default(false),
   measureUnit: varchar({ length: 2 }).notNull().default('m'),
@@ -865,6 +867,28 @@ export const cashTransactions = pgTable(
     uniqueIndex().on(t.expensePaymentId),
     uniqueIndex().on(t.advanceId),
   ],
+);
+
+// ---------- Assistente de IA ----------
+
+// Uma linha por chamada ao modelo: base da cota mensal de cada empresa e da conferência com a fatura.
+export const aiUsage = pgTable(
+  'ai_usage',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    userId: integer().references(() => users.id, { onDelete: 'set null' }),
+    channel: varchar({ length: 20 }).notNull(),
+    model: varchar({ length: 60 }).notNull(),
+    inputTokens: integer().notNull(),
+    outputTokens: integer().notNull(),
+    cacheWriteTokens: integer().notNull().default(0),
+    cacheReadTokens: integer().notNull().default(0),
+    costUsd: numeric({ precision: 12, scale: 6, mode: 'number' }).notNull(),
+    costBrl: numeric({ precision: 12, scale: 6, mode: 'number' }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.companyId, t.createdAt)],
 );
 
 // ---------- Auditoria e eventos ----------

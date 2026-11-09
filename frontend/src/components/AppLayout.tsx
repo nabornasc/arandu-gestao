@@ -6,6 +6,7 @@ import { can, ProfileContext, useMe } from '../lib/auth.ts';
 import { isTyping, OPEN_KEYS, submitVisibleForm } from '../lib/shortcuts.ts';
 import { resolvePage } from '../workspace/pages.ts';
 import { Workspace } from '../workspace/Workspace.tsx';
+import { AssistantPanel } from './AssistantPanel.tsx';
 import { DemoNotice } from './DemoNotice.tsx';
 import { HelpPanel } from './HelpPanel.tsx';
 import { QuickSearch } from './QuickSearch.tsx';
@@ -19,6 +20,7 @@ export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const profileData = me.data;
 
   // Atalhos globais. Troca e fechamento de abas ficam na área de trabalho, que conhece as abas.
@@ -82,7 +84,14 @@ export function AppLayout() {
               profile={me.data}
               onMenu={() => setMenuOpen((open) => !open)}
               onSearch={() => setSearchOpen(true)}
-              onHelp={() => setHelpOpen((open) => !open)}
+              onHelp={() => {
+                setAssistantOpen(false);
+                setHelpOpen((open) => !open);
+              }}
+              onAssistant={() => {
+                setHelpOpen(false);
+                setAssistantOpen((open) => !open);
+              }}
             />
             <div className="content">
               <DemoNotice />
@@ -95,6 +104,7 @@ export function AppLayout() {
               <Workspace userId={me.data.id} home={home} />
               {searchOpen && <QuickSearch onClose={() => setSearchOpen(false)} />}
               {helpOpen && <HelpPanel pathname={location.pathname} onClose={() => setHelpOpen(false)} />}
+              {assistantOpen && <AssistantPanel onClose={() => setAssistantOpen(false)} />}
             </div>
           </main>
         </div>

@@ -89,7 +89,7 @@ Ferramentas sem a permissão do usuário nem são enviadas ao modelo.
 
 | Fase | Entrega |
 |---|---|
-| 10a | Núcleo, `AiProvider` com Haiku 5.5, `ai_usage`, cota em reais e chat de ajuda dentro do sistema, com o manual em cache |
+| 10a (feita em 09/11/2026) | Núcleo, `AiProvider` com Haiku 5.5, `ai_usage`, cota em reais e chat de ajuda dentro do sistema, com o manual em cache |
 | 10b | Ferramentas de consulta (seção 5) |
 | 10c | Tela de consumo e cota em Configurações |
 | 10d | Bot do Telegram com vínculo de conta, usando o mesmo núcleo |

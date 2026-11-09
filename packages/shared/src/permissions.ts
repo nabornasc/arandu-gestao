@@ -20,6 +20,7 @@ export const ACTION_LABELS = {
   receive: 'Receber',
   renegotiate: 'Renegociar parcelas',
   export: 'Exportar em CSV',
+  use: 'Usar',
 } as const;
 export type ActionKey = keyof typeof ACTION_LABELS;
 
@@ -78,6 +79,7 @@ export const AREAS = {
   // Ver a tela abre só os relatórios dos módulos que o grupo já pode ver.
   reports: { label: 'Relatórios', actions: ['read', 'export'] },
   agenda: { label: 'Agenda (tarefas e compromissos)', actions: CRUD, scoped: true },
+  assistant: { label: 'Assistente de IA', actions: ['use'] },
 } as const satisfies Record<string, AreaDefinition>;
 
 export type Area = keyof typeof AREAS;
@@ -165,6 +167,7 @@ export const DEFAULT_GROUPS: { name: string; description: string; permissions: P
       'agenda.create',
       'agenda.update',
       'agenda.delete',
+      'assistant.use',
     ]),
   },
   {

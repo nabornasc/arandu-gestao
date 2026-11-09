@@ -22,6 +22,7 @@
     "test": "npm test -w backend",
     "test:e2e": "playwright test",
     "manual:midia": "node scripts/manual-midia.mjs",
+    "manual:ia": "node scripts/gerar-manual-ia.mjs",
     "typecheck": "tsc -p packages/shared && tsc -p backend && tsc -p frontend && tsc -p e2e",
     "lint": "biome check .",
     "format": "biome check --write ."
