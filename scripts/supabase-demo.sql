@@ -10,11 +10,12 @@ CREATE TABLE IF NOT EXISTS demo.meta (captured_on date NOT NULL);
 CREATE OR REPLACE FUNCTION demo.table_list() RETURNS text[]
 LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
   SELECT ARRAY[
-    'companies', 'company_list_items', 'access_groups', 'access_group_permissions', 'users', 'agenda_events', 'people', 'person_contacts',
-    'person_addresses', 'products', 'pipeline_stages', 'opportunities', 'opportunity_items',
-    'interactions', 'bank_accounts', 'expenses', 'quotes', 'quote_items', 'orders', 'order_items',
-    'stock_movements',
-    'receivables', 'receivable_payments', 'cash_transactions', 'audit_logs', 'events'
+    'companies', 'company_list_items', 'payment_conditions', 'text_snippets', 'access_groups',
+    'access_group_permissions', 'users', 'user_preferences', 'sales_goals', 'item_templates', 'agenda_events',
+    'people', 'person_contacts', 'person_addresses', 'products', 'pipeline_stages', 'opportunities',
+    'opportunity_items', 'interactions', 'bank_accounts', 'expenses', 'expense_payments', 'purchases',
+    'purchase_items', 'quotes', 'quote_items', 'orders', 'order_items', 'stock_movements',
+    'receivables', 'receivable_payments', 'customer_advances', 'cash_transactions', 'audit_logs', 'events'
   ]
 $$;
 
