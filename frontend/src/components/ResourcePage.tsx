@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Lock, Plus, Trash2 } from 'lucide-react';
+import { Copy, Lock, Plus, Trash2 } from 'lucide-react';
 import { type ComponentType, useState } from 'react';
 import { MONEY_COLUMNS, type ResourceConfig } from '../config/resources.ts';
 import { api } from '../lib/api.ts';
@@ -39,6 +39,7 @@ export function ResourcePage({
   const notify = useToast();
   const client = useQueryClient();
   const [editing, setEditing] = useState<Row | null>(null);
+  const [copying, setCopying] = useState<Row | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   const allowed = {
@@ -88,6 +89,12 @@ export function ResourcePage({
 
   const openForm = (row: Row | null) => {
     setEditing(row);
+    setCopying(null);
+    setModalOpen(true);
+  };
+  const openCopy = (row: Row) => {
+    setEditing(null);
+    setCopying(config.copy ? (config.copy(row) as Row) : null);
     setModalOpen(true);
   };
 
@@ -161,6 +168,16 @@ export function ResourcePage({
                         ) : (
                           <>
                             {RowExtra && <RowExtra row={row} />}
+                            {config.copy && allowed.create && (
+                              <button
+                                type="button"
+                                title="Copiar para um cadastro novo"
+                                aria-label="Copiar"
+                                onClick={() => openCopy(row)}
+                              >
+                                <Copy size={15} />
+                              </button>
+                            )}
                             {allowed.update && (
                               <button type="button" onClick={() => openForm(row)}>
                                 Editar
@@ -219,6 +236,8 @@ export function ResourcePage({
         <FormModal
           config={config}
           initial={editing}
+          prefill={copying}
+          title={copying ? 'Copiar registro' : undefined}
           saving={save.isPending}
           onClose={() => setModalOpen(false)}
           onSubmit={(payload) => save.mutate(payload)}

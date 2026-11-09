@@ -6,6 +6,10 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Adicionado
 
+- **Código próprio do produto** (opcional): aparece na lista, entra na busca rápida e no histórico. É único por empresa entre os produtos ativos, sem diferenciar maiúsculas. Migração `0031`.
+- **Copiar produto:** o ícone "Copiar" na lista abre um cadastro novo com os mesmos dados, sem código e com estoque zero.
+- **Manual de uso:** central de ajuda em `/ajuda`, botão "?" com o artigo da tela, 27 artigos com vídeos curtos legendados (ampliáveis) e artigos na busca rápida. Os vídeos saem de roteiros do Playwright que rodam no CI como teste.
+
 - **Extrato do estoque:** cada mudança de saldo fica registrada, com tipo, quantidade, saldo depois, motivo, pedido e usuário. Vendas, cancelamentos, reativações e exclusões de pedido entram sozinhas.
 - **Ajuste de estoque** com entrada, saída ou contagem e motivo obrigatório, pela permissão nova `products.adjust`, concedida na migração a quem já edita produtos. O saldo nunca fica negativo.
 - **Estoque mínimo com aviso** na lista de produtos e na visão geral.
@@ -43,6 +47,8 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Corrigido
 
+- Violação de unicidade (ex.: grupo de acesso com nome repetido) respondia 500: o erro do Postgres vem embrulhado pelo Drizzle. Agora responde 409.
+- O botão da lista de transportadoras dizia "Novo transportadora".
 - Janelas abertas de uma linha da tabela (estoque, baixas) não herdam mais o texto alinhado à direita.
 - Em contas a receber, a parcela (ex.: 2/3) é contada no banco e continua certa com filtro ou paginação.
 - No celular, o menu principal rola até as últimas opções.

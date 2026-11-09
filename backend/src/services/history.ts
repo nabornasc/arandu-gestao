@@ -201,6 +201,7 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   unit: { label: 'Unidade', kind: 'text' },
   minStock: { label: 'Estoque mínimo', kind: 'number' },
   groupName: { label: 'Grupo', kind: 'text' },
+  code: { label: 'Código', kind: 'text' },
   done: { label: 'Concluída', kind: 'boolean' },
   date: { label: 'Data', kind: 'date' },
   time: { label: 'Hora', kind: 'text' },

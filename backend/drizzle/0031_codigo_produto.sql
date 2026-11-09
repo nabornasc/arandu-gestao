@@ -1,0 +1,2 @@
+ALTER TABLE "products" ADD COLUMN "code" varchar(30);--> statement-breakpoint
+CREATE UNIQUE INDEX "products_code_unique" ON "products" USING btree ("company_id",lower("code")) WHERE "products"."code" IS NOT NULL AND "products"."active";

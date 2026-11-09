@@ -67,10 +67,20 @@ export async function search(ctx: Ctx, input: unknown): Promise<SearchResult[]> 
 
   if (can(ctx.permissions, 'products.read')) {
     const rows = await db
-      .select({ id: products.id, name: products.name, type: products.type, group: products.groupName })
+      .select({
+        id: products.id,
+        name: products.name,
+        code: products.code,
+        type: products.type,
+        group: products.groupName,
+      })
       .from(products)
       .where(
-        and(eq(products.companyId, ctx.companyId), eq(products.active, true), ilike(products.name, like)),
+        and(
+          eq(products.companyId, ctx.companyId),
+          eq(products.active, true),
+          or(ilike(products.name, like), ilike(products.code, like)),
+        ),
       )
       .orderBy(products.name)
       .limit(PER_TYPE);
@@ -79,7 +89,9 @@ export async function search(ctx: Ctx, input: unknown): Promise<SearchResult[]> 
         type: 'product',
         id: row.id,
         title: row.name,
-        detail: [row.type === 'service' ? 'Serviço' : 'Produto', row.group].filter(Boolean).join(' · '),
+        detail: [row.code, row.type === 'service' ? 'Serviço' : 'Produto', row.group]
+          .filter(Boolean)
+          .join(' · '),
         path: '/produtos',
       });
     }

@@ -218,6 +218,13 @@
       "when": 1794177921494,
       "tag": "0030_adiantamentos",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794243698947,
+      "tag": "0031_codigo_produto",
+      "breakpoints": true
     }
   ]
 }

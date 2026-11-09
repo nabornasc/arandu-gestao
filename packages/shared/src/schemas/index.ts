@@ -232,6 +232,7 @@ export const PRODUCT_UNITS = ['UN', 'CX', 'KG', 'L', 'M', 'M2'] as const;
 
 export const productSchema = z.object({
   name: requiredText(120, 'Informe o nome'),
+  code: optionalText(30),
   type: z.enum(PRODUCT_TYPES),
   price: money,
   cost: money.nullish(),

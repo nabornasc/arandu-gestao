@@ -250,6 +250,8 @@ export const products = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     companyId: companyId(),
     name: varchar({ length: 120 }).notNull(),
+    // Código próprio da empresa (ex.: o da etiqueta). Único entre os produtos ativos, sem diferenciar maiúsculas.
+    code: varchar({ length: 30 }),
     type: productTypeEnum().notNull().default('product'),
     price: money().notNull().default(0),
     cost: money(),
@@ -266,7 +268,12 @@ export const products = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [index().on(t.companyId, t.active, t.name)],
+  (t) => [
+    index().on(t.companyId, t.active, t.name),
+    uniqueIndex('products_code_unique')
+      .on(t.companyId, sql`lower(${t.code})`)
+      .where(sql`${t.code} IS NOT NULL AND ${t.active}`),
+  ],
 );
 
 // ---------- Pessoas ----------

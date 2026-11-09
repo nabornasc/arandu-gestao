@@ -5,14 +5,15 @@ import { db } from '../db/client.ts';
 import { opportunityItems, orderItems, products, quoteItems } from '../db/schema.ts';
 import { diffFields, initialFields, pick, removedFields } from '../lib/changes.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
-import { notFound } from '../lib/errors.ts';
+import { conflict, notFound } from '../lib/errors.ts';
+import { isUniqueViolation } from '../lib/pgError.ts';
 import { parse } from '../lib/validate.ts';
 import { audit } from './audit.ts';
 import { recordStock } from './stock.ts';
 
 const scoped = (ctx: Ctx, id: number) => and(eq(products.id, id), eq(products.companyId, ctx.companyId));
 
-const TRACKED = ['name', 'type', 'price', 'cost', 'stock', 'unit', 'minStock', 'groupName'] as const;
+const TRACKED = ['name', 'code', 'type', 'price', 'cost', 'stock', 'unit', 'minStock', 'groupName'] as const;
 
 // Serviço não controla estoque nem tem estoque mínimo.
 const normalize = (data: ReturnType<typeof productSchema.parse>) => ({
@@ -28,6 +29,16 @@ const withStockStatus = (row: ProductRow) => ({
   ...row,
   lowStock: row.stock !== null && row.minStock !== null && row.stock <= row.minStock,
 });
+
+// Código repetido vira 409 com mensagem própria, em vez da genérica.
+async function uniqueCode<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    if (isUniqueViolation(error)) throw conflict('Já existe um produto com esse código.');
+    throw error;
+  }
+}
 
 // O custo só sai da API para quem pode vê-lo.
 const showCost = <T extends { cost: number | null }>(ctx: Ctx, row: T): T =>
@@ -58,29 +69,31 @@ export async function createProduct(ctx: Ctx, input: ProductInput) {
   const data = normalize(parse(productSchema, input));
   // Quem não vê o custo também não o informa.
   const cost = can(ctx.permissions, 'costs.read') ? data.cost : null;
-  return db.transaction(async (tx) => {
-    const [row] = await tx
-      .insert(products)
-      .values({ ...data, cost, companyId: ctx.companyId })
-      .returning();
-    if (!row) throw new Error('Falha ao criar produto.');
-    if (row.stock !== null) {
-      await recordStock(
-        tx,
-        ctx,
-        [{ productId: row.id, quantity: row.stock, balance: row.stock }],
-        'initial',
-        {
-          reason: 'Saldo inicial no cadastro',
-        },
-      );
-    }
-    await audit(tx, ctx, 'create', 'product', row.id, {
-      label: row.name,
-      changes: initialFields(pick(row, TRACKED)),
-    });
-    return withStockStatus(showCost(ctx, row));
-  });
+  return uniqueCode(() =>
+    db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(products)
+        .values({ ...data, cost, companyId: ctx.companyId })
+        .returning();
+      if (!row) throw new Error('Falha ao criar produto.');
+      if (row.stock !== null) {
+        await recordStock(
+          tx,
+          ctx,
+          [{ productId: row.id, quantity: row.stock, balance: row.stock }],
+          'initial',
+          {
+            reason: 'Saldo inicial no cadastro',
+          },
+        );
+      }
+      await audit(tx, ctx, 'create', 'product', row.id, {
+        label: row.name,
+        changes: initialFields(pick(row, TRACKED)),
+      });
+      return withStockStatus(showCost(ctx, row));
+    }),
+  );
 }
 
 export async function updateProduct(ctx: Ctx, id: number, input: ProductInput) {
@@ -88,32 +101,34 @@ export async function updateProduct(ctx: Ctx, id: number, input: ProductInput) {
   const data = normalize(parse(productSchema, input));
   // Sem o campo, o saldo fica como está: a tela muda o estoque pelo ajuste, com motivo.
   const keepStock = data.type === 'product' && (input as { stock?: unknown }).stock === undefined;
-  return db.transaction(async (tx) => {
-    const [previous] = await tx
-      .select()
-      .from(products)
-      .where(and(scoped(ctx, id), eq(products.active, true)))
-      .for('update');
-    if (!previous) throw notFound();
-    // Quem não vê o custo edita o resto do cadastro sem apagá-lo.
-    const cost = can(ctx.permissions, 'costs.read') ? data.cost : previous.cost;
-    const stock = keepStock ? previous.stock : data.stock;
-    const [row] = await tx
-      .update(products)
-      .set({ ...data, cost, stock })
-      .where(and(scoped(ctx, id), eq(products.active, true)))
-      .returning();
-    if (!row) throw notFound();
-    if (row.stock !== null && row.stock !== previous.stock) {
-      const quantity = Math.round((row.stock - (previous.stock ?? 0)) * 100) / 100;
-      await recordStock(tx, ctx, [{ productId: id, quantity, balance: row.stock }], 'edit', {
-        reason: 'Alterado no cadastro',
-      });
-    }
-    const changes = diffFields(pick(previous, TRACKED), pick(row, TRACKED));
-    if (changes.length) await audit(tx, ctx, 'update', 'product', id, { label: row.name, changes });
-    return withStockStatus(showCost(ctx, row));
-  });
+  return uniqueCode(() =>
+    db.transaction(async (tx) => {
+      const [previous] = await tx
+        .select()
+        .from(products)
+        .where(and(scoped(ctx, id), eq(products.active, true)))
+        .for('update');
+      if (!previous) throw notFound();
+      // Quem não vê o custo edita o resto do cadastro sem apagá-lo.
+      const cost = can(ctx.permissions, 'costs.read') ? data.cost : previous.cost;
+      const stock = keepStock ? previous.stock : data.stock;
+      const [row] = await tx
+        .update(products)
+        .set({ ...data, cost, stock })
+        .where(and(scoped(ctx, id), eq(products.active, true)))
+        .returning();
+      if (!row) throw notFound();
+      if (row.stock !== null && row.stock !== previous.stock) {
+        const quantity = Math.round((row.stock - (previous.stock ?? 0)) * 100) / 100;
+        await recordStock(tx, ctx, [{ productId: id, quantity, balance: row.stock }], 'edit', {
+          reason: 'Alterado no cadastro',
+        });
+      }
+      const changes = diffFields(pick(previous, TRACKED), pick(row, TRACKED));
+      if (changes.length) await audit(tx, ctx, 'update', 'product', id, { label: row.name, changes });
+      return withStockStatus(showCost(ctx, row));
+    }),
+  );
 }
 
 // Produto já usado em pedido, orçamento ou oportunidade é arquivado (preserva o histórico); senão, é excluído.

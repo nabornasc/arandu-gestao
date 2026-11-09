@@ -51,6 +51,8 @@ function toPayload(config: ResourceConfig, form: FormState): Row {
 interface Props {
   config: ResourceConfig;
   initial: Row | null;
+  // Valores de partida de um cadastro novo (ex.: cópia de um registro). Não vale com `initial`.
+  prefill?: Row | null;
   saving: boolean;
   onClose: () => void;
   onSubmit: (payload: Row) => void;
@@ -61,6 +63,7 @@ interface Props {
 export function FormModal({
   config: fullConfig,
   initial,
+  prefill = null,
   saving,
   onClose,
   onSubmit,
@@ -74,7 +77,7 @@ export function FormModal({
       (field) => (!field.permission || can(profile, field.permission)) && !(field.createOnly && initial),
     ),
   };
-  const [form, setForm] = useState(() => toFormState(config, initial));
+  const [form, setForm] = useState(() => toFormState(config, initial ?? prefill));
   const [error, setError] = useState<string | null>(null);
   const formId = useId();
   const accounts = useAccountOptions(config.fields.some((field) => field.type === 'account'));

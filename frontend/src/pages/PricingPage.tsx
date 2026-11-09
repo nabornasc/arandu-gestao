@@ -18,6 +18,7 @@ interface PricingBase {
 interface ProductRow {
   id: number;
   name: string;
+  code: string | null;
   type: 'product' | 'service';
   price: number;
   cost: number | null;
@@ -93,10 +94,10 @@ function PricingForm({ base }: { base: PricingBase }) {
     mutationFn: (price: number) => {
       if (!product) throw new Error('Escolha um produto.');
       // Sem o estoque: mudar o preço não mexe no saldo.
-      const { id, name, type, cost: productCost, unit, groupName, minStock } = product;
+      const { id, name, code, type, cost: productCost, unit, groupName, minStock } = product;
       return api(`/products/${id}`, {
         method: 'PUT',
-        body: { name, type, price, cost: productCost, unit, groupName, minStock },
+        body: { name, code, type, price, cost: productCost, unit, groupName, minStock },
       });
     },
     onSuccess: () => {

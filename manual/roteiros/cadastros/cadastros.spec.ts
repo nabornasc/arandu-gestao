@@ -16,12 +16,17 @@ test('manual: cadastrar um produto', async ({ page }) => {
     scene.click(page.getByRole('button', { name: 'Novo registro' })),
   );
   const form = page.getByRole('dialog', { name: 'Novo registro' });
-  await scene.step('cadastros/cadastrar-produto', 'Preencha o nome, o preço e o custo', async () => {
-    await scene.fill(form.locator('[name="name"]'), 'Água tônica lata 350 ml');
-    await expect(form.locator('[name="type"]')).toHaveValue('product');
-    await scene.fill(form.locator('[name="price"]'), '5.5');
-    await scene.fill(form.locator('[name="cost"]'), '2.8');
-  });
+  await scene.step(
+    'cadastros/cadastrar-produto',
+    'Preencha o nome, o código, o preço e o custo',
+    async () => {
+      await scene.fill(form.locator('[name="name"]'), 'Água tônica lata 350 ml');
+      await scene.fill(form.locator('[name="code"]'), 'AT-350');
+      await expect(form.locator('[name="type"]')).toHaveValue('product');
+      await scene.fill(form.locator('[name="price"]'), '5.5');
+      await scene.fill(form.locator('[name="cost"]'), '2.8');
+    },
+  );
   await scene.step('cadastros/cadastrar-produto', 'Informe o estoque inicial e o mínimo', async () => {
     await scene.fill(form.locator('[name="stock"]'), '48');
     await scene.fill(form.locator('[name="minStock"]'), '12');

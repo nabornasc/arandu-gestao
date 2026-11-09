@@ -29,6 +29,8 @@ export interface ResourceConfig {
   columns: [string, string][];
   // Aviso ao lado do valor de uma coluna (ex.: estoque baixo).
   badge?: (key: string, row: Record<string, unknown>) => string | null;
+  // "Copiar" na linha: valores de partida do cadastro novo, a partir do registro copiado.
+  copy?: (row: Record<string, unknown>) => Record<string, unknown>;
   // Registros gerados automaticamente não podem ser editados nesta tela.
   isLocked?: (row: Record<string, unknown>) => boolean;
   // Filtros e totais da lista, nas telas com lançamentos por data.
@@ -50,6 +52,7 @@ export const resources = {
     schema: productSchema,
     fields: [
       { key: 'name', label: 'Nome', type: 'text', required: true },
+      { key: 'code', label: 'Código (opcional)', type: 'text' },
       {
         key: 'type',
         label: 'Tipo',
@@ -80,6 +83,7 @@ export const resources = {
       { key: 'minStock', label: 'Estoque mínimo (aviso)', type: 'number' },
     ],
     columns: [
+      ['code', 'Código'],
       ['name', 'Nome'],
       ['type', 'Tipo'],
       ['groupName', 'Grupo'],
@@ -89,6 +93,13 @@ export const resources = {
       ['minStock', 'Mínimo'],
     ],
     badge: (key, row) => (key === 'stock' && row.lowStock ? 'Estoque baixo' : null),
+    // A cópia começa sem código (é único) e com estoque zero: o saldo entra pelo ajuste ou pela compra.
+    copy: (row) => ({
+      ...row,
+      name: `${String(row.name)} (cópia)`.slice(0, 120),
+      code: null,
+      stock: row.stock === null || row.stock === undefined ? null : 0,
+    }),
   },
   expenses: {
     title: 'Contas a pagar (despesas)',
