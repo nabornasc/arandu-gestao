@@ -575,6 +575,8 @@ export const orders = pgTable(
     otherCharges: money().notNull().default(0),
     total: money().notNull().default(0),
     notes: varchar({ length: 500 }),
+    // Número que o cliente dá ao pedido (ordem de compra), para conferir na entrega e na cobrança.
+    customerOrderNumber: varchar({ length: 40 }),
     // Entrega: previsão combinada com o cliente e o dia em que foi entregue.
     deliveryDate: date({ mode: 'string' }),
     deliveredOn: date({ mode: 'string' }),

@@ -212,6 +212,7 @@ const FIELDS: Record<string, { label: string; kind: FieldKind }> = {
   purchaseDate: { label: 'Data da compra', kind: 'date' },
   dueDate: { label: 'Vencimento', kind: 'date' },
   deliveryDate: { label: 'Previsão de entrega', kind: 'date' },
+  customerOrderNumber: { label: 'Ordem de compra', kind: 'text' },
   deliveredOn: { label: 'Entregue em', kind: 'date' },
   clauses: { label: 'Cláusulas', kind: 'text' },
   body: { label: 'Texto', kind: 'text' },

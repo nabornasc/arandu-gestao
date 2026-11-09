@@ -75,6 +75,7 @@ function OrderEditor({ order }: { order: Order | null }) {
   const discount = useDiscount(order?.discount ?? 0);
   const [notes, setNotes] = useState(order?.notes ?? '');
   const [deliveryDate, setDeliveryDate] = useState(order?.deliveryDate ?? '');
+  const [customerOrderNumber, setCustomerOrderNumber] = useState(order?.customerOrderNumber ?? '');
   const [status, setStatus] = useState<'pending' | 'paid'>('pending');
   const [bankAccountId, setBankAccountId] = useState('');
   const [lines, setLines] = useState<Line[]>(() =>
@@ -92,6 +93,7 @@ function OrderEditor({ order }: { order: Order | null }) {
     orderDate,
     discount: discountValue,
     notes,
+    customerOrderNumber,
     deliveryDate: deliveryDate || null,
   };
   const payload = order
@@ -211,6 +213,17 @@ function OrderEditor({ order }: { order: Order | null }) {
               disabled={!editable}
               value={orderDate}
               onChange={(event) => setOrderDate(event.target.value)}
+            />
+          </label>
+          <label>
+            Ordem de compra (nº)
+            <input
+              name="customerOrderNumber"
+              maxLength={40}
+              placeholder="Número que o cliente deu ao pedido"
+              disabled={!editable}
+              value={customerOrderNumber}
+              onChange={(event) => setCustomerOrderNumber(event.target.value)}
             />
           </label>
           <label>

@@ -99,6 +99,8 @@ const orderFrom = (source: Source, orderDate: string) => ({
   otherCharges: source.otherCharges,
   notes: source.notes,
   bankAccountId: null,
+  // O número do pedido do cliente é de cada pedido: a cópia começa sem ele.
+  customerOrderNumber: null,
   items: itemsOf(source),
   installments: [],
 });

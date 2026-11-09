@@ -192,6 +192,8 @@ export interface Order {
   otherCharges: number;
   total: number;
   notes: string | null;
+  // Número que o cliente dá ao pedido (ordem de compra).
+  customerOrderNumber: string | null;
   // Previsão de entrega e dia em que foi entregue.
   deliveryDate: string | null;
   deliveredOn: string | null;

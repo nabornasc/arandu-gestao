@@ -225,6 +225,13 @@
       "when": 1794243698947,
       "tag": "0031_codigo_produto",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794247777735,
+      "tag": "0032_pedido_do_cliente",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 ### Adicionado
 
 - **Código próprio do produto** (opcional): aparece na lista, entra na busca rápida e no histórico. É único por empresa entre os produtos ativos, sem diferenciar maiúsculas. Migração `0031`.
+- **Ordem de compra do cliente** no pedido: campo "Ordem de compra (nº)", mostrado na lista como "OC", no filtro de texto, na busca rápida e no histórico. Cópia de pedido e conversão de orçamento começam sem ele. Migração `0032`.
 - **Copiar produto:** o ícone "Copiar" na lista abre um cadastro novo com os mesmos dados, sem código e com estoque zero.
 - **Manual de uso:** central de ajuda em `/ajuda`, botão "?" com o artigo da tela, 27 artigos com vídeos curtos legendados (ampliáveis) e artigos na busca rápida. Os vídeos saem de roteiros do Playwright que rodam no CI como teste.
 

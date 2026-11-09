@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "customer_order_number" varchar(40);

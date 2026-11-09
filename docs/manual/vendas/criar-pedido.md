@@ -24,6 +24,7 @@ Registre uma venda direta, sem passar pelo orçamento. O pedido baixa o estoque 
 
 ## Dicas e atalhos
 
+- Se o cliente mandou uma ordem de compra, anote o número em **Ordem de compra (nº)**. Ele aparece na lista como **OC**, e o filtro **Cliente ou número** e a busca rápida acham o pedido por ele.
 - Em pedido pendente, abra **Parcelas** para dividir o valor. Cada parcela vira uma conta a receber.
 - Em pedido pago, escolha a **Conta de recebimento**. Sem escolha, vale a conta padrão.
 - O menu **⋯** do pedido tem **Dar baixa (recebido)**, **Marcar como entregue** e **Cancelar pedido**.

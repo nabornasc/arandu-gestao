@@ -666,6 +666,7 @@ export async function convertQuote(ctx: Ctx, id: number, input: QuoteConvertInpu
         otherCharges: quote.otherCharges,
         notes: quote.notes,
         bankAccountId: data.bankAccountId,
+        customerOrderNumber: null,
         items,
         installments: data.status === 'pending' ? quote.installments : [],
       },

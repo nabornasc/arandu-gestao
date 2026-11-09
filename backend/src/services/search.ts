@@ -124,14 +124,23 @@ export async function search(ctx: Ctx, input: unknown): Promise<SearchResult[]> 
 
   if (can(ctx.permissions, 'orders.read')) {
     const rows = await db
-      .select({ id: orders.id, number: orders.number, customer: people.name })
+      .select({
+        id: orders.id,
+        number: orders.number,
+        customer: people.name,
+        customerOrder: orders.customerOrderNumber,
+      })
       .from(orders)
       .leftJoin(people, eq(people.id, orders.customerId))
       .where(
         and(
           eq(orders.companyId, ctx.companyId),
           ownScope(ctx, orders.createdBy),
-          or(ilike(people.name, like), number !== null ? eq(orders.number, number) : undefined),
+          or(
+            ilike(people.name, like),
+            ilike(orders.customerOrderNumber, like),
+            number !== null ? eq(orders.number, number) : undefined,
+          ),
         ),
       )
       .orderBy(desc(orders.id))
@@ -141,7 +150,7 @@ export async function search(ctx: Ctx, input: unknown): Promise<SearchResult[]> 
         type: 'order',
         id: row.id,
         title: `Pedido ${formatCode(row.number)}`,
-        detail: row.customer,
+        detail: [row.customer, row.customerOrder && `OC ${row.customerOrder}`].filter(Boolean).join(' · '),
         path: `/pedidos/${row.id}`,
       });
     }

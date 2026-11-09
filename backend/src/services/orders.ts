@@ -438,6 +438,7 @@ async function loadOrders(ctx: Ctx, where: SQL | undefined, window = { limit: 50
       otherCharges: orders.otherCharges,
       total: orders.total,
       notes: orders.notes,
+      customerOrderNumber: orders.customerOrderNumber,
       deliveryDate: orders.deliveryDate,
       deliveredOn: orders.deliveredOn,
       createdAt: orders.createdAt,
@@ -548,7 +549,7 @@ export async function listOrders(ctx: Ctx, query?: unknown) {
     base,
     periodFilter(orders.orderDate, filters),
     filters.status ? eq(orders.status, filters.status as OrderStatus) : undefined,
-    textFilter([people.name], filters.q, orders.number),
+    textFilter([people.name, orders.customerOrderNumber], filters.q, orders.number),
   );
   const [summary] = await db
     .select({
@@ -665,6 +666,7 @@ export async function insertOrder(tx: Transaction, ctx: Ctx, data: OrderData, li
       otherCharges: data.otherCharges,
       total,
       notes: data.notes,
+      customerOrderNumber: data.customerOrderNumber ?? null,
       deliveryDate: data.deliveryDate ?? null,
       createdBy: ctx.userId,
     })
@@ -690,6 +692,7 @@ export async function insertOrder(tx: Transaction, ctx: Ctx, data: OrderData, li
       otherCharges: order.otherCharges,
       total,
       notes: order.notes,
+      customerOrderNumber: order.customerOrderNumber,
       deliveryDate: order.deliveryDate,
       bankAccount: await cashAccountName(tx, order.id),
     }),
@@ -802,6 +805,8 @@ export async function updateOrder(ctx: Ctx, id: number, input: OrderUpdateInput,
         orderDate: data.orderDate ?? previous.orderDate,
         customerId: data.customerId === undefined ? previous.customerId : data.customerId,
         notes: data.notes === undefined ? previous.notes : data.notes,
+        customerOrderNumber:
+          data.customerOrderNumber === undefined ? previous.customerOrderNumber : data.customerOrderNumber,
         deliveryDate: data.deliveryDate === undefined ? previous.deliveryDate : data.deliveryDate,
       })
       .where(scoped(ctx, id))
@@ -817,6 +822,7 @@ export async function updateOrder(ctx: Ctx, id: number, input: OrderUpdateInput,
         discount: previous.discount,
         total: previous.total,
         notes: previous.notes,
+        customerOrderNumber: previous.customerOrderNumber,
         deliveryDate: previous.deliveryDate,
         bankAccount: previousAccount,
       },
@@ -827,6 +833,7 @@ export async function updateOrder(ctx: Ctx, id: number, input: OrderUpdateInput,
         discount: order.discount,
         total: order.total,
         notes: order.notes,
+        customerOrderNumber: order.customerOrderNumber,
         deliveryDate: order.deliveryDate,
         bankAccount: await cashAccountName(tx, id),
       },

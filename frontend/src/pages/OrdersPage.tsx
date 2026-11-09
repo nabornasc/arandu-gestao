@@ -82,7 +82,12 @@ export default function OrdersPage() {
                           {code}
                         </button>
                       </td>
-                      <td>{order.customerName ?? 'Cliente não informado'}</td>
+                      <td>
+                        {order.customerName ?? 'Cliente não informado'}
+                        {order.customerOrderNumber && (
+                          <small className="muted cell-note">OC {order.customerOrderNumber}</small>
+                        )}
+                      </td>
                       <td>{formatDate(order.orderDate)}</td>
                       <td title={summary} className="truncate">
                         {summary}

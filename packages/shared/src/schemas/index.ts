@@ -582,6 +582,8 @@ export const orderCreateSchema = z.object({
   freight: money.default(0),
   otherCharges: money.default(0),
   notes: optionalText(500),
+  // Número que o cliente dá ao pedido (ordem de compra).
+  customerOrderNumber: optionalText(40),
   // Previsão de entrega combinada com o cliente.
   deliveryDate: isoDate.nullish(),
   bankAccountId: id.nullish(),
@@ -597,6 +599,7 @@ export const orderUpdateSchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
   discount: money.optional(),
   notes: optionalText(500).optional(),
+  customerOrderNumber: optionalText(40).optional(),
   deliveryDate: isoDate.nullish(),
   bankAccountId: id.nullish(),
   // Obrigatório ao cancelar (conferido no servidor, que sabe o status anterior).
