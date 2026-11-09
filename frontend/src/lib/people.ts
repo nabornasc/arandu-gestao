@@ -6,12 +6,21 @@ import { api } from './api.ts';
 // Papéis do cadastro único: cada um tem a sua lista no menu e usa as permissões de uma área.
 export const ROLE_CONFIG: Record<
   PersonRole,
-  { path: string; label: string; singular: string; flag: RoleFlag; area: 'customers' | 'suppliers' }
+  {
+    path: string;
+    label: string;
+    singular: string;
+    // Concorda com o gênero do papel: "Novo cliente", "Nova transportadora".
+    newLabel: string;
+    flag: RoleFlag;
+    area: 'customers' | 'suppliers';
+  }
 > = {
   customer: {
     path: '/clientes',
     label: 'Clientes',
     singular: 'cliente',
+    newLabel: 'Novo cliente',
     flag: 'isCustomer',
     area: 'customers',
   },
@@ -19,6 +28,7 @@ export const ROLE_CONFIG: Record<
     path: '/fornecedores',
     label: 'Fornecedores',
     singular: 'fornecedor',
+    newLabel: 'Novo fornecedor',
     flag: 'isSupplier',
     area: 'suppliers',
   },
@@ -26,6 +36,7 @@ export const ROLE_CONFIG: Record<
     path: '/transportadoras',
     label: 'Transportadoras',
     singular: 'transportadora',
+    newLabel: 'Nova transportadora',
     flag: 'isCarrier',
     area: 'suppliers',
   },
@@ -33,6 +44,7 @@ export const ROLE_CONFIG: Record<
     path: '/representantes',
     label: 'Representantes',
     singular: 'representante',
+    newLabel: 'Novo representante',
     flag: 'isSalesRep',
     area: 'suppliers',
   },

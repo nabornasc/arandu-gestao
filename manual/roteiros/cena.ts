@@ -48,7 +48,7 @@ const CURSOR_SCRIPT = `(() => {
       document.body.append(ring); setTimeout(() => ring.remove(), 600);
     }, true);
     addEventListener('keydown', (e) => {
-      const named = e.key.length > 1 && !['Shift', 'Control', 'Alt', 'Meta', 'Backspace'].includes(e.key);
+      const named = e.key.length > 1 && !['Shift', 'Control', 'Alt', 'Meta', 'Backspace', 'Delete'].includes(e.key);
       if (!named && !e.ctrlKey) return;
       key.textContent = [e.ctrlKey && e.key !== 'Control' ? 'Ctrl' : '', e.key === ' ' ? 'Espaço' : e.key]
         .filter(Boolean).join('+');

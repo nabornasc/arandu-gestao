@@ -31,7 +31,7 @@ export default function PeopleListPage() {
         </div>
         {canCreate && (
           <button type="button" className="button primary" onClick={() => navigate(`${config.path}/novo`)}>
-            <Plus size={17} /> Novo {config.singular}
+            <Plus size={17} /> {config.newLabel}
           </button>
         )}
       </div>
@@ -117,7 +117,7 @@ export default function PeopleListPage() {
           </div>
         ) : (
           <EmptyState
-            text={q ? 'Nada encontrado para essa busca.' : `Nenhum ${config.singular} cadastrado ainda.`}
+            text={q ? 'Nada encontrado para essa busca.' : 'Nenhum cadastro com esse papel ainda.'}
             action={canCreate && !q ? `Cadastrar ${config.singular}` : undefined}
             onClick={() => navigate(`${config.path}/novo`)}
           />

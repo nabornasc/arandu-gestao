@@ -48,7 +48,7 @@ Regras de texto: português simples, sem jargão técnico, nome dos botões igua
 | Imagem | Tela parada com destaque numa área | WebP com moldura e seta | até 120 KB |
 
 - **Vídeo é o padrão.** Um WebM fica de 5 a 10 vezes menor que o GIF equivalente e tem melhor nitidez. O GIF fica só para gestos curtos e lugares que não tocam vídeo.
-- No sistema, o vídeo toca sozinho, sem som e em loop, com botão de pausa. Respeita "reduzir movimento" do sistema: nesse caso aparece parado, com botão para tocar.
+- No sistema, o vídeo toca sozinho, sem som e em loop, com botão de pausa. Clicar no vídeo (ou em **Ampliar**) abre o vídeo em quase toda a tela, com os controles do navegador e botão de tela cheia. Respeita "reduzir movimento" do sistema: nesse caso aparece parado, com botão para tocar.
 - Cada mídia tem texto alternativo descrevendo a ação, para leitores de tela.
 
 ## 5. Como a mídia é gerada
@@ -90,7 +90,7 @@ Estimativa: cerca de 60 artigos e 150 mídias, de 10 a 25 MB no total.
 |---|---|
 | M1 (feita em 09/11/2026) | Rota `/ajuda`, leitura dos arquivos Markdown, componente de mídia, botão "?" e o roteiro com cursor visível. Artigo piloto: criar e enviar um orçamento |
 | M2 (feita em 09/11/2026) | Primeiros passos e Vendas |
-| M3 | Financeiro, Cadastros e estoque |
+| M3 (feita em 09/11/2026) | Financeiro, Cadastros e estoque, e vídeo ampliado ao clicar (quase tela cheia, com botão de tela cheia) |
 | M4 | Gestão e Administração, artigos na busca rápida |
 | M5 | Revisão com alguém que nunca usou o sistema e ajuste dos textos |
 

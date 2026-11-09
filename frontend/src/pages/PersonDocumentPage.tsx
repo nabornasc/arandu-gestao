@@ -35,7 +35,7 @@ export default function PersonDocumentPage() {
   const id = params.id ? Number(params.id) : null;
   const person = usePerson(id);
   const role = roleFromPath(path);
-  useTabTitle(id === null ? `Novo ${ROLE_CONFIG[role].singular}` : person.data?.name);
+  useTabTitle(id === null ? ROLE_CONFIG[role].newLabel : person.data?.name);
 
   if (id !== null && person.isPending) return <div className="loading">Carregando cadastro...</div>;
   if (person.isError) return <EmptyState text={person.error.message} />;
@@ -199,7 +199,7 @@ function PersonEditor({ person, newRole }: { person: Person | null; newRole: key
     save.mutate(payload);
   }
 
-  const title = person?.name ?? `Novo ${ROLE_CONFIG[newRole].singular}`;
+  const title = person?.name ?? ROLE_CONFIG[newRole].newLabel;
   const isCompany = form.kind === 'company';
 
   return (
