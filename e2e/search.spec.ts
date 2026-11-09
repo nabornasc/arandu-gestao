@@ -58,3 +58,24 @@ test('atalho de criação sem permissão não faz nada', async ({ page }) => {
   await page.keyboard.press('F6');
   await expect(page).toHaveURL(start);
 });
+
+test('a busca acha artigos da ajuda, só os que o usuário pode usar', async ({ page }) => {
+  await ready(page, OWNER);
+  await page.keyboard.press('Control+k');
+  const dialog = page.getByRole('dialog', { name: 'Buscar' });
+  await page.keyboard.type('pagar conta');
+  const article = dialog.getByRole('button', { name: /Ajuda.*Lançar e pagar uma conta a pagar/ });
+  await expect(article).toBeVisible();
+  await article.click();
+  await expect(page).toHaveURL(/\/ajuda\/financeiro\/pagar-conta$/);
+  await expect(
+    page.getByRole('heading', { name: 'Lançar e pagar uma conta a pagar', level: 2 }),
+  ).toBeVisible();
+
+  // O contador não gerencia grupos: o artigo de grupos não aparece para ele.
+  await page.context().clearCookies();
+  await ready(page, ACCOUNTANT);
+  await page.keyboard.press('Control+k');
+  await page.keyboard.type('grupos de acesso');
+  await expect(page.getByRole('dialog', { name: 'Buscar' })).toContainText('Nada encontrado.');
+});

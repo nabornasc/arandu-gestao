@@ -13,7 +13,7 @@ Manuais do Arandu Gestão com texto explicativo e mídia curta mostrando a açã
 
 - **Central de ajuda em `/ajuda`:** índice por módulo, busca e um artigo por tarefa.
 - **Ajuda da tela:** botão "?" no topo de cada tela, que abre o artigo daquela tela num painel lateral, sem fechar o que está aberto.
-- **Busca rápida (Ctrl+K):** os títulos dos artigos entram como resultado do tipo "Ajuda".
+- **Busca rápida (Ctrl+K):** os títulos dos artigos entram como resultado do tipo "Ajuda", até 5, só os que o usuário tem permissão de usar. O build recusa artigo com permissão que não existe.
 - **Fora do sistema:** o README aponta para a central na demonstração.
 
 ## 3. Formato de cada artigo
@@ -91,7 +91,7 @@ Estimativa: cerca de 60 artigos e 150 mídias, de 10 a 25 MB no total.
 | M1 (feita em 09/11/2026) | Rota `/ajuda`, leitura dos arquivos Markdown, componente de mídia, botão "?" e o roteiro com cursor visível. Artigo piloto: criar e enviar um orçamento |
 | M2 (feita em 09/11/2026) | Primeiros passos e Vendas |
 | M3 (feita em 09/11/2026) | Financeiro, Cadastros e estoque, e vídeo ampliado ao clicar (quase tela cheia, com botão de tela cheia) |
-| M4 | Gestão e Administração, artigos na busca rápida |
+| M4 (feita em 09/11/2026) | Gestão e Administração, artigos na busca rápida (tipo "Ajuda", só os que o usuário pode usar) |
 | M5 | Revisão com alguém que nunca usou o sistema e ajuste dos textos |
 
 Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.

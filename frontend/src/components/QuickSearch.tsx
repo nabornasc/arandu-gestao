@@ -1,3 +1,4 @@
+import type { Permission } from '@arandue/shared/permissions';
 import { useQuery } from '@tanstack/react-query';
 import { type KeyboardEvent, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -5,6 +6,7 @@ import { navigation } from '../config/navigation.ts';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { useDebounced } from '../lib/listFilters.ts';
+import { articlePath, articles } from '../lib/manual.ts';
 import { SHORTCUTS } from '../lib/shortcuts.ts';
 import { Modal } from './Modal.tsx';
 
@@ -25,7 +27,10 @@ const TYPE_LABELS: Record<string, string> = {
   quote: 'Orçamento',
   order: 'Pedido',
   opportunity: 'Oportunidade',
+  help: 'Ajuda',
 };
+
+const HELP_LIMIT = 5;
 
 const normalize = (text: string) =>
   text
@@ -73,12 +78,31 @@ export function QuickSearch({ onClose }: { onClose: () => void }) {
             : []),
         ])
     : [];
+  // Artigos do manual: todas as palavras buscadas no título, só os que o usuário pode usar.
+  const words = needle.split(/\s+/).filter(Boolean);
+  const help: SearchResult[] = words.length
+    ? articles
+        .filter(
+          (article) =>
+            (!article.permissoes.length ||
+              article.permissoes.some((permission) => can(profile, permission as Permission))) &&
+            words.every((word) => normalize(article.titulo).includes(word)),
+        )
+        .slice(0, HELP_LIMIT)
+        .map((article) => ({
+          type: 'help',
+          id: article.slug,
+          title: article.titulo,
+          detail: null,
+          path: articlePath(article),
+        }))
+    : [];
   const remote = useQuery({
     queryKey: ['/search', term],
     queryFn: () => api<SearchResult[]>(`/search?q=${encodeURIComponent(term)}`),
     enabled: term.length >= 2,
   });
-  const results = [...local, ...(term.length >= 2 ? (remote.data ?? []) : [])];
+  const results = [...local, ...(term.length >= 2 ? (remote.data ?? []) : []), ...help];
 
   const open = (result: SearchResult | undefined) => {
     if (!result) return;
@@ -107,7 +131,7 @@ export function QuickSearch({ onClose }: { onClose: () => void }) {
     <Modal eyebrow="BUSCA RÁPIDA" title="Buscar" onClose={onClose}>
       <div className="form-grid quick-search">
         <label className="full-row">
-          Telas, clientes, produtos, orçamentos, pedidos e oportunidades
+          Telas, clientes, produtos, orçamentos, pedidos, oportunidades e ajuda
           <input
             data-autofocus
             type="search"

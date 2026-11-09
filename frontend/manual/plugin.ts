@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Plugin } from 'vite';
+import { isPermission } from '../../packages/shared/src/permissions.ts';
 import { type ManualArticle, parseArticle } from './markdown.ts';
 
 const VIRTUAL = 'virtual:manual';
@@ -17,11 +18,18 @@ export function manualPlugin(root: string): Plugin {
       .filter((file) => file.endsWith('.md'))
       .map((file) => file.replaceAll('\\', '/'))
       .sort();
-    return files.map((file) =>
-      parseArticle(file.replace(/\.md$/, ''), readFileSync(path.join(docs, file), 'utf8'), (name) =>
-        existsSync(path.join(media, `${name}.webm`)),
-      ),
-    );
+    return files.map((file) => {
+      const article = parseArticle(
+        file.replace(/\.md$/, ''),
+        readFileSync(path.join(docs, file), 'utf8'),
+        (name) => existsSync(path.join(media, `${name}.webm`)),
+      );
+      // A busca rápida filtra os artigos pelas permissões: nome errado esconderia o artigo de todos.
+      const unknown = article.permissoes.filter((permission) => !isPermission(permission));
+      if (unknown.length)
+        throw new Error(`Manual: ${article.slug} com permissão desconhecida: ${unknown.join(', ')}.`);
+      return article;
+    });
   };
 
   return {
