@@ -83,6 +83,7 @@ export class FakeProvider implements AiProvider {
   async complete(request: AiRequest): Promise<AiResponse> {
     this.requests.push(request);
     const question = request.messages.at(-1)?.content ?? '';
+    if (question.includes('[falhar]')) throw new Error('Falha simulada do provedor.');
     return {
       text: `Resposta de teste para: ${question.slice(0, 80)}`,
       stopReason: question.includes('[recusar]') ? 'refusal' : 'end_turn',

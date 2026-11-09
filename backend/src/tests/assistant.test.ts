@@ -85,6 +85,14 @@ describe('assistente de IA', () => {
     expect((await owner.post('/assistant/messages', { message: 'Oi', history })).status).toBe(400);
   });
 
+  it('falha do provedor vira 503 com mensagem clara e não grava consumo', async () => {
+    const company = await signupCompany(app);
+    const response = await company.post('/assistant/messages', { message: 'teste [falhar]' });
+    expect(response.status).toBe(503);
+    expect(response.body.message).toMatch(/não conseguiu responder agora/);
+    expect(await db.select().from(aiUsage).where(eq(aiUsage.companyId, company.companyId))).toHaveLength(0);
+  });
+
   it('grupo sem a permissão não usa o assistente', async () => {
     const groups = (await owner.get('/access-groups')).body as { id: number; name: string }[];
     const created = await owner.post('/access-groups', { name: 'Sem IA', permissions: ['customers.read'] });

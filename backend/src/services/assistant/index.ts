@@ -6,6 +6,7 @@ import { db } from '../../db/client.ts';
 import { aiUsage, companies, users } from '../../db/schema.ts';
 import { authorize, type Ctx } from '../../lib/context.ts';
 import { AppError, notFound } from '../../lib/errors.ts';
+import { reportError } from '../../lib/monitoring.ts';
 import { parse } from '../../lib/validate.ts';
 import { MANUAL_TEXT } from './manualText.ts';
 import { costUsd } from './pricing.ts';
@@ -96,12 +97,21 @@ export async function askAssistant(
 Áreas que este usuário acessa: ${areasOf(ctx).join(', ') || 'nenhuma'}.
 Se a pergunta for sobre uma área fora dessa lista, explique que o acesso depende do grupo do usuário.`;
 
-  const response = await provider.complete({
-    stable: STABLE,
-    context,
-    messages: [...data.history, { role: 'user', content: data.message }],
-    maxTokens: MAX_TOKENS,
-  });
+  let response: Awaited<ReturnType<typeof provider.complete>>;
+  try {
+    response = await provider.complete({
+      stable: STABLE,
+      context,
+      messages: [...data.history, { role: 'user', content: data.message }],
+      maxTokens: MAX_TOKENS,
+    });
+  } catch (error) {
+    // Falha do provedor (chave, crédito, limite, rede): mensagem clara para o usuário e o motivo no log.
+    // Nada é gravado em ai_usage, porque não houve consumo.
+    console.error('[assistente] falha do provedor de IA:', error instanceof Error ? error.message : error);
+    await reportError(error);
+    throw new AppError(503, 'O assistente não conseguiu responder agora. Tente de novo em instantes.');
+  }
 
   const usd = costUsd(response.model, response.usage);
   const brl = usd * config.AI_USD_BRL;
