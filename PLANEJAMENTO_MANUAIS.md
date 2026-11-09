@@ -43,7 +43,7 @@ Regras de texto: português simples, sem jargão técnico, nome dos botões igua
 
 | Tipo | Quando usar | Formato | Limite |
 |---|---|---|---|
-| Vídeo curto | Ação com várias etapas na tela (ex.: preencher e salvar) | WebM (VP9) e MP4 (H.264) de reserva, sem som, com legenda gravada, em loop | 3 a 15 s, até 400 KB |
+| Vídeo curto | Ação com várias etapas na tela (ex.: preencher e salvar) | WebM (VP9) e MP4 (H.264) de reserva, sem som, com legenda gravada, em loop | 3 a 30 s, até 400 KB |
 | GIF | Ação de um gesto (ex.: abrir menu, atalho) e uso fora do sistema, como o README | GIF com paleta otimizada | até 2 s e 300 KB |
 | Imagem | Tela parada com destaque numa área | WebP com moldura e seta | até 120 KB |
 
@@ -89,7 +89,7 @@ Estimativa: cerca de 60 artigos e 150 mídias, de 10 a 25 MB no total.
 | Fase | Entrega |
 |---|---|
 | M1 (feita em 09/11/2026) | Rota `/ajuda`, leitura dos arquivos Markdown, componente de mídia, botão "?" e o roteiro com cursor visível. Artigo piloto: criar e enviar um orçamento |
-| M2 | Primeiros passos e Vendas |
+| M2 (feita em 09/11/2026) | Primeiros passos e Vendas |
 | M3 | Financeiro, Cadastros e estoque |
 | M4 | Gestão e Administração, artigos na busca rápida |
 | M5 | Revisão com alguém que nunca usou o sistema e ajuste dos textos |
@@ -103,4 +103,5 @@ Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.
 1. **Quando entra:** depois da etapa 7 (documentos), com as telas de documento já estáveis.
 2. **Onde guardar a mídia:** no repositório, em `frontend/public/manual/` (opção A da seção 6).
 3. **Leitura do Markdown:** convertido para HTML no build, sem biblioteca nova no navegador.
-4. **Legenda:** o vídeo continua sem som e leva legenda gravada na imagem, com o texto do passo. A legenda sai do próprio roteiro e é aplicada pelo `ffmpeg` na conversão.
+4. **Ritmo (09/11/2026):** ações e cliques pela metade da velocidade, com pausa para ler cada passo. Por isso o vídeo vai até 30 s.
+5. **Legenda:** o vídeo continua sem som e leva legenda gravada na imagem, com o texto do passo. A legenda sai do próprio roteiro e é aplicada pelo `ffmpeg` na conversão.

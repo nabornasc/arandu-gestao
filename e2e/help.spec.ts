@@ -27,7 +27,7 @@ test('botão "?" abre a ajuda da tela sem fechar o que está aberto', async ({ p
 
 test('tela sem artigo aponta para a central, e a central busca e abre o artigo', async ({ page }) => {
   await login(page, SELLER);
-  await page.goto('/clientes');
+  await page.goto('/produtos');
   await page.getByRole('button', { name: 'Ajuda desta tela (F1)' }).click();
   const panel = page.getByRole('complementary', { name: 'Esta tela ainda não tem artigo' });
   await expect(panel).toBeVisible();
