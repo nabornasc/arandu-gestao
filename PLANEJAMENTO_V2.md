@@ -484,6 +484,8 @@ Cada avanço gera um evento no histórico ("Pedido #008 recebido → Ganho"). Pe
 
 ## 10. Assistente de IA (v3.0)
 
+> **Substituída em 09/11/2026 por [PLANEJAMENTO_IA.md](PLANEJAMENTO_IA.md)** (Haiku 5.5, cota em reais por empresa, manual inteiro em cache sem RAG, só chat no sistema e Telegram). O texto abaixo fica como histórico.
+
 ### 10.1 Escolhas técnicas
 
 | Item | Escolha |

@@ -17,7 +17,7 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
-| 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada | [Plano da v2](PLANEJAMENTO_V2.md), seção 10 |
+| 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada (replanejada em 09/11) | [IA](PLANEJAMENTO_IA.md) |
 
 **Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Ordem decidida pelo usuário em 08/11/2026: etapa 9 inteira, depois os manuais e, por último, a etapa 10 (IA e bot).
 
@@ -108,8 +108,7 @@ Em quatro partes:
 
 ### Etapa 10: assistente de IA
 
-- Chat de ajuda guiada.
-- Bot do Telegram, com confirmação antes de gravar.
+Plano completo em [PLANEJAMENTO_IA.md](PLANEJAMENTO_IA.md): Claude Haiku 5.5 direto pela API da Anthropic, cota de R$ 200 por empresa por mês, manual inteiro em cache (sem RAG), ferramentas só de consulta e depois ações com confirmação, chat no sistema e bot do Telegram. Fases 10a a 10e.
 
 ## Fora da sequência
 
