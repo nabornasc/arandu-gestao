@@ -17,7 +17,9 @@ export function HelpPanel({ pathname, onClose }: { pathname: string; onClose: ()
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && closeLatest.current();
+    // Com uma janela aberta por cima (ex.: vídeo ampliado), o Esc fecha só a janela.
+    const onKey = (event: KeyboardEvent) =>
+      event.key === 'Escape' && !document.querySelector('dialog[open]') && closeLatest.current();
     window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('keydown', onKey);

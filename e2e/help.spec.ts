@@ -13,6 +13,28 @@ test('botão "?" abre a ajuda da tela sem fechar o que está aberto', async ({ p
   await expect(panel.locator('video')).toHaveCount(3);
   await expect(panel.getByRole('button', { name: /^Pausar vídeo: / }).first()).toBeVisible();
   await capture(page, 'ajuda-painel');
+
+  // Vídeo ampliado: abre por cima do painel, e o Esc fecha só ele.
+  await panel
+    .getByRole('button', { name: /^Ampliar vídeo: / })
+    .first()
+    .click();
+  const zoom = page.getByRole('dialog');
+  await expect(zoom).toBeVisible();
+  await expect(zoom.getByRole('button', { name: 'Tela cheia' })).toBeVisible();
+  const box = await zoom.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box && viewport && box.width >= viewport.width * 0.75).toBeTruthy();
+  await capture(page, 'ajuda-video-ampliado');
+  await page.keyboard.press('Escape');
+  await expect(zoom).toBeHidden();
+  await expect(panel).toBeVisible();
+  // Clicar no próprio vídeo também amplia.
+  await panel.locator('video').first().click();
+  await expect(zoom).toBeVisible();
+  await zoom.getByRole('button', { name: 'Fechar vídeo ampliado' }).click();
+  await expect(zoom).toBeHidden();
+  await expect(panel).toBeVisible();
   // A tela de trás continua aberta.
   await expect(page.getByRole('heading', { name: 'Novo orçamento', level: 2 })).toBeVisible();
 

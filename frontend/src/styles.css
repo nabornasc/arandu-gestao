@@ -584,16 +584,21 @@ td strong {
   position: relative;
   margin: 12px 0 16px;
 }
-.manual-media video {
+.manual-media > video {
   display: block;
   width: 100%;
   border: 1px solid #e9e4f2;
   border-radius: 10px;
+  cursor: zoom-in;
 }
-.manual-media-toggle {
+.manual-media-actions {
   position: absolute;
   right: 10px;
   bottom: 10px;
+  display: flex;
+  gap: 6px;
+}
+.manual-media-actions button {
   display: grid;
   place-items: center;
   width: 32px;
@@ -602,6 +607,49 @@ td strong {
   border-radius: 50%;
   background: #211a35cc;
   color: #fff;
+}
+.manual-zoom {
+  width: min(1400px, 94vw);
+  max-width: none;
+  max-height: 94vh;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #1b1530;
+  color: #fff;
+}
+.manual-zoom::backdrop {
+  background: #0d0a18d9;
+}
+.manual-zoom-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.manual-zoom-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+.manual-zoom-header button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #ffffff1f;
+  color: #fff;
+  font-size: 13px;
+}
+.manual-zoom video {
+  display: block;
+  width: 100%;
+  max-height: calc(94vh - 80px);
+  border-radius: 8px;
+  background: #000;
 }
 .manual-media-missing {
   padding: 18px;
