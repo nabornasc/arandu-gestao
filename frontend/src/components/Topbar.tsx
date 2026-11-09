@@ -1,4 +1,4 @@
-import { LogOut, Menu, Search } from 'lucide-react';
+import { CircleHelp, LogOut, Menu, Search } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { type Profile, useLogout } from '../lib/auth.ts';
 import { formatToday } from '../lib/format.ts';
@@ -15,9 +15,10 @@ interface Props {
   profile: Profile;
   onMenu: () => void;
   onSearch: () => void;
+  onHelp: () => void;
 }
 
-export function Topbar({ title, profile, onMenu, onSearch }: Props) {
+export function Topbar({ title, profile, onMenu, onSearch, onHelp }: Props) {
   const logout = useLogout();
   const navigate = useNavigate();
 
@@ -35,6 +36,15 @@ export function Topbar({ title, profile, onMenu, onSearch }: Props) {
       <div className="topbar-actions">
         <button type="button" className="button secondary topbar-search" onClick={onSearch}>
           <Search size={15} aria-hidden="true" /> Buscar <kbd>Ctrl+K</kbd>
+        </button>
+        <button
+          type="button"
+          className="button secondary topbar-help"
+          onClick={onHelp}
+          aria-label="Ajuda desta tela (F1)"
+          title="Ajuda desta tela (F1)"
+        >
+          <CircleHelp size={16} aria-hidden="true" />
         </button>
         <div className="profile">
           <div className="avatar" aria-hidden="true">

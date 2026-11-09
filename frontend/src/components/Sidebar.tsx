@@ -73,7 +73,9 @@ export function Sidebar({ profile, open, onClose }: Props) {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="help-icon">?</div>
+          <NavLink to="/ajuda" className="help-icon" aria-label="Central de ajuda" title="Central de ajuda">
+            ?
+          </NavLink>
           <div>
             <strong>{profile.company.name}</strong>
             <small>Organize seu negócio com calma.</small>

@@ -21,6 +21,7 @@
     "demo:setup": "node scripts/setup-demo.mjs",
     "test": "npm test -w backend",
     "test:e2e": "playwright test",
+    "manual:midia": "node scripts/manual-midia.mjs",
     "typecheck": "tsc -p packages/shared && tsc -p backend && tsc -p frontend && tsc -p e2e",
     "lint": "biome check .",
     "format": "biome check --write ."

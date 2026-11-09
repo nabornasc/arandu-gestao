@@ -1,6 +1,8 @@
+import { fileURLToPath } from 'node:url';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
+import { manualPlugin } from './manual/plugin.ts';
 
 // Só com o token (build de produção na Vercel) os source maps são gerados, enviados e apagados da saída.
 const sentryToken = loadEnv('production', '.', 'SENTRY_').SENTRY_AUTH_TOKEN;
@@ -8,6 +10,8 @@ const sentryToken = loadEnv('production', '.', 'SENTRY_').SENTRY_AUTH_TOKEN;
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    // Artigos da central de ajuda (docs/manual), convertidos para HTML no build.
+    manualPlugin(fileURLToPath(new URL('..', import.meta.url))),
     ...(sentryToken
       ? [
           sentryVitePlugin({

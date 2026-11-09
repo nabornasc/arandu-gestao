@@ -24,7 +24,20 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: devices['Desktop Chrome'] }],
+  projects: [
+    { name: 'chromium', use: devices['Desktop Chrome'] },
+    // Roteiros do manual: no CI rodam como teste; com MANUAL_RECORD=1, gravam a mídia.
+    {
+      name: 'manual',
+      testDir: 'manual/roteiros',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 720 },
+        // Campos de data no formato brasileiro, como o usuário vê.
+        launchOptions: { args: ['--lang=pt-BR'] },
+      },
+    },
+  ],
   webServer: [
     {
       command: 'node e2e/setup-db.ts && npm start -w backend',

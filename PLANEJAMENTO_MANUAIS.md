@@ -88,13 +88,15 @@ Estimativa: cerca de 60 artigos e 150 mídias, de 10 a 25 MB no total.
 
 | Fase | Entrega |
 |---|---|
-| M1 | Rota `/ajuda`, leitura dos arquivos Markdown, componente de mídia, botão "?" e o roteiro com cursor visível. Artigo piloto: criar e enviar um orçamento |
+| M1 (feita em 09/11/2026) | Rota `/ajuda`, leitura dos arquivos Markdown, componente de mídia, botão "?" e o roteiro com cursor visível. Artigo piloto: criar e enviar um orçamento |
 | M2 | Primeiros passos e Vendas |
 | M3 | Financeiro, Cadastros e estoque |
 | M4 | Gestão e Administração, artigos na busca rápida |
 | M5 | Revisão com alguém que nunca usou o sistema e ajuste dos textos |
 
 Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.
+
+**Como regravar a mídia:** `npm run manual:midia` (todos) ou `npm run manual:midia -- vendas/criar-e-enviar-orcamento` (um artigo). Precisa do `ffmpeg` no PATH ou na variável `FFMPEG`. Os roteiros ficam em `manual/roteiros/` e rodam no CI como teste, no projeto `manual` do Playwright.
 
 ## 9. Decisões (08/11/2026)
 

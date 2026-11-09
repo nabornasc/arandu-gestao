@@ -14,6 +14,7 @@ const resourcePage = (name: keyof typeof import('../pages/ResourcePages.tsx')) =
 
 const titleOf = (path: string) => navigation.find((item) => item.path === path)?.label ?? 'Arandu Gestão';
 
+const HelpPage = lazy(() => import('../pages/HelpPage.tsx'));
 const PeopleList = lazy(() => import('../pages/PeopleListPage.tsx'));
 const PersonDocument = lazy(() => import('../pages/PersonDocumentPage.tsx'));
 const OpportunityDocument = lazy(() => import('../pages/OpportunityDocumentPage.tsx'));
@@ -29,6 +30,8 @@ const PAGES: PageDefinition[] = [
     Component: ModulePage,
   })),
   { pattern: '/', title: titleOf('/'), Component: lazy(() => import('../pages/DashboardPage.tsx')) },
+  { pattern: '/ajuda', title: 'Central de ajuda', Component: HelpPage },
+  { pattern: '/ajuda/:modulo/:artigo', title: 'Ajuda', Component: HelpPage },
   { pattern: '/agenda', title: titleOf('/agenda'), Component: lazy(() => import('../pages/AgendaPage.tsx')) },
   {
     pattern: '/compras',

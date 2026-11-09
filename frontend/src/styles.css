@@ -517,6 +517,131 @@ td strong {
   color: #665d7a;
   font-size: 12px;
 }
+.topbar-help {
+  padding-inline: 10px;
+}
+.help-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: min(440px, 100%);
+  overflow-y: auto;
+  padding: 22px;
+  background: #fff;
+  border-left: 1px solid #e9e4f2;
+  box-shadow: -12px 0 40px #24173b26;
+}
+.help-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.help-panel-header h3 {
+  margin: 4px 0 0;
+}
+.help-panel-header button {
+  align-self: start;
+  border: 0;
+  background: transparent;
+}
+.help-panel-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 18px;
+  font-size: 13px;
+}
+.manual-article {
+  max-width: 760px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.manual-article h2 {
+  margin: 22px 0 8px;
+  font-size: 16px;
+}
+.manual-article h3 {
+  margin: 18px 0 6px;
+  font-size: 14px;
+}
+.manual-article li {
+  margin: 4px 0;
+}
+.manual-article a,
+.manual-list a,
+.help-panel-footer a {
+  color: #6444c0;
+}
+.manual-article code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #f3effa;
+}
+.manual-media {
+  position: relative;
+  margin: 12px 0 16px;
+}
+.manual-media video {
+  display: block;
+  width: 100%;
+  border: 1px solid #e9e4f2;
+  border-radius: 10px;
+}
+.manual-media-toggle {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: #211a35cc;
+  color: #fff;
+}
+.manual-media-missing {
+  padding: 18px;
+  border: 1px dashed #d7cfe6;
+  border-radius: 10px;
+  color: #6b6280;
+  font-size: 13px;
+}
+.manual-search {
+  display: grid;
+  gap: 6px;
+  max-width: 420px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.manual-search input {
+  padding: 10px;
+  border: 1px solid #e2ddea;
+  border-radius: 7px;
+}
+.manual-group h3 {
+  margin: 20px 0 8px;
+  font-size: 14px;
+}
+.manual-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.manual-list li {
+  display: grid;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1eef6;
+}
+.manual-updated {
+  margin-top: 20px;
+  font-size: 12px;
+}
 .modal-backdrop {
   position: fixed;
   inset: 0;

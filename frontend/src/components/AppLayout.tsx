@@ -7,6 +7,7 @@ import { isTyping, OPEN_KEYS, submitVisibleForm } from '../lib/shortcuts.ts';
 import { resolvePage } from '../workspace/pages.ts';
 import { Workspace } from '../workspace/Workspace.tsx';
 import { DemoNotice } from './DemoNotice.tsx';
+import { HelpPanel } from './HelpPanel.tsx';
 import { QuickSearch } from './QuickSearch.tsx';
 import { Sidebar } from './Sidebar.tsx';
 import { Topbar } from './Topbar.tsx';
@@ -17,6 +18,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const profileData = me.data;
 
   // Atalhos globais. Troca e fechamento de abas ficam na área de trabalho, que conhece as abas.
@@ -27,6 +29,11 @@ export function AppLayout() {
       if (event.key === 'F2' || (mod && event.key.toLowerCase() === 'k')) {
         event.preventDefault();
         setSearchOpen(true);
+        return;
+      }
+      if (event.key === 'F1') {
+        event.preventDefault();
+        setHelpOpen((open) => !open);
         return;
       }
       if (event.key === 'F9' || (mod && event.key === 'Enter')) {
@@ -75,6 +82,7 @@ export function AppLayout() {
               profile={me.data}
               onMenu={() => setMenuOpen((open) => !open)}
               onSearch={() => setSearchOpen(true)}
+              onHelp={() => setHelpOpen((open) => !open)}
             />
             <div className="content">
               <DemoNotice />
@@ -86,6 +94,7 @@ export function AppLayout() {
               )}
               <Workspace userId={me.data.id} home={home} />
               {searchOpen && <QuickSearch onClose={() => setSearchOpen(false)} />}
+              {helpOpen && <HelpPanel pathname={location.pathname} onClose={() => setHelpOpen(false)} />}
             </div>
           </main>
         </div>
