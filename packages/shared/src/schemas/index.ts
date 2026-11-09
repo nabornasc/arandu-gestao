@@ -451,6 +451,24 @@ export const stockAdjustmentSchema = z.object({
 });
 export type StockAdjustmentInput = z.input<typeof stockAdjustmentSchema>;
 
+// Inventário: a contagem de vários produtos de uma vez. Cada diferença vira uma "Contagem" no extrato.
+export const inventorySchema = z.object({
+  reason: requiredText(255, 'Informe o motivo do inventário'),
+  items: z
+    .array(
+      z.object({
+        productId: id,
+        counted: z.number().nonnegative('A quantidade contada não pode ser negativa').max(1e9),
+      }),
+    )
+    .min(1, 'Informe a contagem de ao menos um produto')
+    .max(1000)
+    .refine((items) => new Set(items.map((item) => item.productId)).size === items.length, {
+      message: 'O mesmo produto aparece mais de uma vez',
+    }),
+});
+export type InventoryInput = z.input<typeof inventorySchema>;
+
 // ---------- Financeiro ----------
 
 export const ACCOUNT_TYPES = ['checking', 'savings', 'cash'] as const;

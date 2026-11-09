@@ -61,6 +61,26 @@ test('manual: ajustar o estoque e ver o extrato', async ({ page }) => {
   await scene.finish();
 });
 
+test('manual: fazer inventário', async ({ page }) => {
+  const scene = await Scene.open(page, 'cadastros/inventario');
+  await page.goto('/produtos');
+  await expect(page.getByRole('button', { name: 'Inventário' })).toBeVisible();
+
+  await scene.step('cadastros/inventario', 'Clique em Inventário', () =>
+    scene.click(page.getByRole('button', { name: 'Inventário' })),
+  );
+  const dialog = page.getByRole('dialog', { name: 'Inventário' });
+  await scene.step('cadastros/inventario', 'Digite o que foi contado na prateleira', async () => {
+    await scene.fill(dialog.getByLabel('Contado: Água mineral 500 ml'), '108');
+    await scene.fill(dialog.getByLabel('Contado: Carvão 3 kg'), '15');
+  });
+  await scene.step('cadastros/inventario', 'Clique em Registrar inventário', async () => {
+    await scene.click(dialog.getByRole('button', { name: 'Registrar inventário' }));
+    await expect(toast(page, 'Inventário registrado')).toBeVisible();
+  });
+  await scene.finish();
+});
+
 test('manual: lançar e receber uma compra', async ({ page }) => {
   const scene = await Scene.open(page, 'cadastros/registrar-compra');
   await page.goto('/compras');

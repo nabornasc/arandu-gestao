@@ -38,5 +38,5 @@ Cadastre o que você vende. O produto controla estoque e avisa quando está acab
 
 ## Veja também
 
-- [Ajustar o estoque e ver o extrato](/ajuda/cadastros/ajustar-estoque)
+- [Ajustar o estoque, fazer inventário e ver o extrato](/ajuda/cadastros/ajustar-estoque)
 - [Cadastro rápido no orçamento e no pedido](/ajuda/vendas/cadastro-rapido)

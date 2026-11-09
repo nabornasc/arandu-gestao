@@ -1,5 +1,5 @@
 ---
-titulo: Ajustar o estoque e ver o extrato
+titulo: Ajustar o estoque, fazer inventário e ver o extrato
 modulo: cadastros
 permissoes: [products.read, products.adjust]
 atualizado: 2026-11-09
@@ -19,6 +19,17 @@ Corrija o saldo quando algo quebra, some ou chega fora de uma compra. Cada ajust
 4. Clique em **Ajustar estoque**. O ajuste aparece no topo do **Extrato**.
 
 ![Lançar uma entrada de estoque com motivo](midia:cadastros/ajustar-estoque)
+
+## Inventário: vários produtos de uma vez
+
+1. Em **Produtos e serviços**, clique em **Inventário**.
+2. Confira o **Motivo**. Ele já vem com a data de hoje.
+3. Na coluna **Contado**, digite o que tem na prateleira. Use **Filtrar produtos** para achar pelo nome ou pelo código.
+4. Clique em **Registrar inventário**. Só os produtos com diferença mudam, e cada um ganha uma contagem no extrato.
+
+![Contar dois produtos e registrar o inventário](midia:cadastros/inventario)
+
+Produto que você não contou fica como está.
 
 ## Dicas e atalhos
 

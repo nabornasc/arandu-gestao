@@ -3052,3 +3052,11 @@ a.nav-label.active {
   display: block;
   font-size: 12px;
 }
+/* Inventário: a coluna "Contado" com campo estreito e a lista rolando dentro da janela. */
+.inventory .table-wrap {
+  max-height: 38vh;
+  overflow-y: auto;
+}
+.inventory-count {
+  width: 7rem;
+}

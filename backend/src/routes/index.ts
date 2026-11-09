@@ -115,6 +115,9 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       update: products.updateProduct,
       remove: products.deleteProduct,
     });
+    protectedApp.post('/products/inventory', (request) =>
+      stock.countInventory(ctxOf(request), request.body as never),
+    );
     protectedApp.post(
       '/products/:id/stock-adjustments',
       created((request, id) => stock.adjustStock(ctxOf(request), id, request.body as never)),

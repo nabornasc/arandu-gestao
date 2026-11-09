@@ -1,5 +1,10 @@
-import { type StockAdjustmentInput, stockAdjustmentSchema } from '@arandue/shared/schemas';
-import { and, desc, eq } from 'drizzle-orm';
+import {
+  type InventoryInput,
+  inventorySchema,
+  type StockAdjustmentInput,
+  stockAdjustmentSchema,
+} from '@arandue/shared/schemas';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db, type Transaction } from '../db/client.ts';
 import { orders, products, stockMovements, users } from '../db/schema.ts';
 import { diffFields } from '../lib/changes.ts';
@@ -95,6 +100,59 @@ export async function adjustStock(ctx: Ctx, productId: number, input: StockAdjus
       data.reason,
     );
     return { ...product, stock: balance };
+  });
+}
+
+// Inventário: grava a contagem de vários produtos numa transação só. Se um item não vale
+// (serviço, de outra empresa ou inativo), nada é gravado.
+export async function countInventory(ctx: Ctx, input: InventoryInput) {
+  authorize(ctx, 'products.adjust');
+  const data = parse(inventorySchema, input);
+  return db.transaction(async (tx) => {
+    const ids = data.items.map((item) => item.productId);
+    const rows = await tx
+      .select()
+      .from(products)
+      .where(and(inArray(products.id, ids), eq(products.companyId, ctx.companyId), eq(products.active, true)))
+      .for('update');
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    const invalid = data.items.filter((item) => {
+      const row = byId.get(item.productId);
+      return row?.type !== 'product' || row.stock === null;
+    });
+    if (invalid.length) {
+      throw badRequest(
+        'Algum item do inventário não existe ou não controla estoque. Atualize a lista e tente de novo.',
+      );
+    }
+
+    let adjusted = 0;
+    for (const item of data.items) {
+      const product = byId.get(item.productId);
+      if (!product || product.stock === null) continue;
+      const balance = round2(item.counted);
+      const quantity = round2(balance - product.stock);
+      if (quantity === 0) continue;
+      adjusted++;
+      await tx.update(products).set({ stock: balance }).where(eq(products.id, product.id));
+      await recordStock(tx, ctx, [{ productId: product.id, quantity, balance }], 'count', {
+        reason: data.reason,
+      });
+      await audit(
+        tx,
+        ctx,
+        'update',
+        'product',
+        product.id,
+        {
+          label: product.name,
+          stockAdjustment: 'Inventário',
+          changes: diffFields({ stock: product.stock }, { stock: balance }),
+        },
+        data.reason,
+      );
+    }
+    return { adjusted, unchanged: data.items.length - adjusted };
   });
 }
 
