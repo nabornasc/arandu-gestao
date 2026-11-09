@@ -11,7 +11,7 @@ test('manual: criar e enviar um orçamento', async ({ page }) => {
   await page.goto('/orcamentos');
   await expect(page.getByRole('heading', { name: 'Orçamentos', level: 1 })).toBeVisible();
   // O vídeo começa com a lista já carregada.
-  await expect(page.getByText('Carregando...')).toHaveCount(0);
+  await expect(page.getByText('Carregando...').filter({ visible: true })).toHaveCount(0);
   await expect(page.locator('tbody tr').first()).toBeVisible();
 
   await scene.step('vendas/orcamento-criar', 'Clique em Novo orçamento', () =>

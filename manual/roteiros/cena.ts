@@ -7,8 +7,20 @@ export const RECORDING = process.env.MANUAL_RECORD === '1';
 const SIZE = { width: 1280, height: 720 };
 export const TIMELINE_DIR = path.join('test-results', 'manual');
 
+// Ritmo do vídeo, em milissegundos. Manual é para aprender: ações devagar e pausas para ler.
+const PACE = {
+  beforeStep: 500,
+  move: 600,
+  beforeClick: 400,
+  afterClick: 300,
+  typing: 120,
+  afterStep: 1300,
+};
+
 export function useRecording() {
   test.use({ video: RECORDING ? { mode: 'on', size: SIZE } : 'off', viewport: SIZE });
+  // Gravando, o ritmo pausado deixa o roteiro bem mais longo que um teste comum.
+  if (RECORDING) test.describe.configure({ timeout: 180_000 });
 }
 
 // A gravação sem tela não mostra o mouse: desenha o ponteiro, o clique e a tecla apertada.
@@ -75,32 +87,53 @@ export class Scene {
     return (Date.now() - this.started) / 1000;
   }
 
+  private async wait(ms: number) {
+    if (RECORDING) await this.page.waitForTimeout(ms);
+  }
+
   async step(media: string, caption: string, action: () => Promise<void>) {
     const start = this.now();
+    // A legenda aparece antes da ação, para quem assiste ler o que vai acontecer.
+    await this.wait(PACE.beforeStep);
     await action();
     // Pausa para quem assiste ver o resultado do passo.
-    if (RECORDING) await this.page.waitForTimeout(900);
+    await this.wait(PACE.afterStep);
     this.steps.push({ media, caption, start, end: this.now() });
   }
 
-  // Leva o ponteiro até o elemento antes de clicar, para o movimento aparecer no vídeo.
+  private x = SIZE.width / 2;
+  private y = SIZE.height / 2;
+
+  // Leva o ponteiro devagar até o elemento antes de clicar, para o movimento aparecer no vídeo.
   async click(target: Locator) {
     await expect(target).toBeVisible();
     if (RECORDING) {
       const box = await target.boundingBox();
       if (box) {
-        await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 18 });
-        await this.page.waitForTimeout(200);
+        const toX = box.x + box.width / 2;
+        const toY = box.y + box.height / 2;
+        const frames = 30;
+        for (let i = 1; i <= frames; i++) {
+          // Começa e termina devagar, como a mão de uma pessoa.
+          const t = i / frames;
+          const ease = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+          await this.page.mouse.move(this.x + (toX - this.x) * ease, this.y + (toY - this.y) * ease);
+          await this.page.waitForTimeout(PACE.move / frames);
+        }
+        this.x = toX;
+        this.y = toY;
+        await this.wait(PACE.beforeClick);
       }
     }
     await target.click();
+    await this.wait(PACE.afterClick);
   }
 
   async fill(target: Locator, value: string) {
     await this.click(target);
     if (RECORDING) {
       await target.fill('');
-      await target.pressSequentially(value, { delay: 60 });
+      await target.pressSequentially(value, { delay: PACE.typing });
     } else await target.fill(value);
   }
 
