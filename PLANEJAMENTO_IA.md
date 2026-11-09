@@ -91,7 +91,7 @@ Ferramentas sem a permissão do usuário nem são enviadas ao modelo.
 |---|---|
 | 10a (feita em 09/11/2026) | Núcleo, `AiProvider` com Haiku 5.5, `ai_usage`, cota em reais e chat de ajuda dentro do sistema, com o manual em cache |
 | 10b (feita em 09/11/2026) | Ferramentas de consulta (seção 5), com até 4 rodadas de ferramenta por pergunta |
-| 10c | Tela de consumo e cota em Configurações |
+| 10c (feita em 09/11/2026) | Tela de consumo e cota em Configurações: por dia e por usuário; a empresa escolhe o limite até `AI_COMPANY_MAX_QUOTA_BRL` |
 | 10d | Bot do Telegram com vínculo de conta, usando o mesmo núcleo |
 | 10e | Ações que gravam, com confirmação no chat e no Telegram |
 

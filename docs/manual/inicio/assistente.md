@@ -36,6 +36,7 @@ Clique no endereço da tela na resposta para abri-la.
 
 - A conversa continua enquanto o painel está aberto. Ao fechar, ela recomeça do zero.
 - As respostas são geradas por inteligência artificial. Confira antes de agir.
+- O consumo do mês, por dia e por usuário, fica em **Configurações**, no quadro **Assistente de IA**. Quem pode alterar as configurações também muda ali o **Limite mensal (R$)**.
 - Para números fora da lista acima, o assistente indica a tela certa do sistema.
 
 ## Problemas comuns

@@ -13,6 +13,8 @@ const envSchema = z.object({
   AI_USD_BRL: z.coerce.number().positive().default(5.5),
   // Teto do mês somando todas as empresas: protege a conta da Anthropic.
   AI_PLATFORM_MONTHLY_BRL: z.coerce.number().positive().default(1000),
+  // Maior cota mensal que uma empresa pode escolher em Configurações (ela pode baixar, nunca passar disto).
+  AI_COMPANY_MAX_QUOTA_BRL: z.coerce.number().positive().default(200),
   ALLOWED_ORIGINS: z
     .string()
     .default('http://localhost:5173')

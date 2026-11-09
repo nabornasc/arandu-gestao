@@ -65,6 +65,7 @@ NODE_ENV=development DATABASE_URL="<conexão do postgres>?sslmode=require" node 
    | `AI_MODEL` | Opcional: modelo do assistente. Padrão `claude-haiku-5-5` |
    | `AI_USD_BRL` | Opcional: cotação do dólar usada no custo em reais. Padrão `5.5` |
    | `AI_PLATFORM_MONTHLY_BRL` | Opcional: teto do mês do assistente, somando todas as empresas. Padrão `1000` |
+   | `AI_COMPANY_MAX_QUOTA_BRL` | Opcional: maior limite mensal que cada empresa pode escolher em Configurações. Padrão `200` |
 
 3. Faça o deploy e abra `/api/health`. A resposta esperada é `{"status":"ok"}`.
 

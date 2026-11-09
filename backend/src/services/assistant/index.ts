@@ -1,5 +1,11 @@
 import { AREAS, type Area } from '@arandue/shared/permissions';
-import { type AssistantMessageInput, assistantMessageSchema } from '@arandue/shared/schemas';
+import {
+  type AssistantMessageInput,
+  type AssistantQuotaInput,
+  assistantMessageSchema,
+  assistantQuotaSchema,
+  assistantReportSchema,
+} from '@arandue/shared/schemas';
 import { and, eq, gte, sql } from 'drizzle-orm';
 import { config } from '../../config.ts';
 import { db } from '../../db/client.ts';
@@ -8,6 +14,7 @@ import { authorize, type Ctx } from '../../lib/context.ts';
 import { AppError, notFound } from '../../lib/errors.ts';
 import { reportError } from '../../lib/monitoring.ts';
 import { parse } from '../../lib/validate.ts';
+import { audit } from '../audit.ts';
 import { todayInBrazil } from '../orders.ts';
 import { MANUAL_TEXT } from './manualText.ts';
 import { costUsd } from './pricing.ts';
@@ -144,4 +151,74 @@ Se a pergunta for sobre uma área fora dessa lista, explique que o acesso depend
     truncated: response.stopReason === 'max_tokens',
     usage: { spentBrl: round2(total), quotaBrl: company.quota, warning: total >= company.quota * WARN_AT },
   };
+}
+
+// Relatório do mês para Configurações: total, cota, consumo por dia e por usuário.
+export async function getAssistantReport(ctx: Ctx, input: unknown) {
+  authorize(ctx, 'settings.read');
+  const month = parse(assistantReportSchema, input).month ?? todayInBrazil().slice(0, 7);
+  const [company] = await db
+    .select({ quota: companies.aiMonthlyQuota })
+    .from(companies)
+    .where(eq(companies.id, ctx.companyId));
+  if (!company) throw notFound();
+
+  // Limites do mês no fuso de Brasília.
+  const from = sql`(${`${month}-01`}::timestamp AT TIME ZONE 'America/Sao_Paulo')`;
+  const to = sql`((${`${month}-01`}::timestamp + interval '1 month') AT TIME ZONE 'America/Sao_Paulo')`;
+  const days = await db.execute<{ day: string; brl: string; questions: number }>(sql`
+    SELECT to_char(d, 'YYYY-MM-DD') AS day, COALESCE(SUM(u.cost_brl), 0) AS brl, COUNT(u.id)::int AS questions
+    FROM generate_series(${`${month}-01`}::date, (${`${month}-01`}::date + interval '1 month' - interval '1 day'),
+                         interval '1 day') AS d
+    LEFT JOIN ai_usage u ON u.company_id = ${ctx.companyId}
+      AND (u.created_at AT TIME ZONE 'America/Sao_Paulo')::date = d::date
+    GROUP BY d ORDER BY d`);
+  const people = await db.execute<{ name: string | null; brl: string; questions: number }>(sql`
+    SELECT us.name, SUM(u.cost_brl) AS brl, COUNT(*)::int AS questions
+    FROM ai_usage u LEFT JOIN users us ON us.id = u.user_id
+    WHERE u.company_id = ${ctx.companyId} AND u.created_at >= ${from} AND u.created_at < ${to}
+    GROUP BY us.id, us.name ORDER BY SUM(u.cost_brl) DESC`);
+
+  const byDay = days.map((row) => ({ day: row.day, brl: Number(row.brl), questions: row.questions }));
+  const spent = byDay.reduce((sum, row) => sum + row.brl, 0);
+  return {
+    month,
+    quotaBrl: company.quota,
+    maxQuotaBrl: config.AI_COMPANY_MAX_QUOTA_BRL,
+    spentBrl: round2(spent),
+    questions: byDay.reduce((sum, row) => sum + row.questions, 0),
+    warning: spent >= company.quota * WARN_AT,
+    byDay: byDay.map((row) => ({ ...row, brl: round2(row.brl) })),
+    byUser: people.map((row) => ({
+      name: row.name ?? 'Usuário removido',
+      brl: round2(Number(row.brl)),
+      questions: row.questions,
+    })),
+  };
+}
+
+// A empresa escolhe a própria cota, até o teto da plataforma. Zero desliga o assistente para todos.
+export async function updateAssistantQuota(ctx: Ctx, input: AssistantQuotaInput) {
+  authorize(ctx, 'settings.update');
+  const { quotaBrl } = parse(assistantQuotaSchema, input);
+  const max = config.AI_COMPANY_MAX_QUOTA_BRL;
+  if (quotaBrl > max) {
+    throw new AppError(400, `A cota máxima é R$ ${max.toFixed(2).replace('.', ',')} por mês.`);
+  }
+  const quota = round2(quotaBrl);
+  return db.transaction(async (tx) => {
+    const [previous] = await tx
+      .select({ name: companies.name, quota: companies.aiMonthlyQuota })
+      .from(companies)
+      .where(eq(companies.id, ctx.companyId));
+    if (!previous) throw notFound();
+    await tx.update(companies).set({ aiMonthlyQuota: quota }).where(eq(companies.id, ctx.companyId));
+    if (previous.quota !== quota) {
+      await audit(tx, ctx, 'update', 'company', ctx.companyId, {
+        label: previous.name,
+        changes: [{ field: 'aiMonthlyQuota', from: previous.quota, to: quota }],
+      });
+    }
+    return { quotaBrl: quota };
+  });
 }

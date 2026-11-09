@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildManualText } from '../../../scripts/manual-ia-texto.mjs';
@@ -225,5 +225,60 @@ describe('ferramentas de consulta do assistente', () => {
 
     const other = await signupCompany(app);
     expect(await reply(other, 'buscar_cliente {"nome":"Maria"}')).toContain('{"clientes":[]}');
+  });
+});
+
+describe('consumo e cota do assistente em Configurações', () => {
+  it('relatório do mês por dia e por usuário, só da própria empresa', async () => {
+    const company = await signupCompany(app);
+    await company.post('/assistant/messages', { message: 'Uma' });
+    await company.post('/assistant/messages', { message: 'Duas' });
+    await (await signupCompany(app)).post('/assistant/messages', { message: 'Outra empresa' });
+
+    const report = (await company.get('/assistant/report')).body;
+    const month = today().slice(0, 7);
+    expect(report).toMatchObject({ month, quotaBrl: 200, maxQuotaBrl: 200, questions: 2, warning: false });
+    expect(report.byUser[0].brl).toBe(report.spentBrl);
+    expect(report.byDay[0].day).toBe(`${month}-01`);
+    expect(report.byDay.find((row: { day: string }) => row.day === today())).toMatchObject({ questions: 2 });
+    expect(report.byUser).toHaveLength(1);
+    expect(report.byUser[0]).toMatchObject({ questions: 2 });
+
+    const past = (await company.get('/assistant/report?month=2025-02')).body;
+    expect(past).toMatchObject({ month: '2025-02', questions: 0, spentBrl: 0, byUser: [] });
+    expect(past.byDay).toHaveLength(28);
+    expect((await company.get('/assistant/report?month=2025-13')).status).toBe(400);
+  });
+
+  it('a empresa baixa a cota até zero, não passa do teto, e a mudança vai para a auditoria', async () => {
+    const company = await signupCompany(app);
+    expect((await company.put('/assistant/quota', { quotaBrl: 250 })).body.message).toMatch(/cota máxima/);
+    expect((await company.put('/assistant/quota', { quotaBrl: -1 })).status).toBe(400);
+    expect((await company.put('/assistant/quota', { quotaBrl: 50 })).body).toEqual({ quotaBrl: 50 });
+    expect((await company.get('/assistant/usage')).body.quotaBrl).toBe(50);
+
+    const logs = await db.execute<{ data: { changes: unknown[] } }>(
+      sql`SELECT data FROM audit_logs WHERE company_id = ${company.companyId} AND entity = 'company' AND action = 'update'`,
+    );
+    expect(logs[0]?.data.changes).toEqual([{ field: 'aiMonthlyQuota', from: 200, to: 50 }]);
+
+    await company.put('/assistant/quota', { quotaBrl: 0 });
+    expect((await company.post('/assistant/messages', { message: 'Oi' })).status).toBe(429);
+  });
+
+  it('só quem altera Configurações muda a cota; quem não vê Configurações não vê o relatório', async () => {
+    const reader = await addMember(
+      app,
+      owner,
+      (await owner.post('/access-groups', { name: 'Leitor', permissions: ['settings.read'] })).body.id,
+    );
+    expect((await reader.get('/assistant/report')).status).toBe(200);
+    expect((await reader.put('/assistant/quota', { quotaBrl: 10 })).status).toBe(403);
+    const none = await addMember(
+      app,
+      owner,
+      (await owner.post('/access-groups', { name: 'Nada', permissions: ['customers.read'] })).body.id,
+    );
+    expect((await none.get('/assistant/report')).status).toBe(403);
   });
 });

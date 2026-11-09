@@ -1,6 +1,7 @@
 import { companySettingsSchema, LOGO_MAX_BYTES, type MeasureUnit } from '@arandue/shared/schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
+import { AssistantSettings } from '../components/AssistantSettings.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { LibrarySettings } from '../components/LibrarySettings.tsx';
 import { ListsSettings } from '../components/ListsSettings.tsx';
@@ -51,6 +52,7 @@ export default function SettingsPage() {
       <PaymentConditionsSettings readOnly={!can(profile, 'settings.update')} />
       <LibrarySettings readOnly={!can(profile, 'settings.update')} />
       <ListsSettings readOnly={!can(profile, 'settings.update')} />
+      <AssistantSettings readOnly={!can(profile, 'settings.update')} />
     </section>
   );
 }

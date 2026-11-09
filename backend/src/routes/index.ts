@@ -454,6 +454,12 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       assistant.askAssistant(ctxOf(request), request.body as never),
     );
     protectedApp.get('/assistant/usage', (request) => assistant.getAssistantUsage(ctxOf(request)));
+    protectedApp.get('/assistant/report', (request) =>
+      assistant.getAssistantReport(ctxOf(request), request.query),
+    );
+    protectedApp.put('/assistant/quota', (request) =>
+      assistant.updateAssistantQuota(ctxOf(request), request.body as never),
+    );
     protectedApp.get('/preferences/columns', (request) => preferences.getListColumns(ctxOf(request)));
     protectedApp.put('/preferences/columns/:list', (request) =>
       preferences.saveListColumns(ctxOf(request), (request.params as { list: string }).list, request.body),

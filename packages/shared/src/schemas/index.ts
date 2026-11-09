@@ -882,3 +882,15 @@ export type DuplicateQuoteInput = z.input<typeof duplicateQuoteSchema>;
 export const TRACE_TYPES = ['opportunity', 'quote', 'order'] as const;
 
 export const idParamSchema = z.object({ id: z.coerce.number().int().positive() });
+
+// Consumo do assistente por mês (AAAA-MM; sem mês, o atual) e cota mensal da empresa em reais.
+export const assistantReportSchema = z.object({
+  month: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Use o formato AAAA-MM.')
+    .optional(),
+});
+export const assistantQuotaSchema = z.object({
+  quotaBrl: z.coerce.number({ message: 'Informe a cota.' }).min(0, 'A cota não pode ser negativa.'),
+});
+export type AssistantQuotaInput = z.input<typeof assistantQuotaSchema>;

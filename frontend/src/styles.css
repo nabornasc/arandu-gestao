@@ -3157,3 +3157,35 @@ a.nav-label.active {
 .assistant-usage.warning {
   color: #9a6a12;
 }
+
+/* Assistente de IA em Configurações: consumo por dia e limite mensal. */
+.assistant-month {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.bar-chart.assistant-days {
+  gap: 2px;
+  height: 120px;
+  margin: 16px 0;
+}
+.assistant-quota {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 16px;
+  margin-top: 16px;
+}
+.assistant-quota label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.assistant-quota-input {
+  width: 140px;
+}
+.assistant-quota-note {
+  flex: 1 1 260px;
+  margin: 0;
+  font-size: 12px;
+}
