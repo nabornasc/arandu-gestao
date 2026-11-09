@@ -35,6 +35,13 @@ describe('grupos de acesso', () => {
     expect((await owner.get('/auth/me')).body.permissions).toContain('payables.pay');
   });
 
+  it('nome de grupo repetido responde 409, não 500', async () => {
+    await createGroup({ name: 'Balcão', permissions: ['customers.read'] });
+    const again = await owner.post('/access-groups', { name: 'Balcão', permissions: ['customers.read'] });
+    expect(again.status).toBe(409);
+    expect(again.body.message).toBe('Registro duplicado.');
+  });
+
   it('completa os pré-requisitos das permissões', async () => {
     const group = await createGroup({ name: 'Só aprova', permissions: ['quotes.approve', 'quotes.convert'] });
     expect(group.permissions).toEqual(

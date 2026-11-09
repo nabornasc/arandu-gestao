@@ -12,6 +12,7 @@ import { companyListItems } from '../db/schema.ts';
 import { diffFields, initialFields } from '../lib/changes.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
 import { conflict, notFound } from '../lib/errors.ts';
+import { isUniqueViolation } from '../lib/pgError.ts';
 import { parse } from '../lib/validate.ts';
 import { audit } from './audit.ts';
 
@@ -58,11 +59,6 @@ export async function listLists(ctx: Ctx, { all = false }: { all?: boolean } = {
   return grouped;
 }
 
-// O Drizzle embrulha o erro do Postgres: o código pode vir no próprio erro ou na causa.
-const duplicate = (error: unknown) => {
-  const { code, cause } = error as { code?: string; cause?: { code?: string } };
-  return (code ?? cause?.code) === '23505';
-};
 const DUPLICATE_MESSAGE = 'Já existe um valor com esse nome nesta lista.';
 
 export async function createListItem(ctx: Ctx, input: ListItemInput) {
@@ -82,7 +78,7 @@ export async function createListItem(ctx: Ctx, input: ListItemInput) {
       return row;
     });
   } catch (error) {
-    if (duplicate(error)) throw conflict(DUPLICATE_MESSAGE);
+    if (isUniqueViolation(error)) throw conflict(DUPLICATE_MESSAGE);
     throw error;
   }
 }
@@ -105,7 +101,7 @@ export async function updateListItem(ctx: Ctx, id: number, input: ListItemUpdate
       return row;
     });
   } catch (error) {
-    if (duplicate(error)) throw conflict(DUPLICATE_MESSAGE);
+    if (isUniqueViolation(error)) throw conflict(DUPLICATE_MESSAGE);
     throw error;
   }
 }

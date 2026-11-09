@@ -113,7 +113,7 @@ Em quatro partes:
 
 ## Fora da sequência
 
-**Pendência técnica:** o tratador global de erros não reconhece a violação de unicidade quando o Drizzle embrulha o erro do Postgres, e responde 500 em vez de 409. As listas já tratam isso; os demais cadastros com índice único ainda não.
+**Pendência técnica (resolvida em 09/11/2026):** o tratador global de erros agora desembrulha o erro do Postgres que o Drizzle repassa (`backend/src/lib/pgError.ts`) e responde 409 na violação de unicidade, em vez de 500.
 
 **Itens pequenos, quando surgir a necessidade:** copiar produto, código próprio do produto, ficha cadastral para imprimir, número do pedido do cliente, inventário e configurar colunas das listas.
 

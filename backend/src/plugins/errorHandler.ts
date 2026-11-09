@@ -3,16 +3,7 @@ import { ZodError } from 'zod';
 import { isProduction } from '../config.ts';
 import { AppError } from '../lib/errors.ts';
 import { reportError } from '../lib/monitoring.ts';
-
-interface PgError {
-  code: string;
-}
-const isPgError = (error: unknown): error is PgError =>
-  typeof error === 'object' &&
-  error !== null &&
-  'code' in error &&
-  typeof error.code === 'string' &&
-  /^\d{2}[0-9A-Z]{3}$/.test(error.code);
+import { pgCode } from '../lib/pgError.ts';
 
 export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler(async (error: FastifyError | Error, request, reply) => {
@@ -26,9 +17,10 @@ export function registerErrorHandler(app: FastifyInstance): void {
         issues: error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
       });
     }
-    if (isPgError(error)) {
-      if (error.code === '23505') return reply.status(409).send({ message: 'Registro duplicado.' });
-      if (error.code === '23503') {
+    const code = pgCode(error);
+    if (code) {
+      if (code === '23505') return reply.status(409).send({ message: 'Registro duplicado.' });
+      if (code === '23503') {
         return reply
           .status(409)
           .send({ message: 'Registro vinculado a outros dados; não pode ser alterado assim.' });

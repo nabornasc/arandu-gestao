@@ -5,6 +5,7 @@ import { paymentConditions } from '../db/schema.ts';
 import { diffFields, initialFields } from '../lib/changes.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
 import { conflict, notFound } from '../lib/errors.ts';
+import { isUniqueViolation } from '../lib/pgError.ts';
 import { parse } from '../lib/validate.ts';
 import { audit } from './audit.ts';
 
@@ -57,10 +58,6 @@ export async function listPaymentConditions(ctx: Ctx, { all = false }: { all?: b
     .orderBy(asc(sql`lower(${paymentConditions.name})`));
 }
 
-const duplicate = (error: unknown) => {
-  const { code, cause } = error as { code?: string; cause?: { code?: string } };
-  return (code ?? cause?.code) === '23505';
-};
 const DUPLICATE_MESSAGE = 'Já existe uma condição de pagamento com esse nome.';
 
 // Texto curto para o histórico: "Entrada 50% (PIX); 30, 60 dias (Boleto)".
@@ -96,7 +93,7 @@ export async function createPaymentCondition(ctx: Ctx, input: PaymentConditionIn
       return row;
     });
   } catch (error) {
-    if (duplicate(error)) throw conflict(DUPLICATE_MESSAGE);
+    if (isUniqueViolation(error)) throw conflict(DUPLICATE_MESSAGE);
     throw error;
   }
 }
@@ -120,7 +117,7 @@ export async function updatePaymentCondition(ctx: Ctx, id: number, input: Paymen
       return row;
     });
   } catch (error) {
-    if (duplicate(error)) throw conflict(DUPLICATE_MESSAGE);
+    if (isUniqueViolation(error)) throw conflict(DUPLICATE_MESSAGE);
     throw error;
   }
 }

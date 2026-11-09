@@ -92,7 +92,7 @@ Estimativa: cerca de 60 artigos e 150 mídias, de 10 a 25 MB no total.
 | M2 (feita em 09/11/2026) | Primeiros passos e Vendas |
 | M3 (feita em 09/11/2026) | Financeiro, Cadastros e estoque, e vídeo ampliado ao clicar (quase tela cheia, com botão de tela cheia) |
 | M4 (feita em 09/11/2026) | Gestão e Administração, artigos na busca rápida (tipo "Ajuda", só os que o usuário pode usar) |
-| M5 | Revisão com alguém que nunca usou o sistema e ajuste dos textos |
+| M5 (pulada em 09/11/2026) | Revisão com alguém que nunca usou o sistema e ajuste dos textos. Roteiro pronto para quando quiser fazer: https://claude.ai/artifact/AjV3tCmSc3wY3jBPGxkVyd |
 
 Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.
 

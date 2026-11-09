@@ -10,22 +10,18 @@ import { itemTemplates, products, textSnippets } from '../db/schema.ts';
 import { diffFields, initialFields } from '../lib/changes.ts';
 import { authorize, authorizeAny, type Ctx } from '../lib/context.ts';
 import { badRequest, conflict, notFound } from '../lib/errors.ts';
+import { isUniqueViolation } from '../lib/pgError.ts';
 import { parse } from '../lib/validate.ts';
 import { audit } from './audit.ts';
 
 // Biblioteca do orçamento: textos (cláusulas) e modelos de grupo de itens. Os documentos copiam o
 // conteúdo ao inserir: mudar a biblioteca depois não muda orçamentos antigos.
 
-const duplicate = (error: unknown) => {
-  const { code, cause } = error as { code?: string; cause?: { code?: string } };
-  return (code ?? cause?.code) === '23505';
-};
-
 async function unique<T>(message: string, run: () => Promise<T>): Promise<T> {
   try {
     return await run();
   } catch (error) {
-    if (duplicate(error)) throw conflict(message);
+    if (isUniqueViolation(error)) throw conflict(message);
     throw error;
   }
 }
