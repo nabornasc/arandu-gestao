@@ -26,10 +26,11 @@ interface Usage {
 // O servidor não guarda a conversa: as últimas mensagens vão junto de cada pergunta.
 const HISTORY = 10;
 
-// Texto da resposta sem HTML: **negrito** vira <strong> e /ajuda/... vira link para o artigo.
+// Texto da resposta sem HTML: **negrito** vira <strong>; /ajuda/... e as telas citadas pelas consultas viram link.
 function Reply({ text, onOpen }: { text: string; onOpen: (path: string) => void }) {
   const nodes: ReactNode[] = [];
-  const pattern = /(\*\*[^*]+\*\*|\/ajuda\/[a-z0-9/-]+)/g;
+  const pattern =
+    /(\*\*[^*]+\*\*|(?<![\w/])\/(?:ajuda|clientes|contas-a-receber|despesas|produtos)(?:\/[a-z0-9-]+)*)/g;
   let last = 0;
   for (const match of text.matchAll(pattern)) {
     const index = match.index ?? 0;
@@ -134,13 +135,15 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
         </button>
       </div>
       <p className="muted assistant-note">
-        Respostas geradas por inteligência artificial a partir do manual do sistema. Confira antes de agir.
+        Respostas geradas por inteligência artificial a partir do manual e dos dados que você já vê no
+        sistema. Confira antes de agir.
       </p>
 
       <div className="assistant-messages" aria-live="polite">
         {messages.length === 0 && (
           <p className="muted">
-            Ex.: “Como dou baixa numa conta a receber?” ou “Onde cadastro um fornecedor?”
+            Ex.: “Quanto faturei este mês?”, “Quais contas a receber estão vencidas?” ou “Como dou baixa numa
+            conta?”
           </p>
         )}
         {messages.map((message, index) => (

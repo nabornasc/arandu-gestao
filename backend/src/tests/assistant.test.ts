@@ -8,7 +8,7 @@ import { aiUsage, companies } from '../db/schema.ts';
 import { MANUAL_TEXT } from '../services/assistant/manualText.ts';
 import { costUsd } from '../services/assistant/pricing.ts';
 import { aiProvider, type FakeProvider } from '../services/assistant/provider.ts';
-import { addMember, type Client, createApp, signupCompany } from './helpers.ts';
+import { addMember, type Client, createApp, signupCompany, today } from './helpers.ts';
 
 let app: FastifyInstance;
 let owner: Client;
@@ -123,5 +123,107 @@ describe('assistente de IA', () => {
   it('o texto do manual do assistente está atualizado com docs/manual (rode npm run manual:ia)', () => {
     expect(MANUAL_TEXT).toBe(buildManualText('../docs/manual'));
     expect(readFileSync('src/services/assistant/manualText.ts', 'utf8')).toContain('Gerado por');
+  });
+});
+
+describe('ferramentas de consulta do assistente', () => {
+  const dayOffset = (days: number) =>
+    new Date(Date.parse(`${today()}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+  let company: Client;
+
+  beforeAll(async () => {
+    company = await signupCompany(app);
+    const customerId = (
+      await company.post('/customers', { name: 'Maria Consulta', city: 'Recife', state: 'PE' })
+    ).body.id;
+    const productId = (
+      await company.post('/products', { name: 'Caneca', type: 'product', price: 50, stock: 1, minStock: 5 })
+    ).body.id;
+    const order = await company.post('/orders', {
+      customerId,
+      orderDate: dayOffset(-10),
+      items: [{ productId, quantity: 1 }],
+      installments: [{ dueDate: dayOffset(-5), amount: 50, method: 'Pix' }],
+    });
+    expect(order.status).toBe(201);
+    const expense = { category: 'Operacional', amount: 80, status: 'pending' };
+    await company.post('/expenses', { ...expense, description: 'Luz', expenseDate: dayOffset(3) });
+    await company.post('/expenses', { ...expense, description: 'Aluguel', expenseDate: dayOffset(20) });
+  });
+
+  it('envia as ferramentas permitidas e responde com os dados da empresa', async () => {
+    const ask = async (tool: string) => {
+      const response = await company.post('/assistant/messages', {
+        message: `Consulta [ferramenta:${tool}]`,
+      });
+      expect(response.status).toBe(200);
+      return JSON.parse(response.body.reply.split('\nresultado: ')[1]);
+    };
+
+    expect(await ask('contas_a_receber_vencidas')).toMatchObject({
+      total: 50,
+      quantidade: 1,
+      maisAntigas: [{ cliente: 'Maria Consulta', emAberto: 50, diasDeAtraso: 5 }],
+    });
+    const payables = await ask('contas_a_pagar_da_semana');
+    expect(payables).toMatchObject({
+      total: 80,
+      quantidade: 1,
+      contas: [{ descricao: 'Luz', vencida: false }],
+    });
+    expect(await ask('estoque_baixo')).toMatchObject({
+      quantidade: 1,
+      produtos: [{ nome: 'Caneca', estoque: 0, minimo: 5 }],
+    });
+    expect(await ask('buscar_cliente {"nome":"maria"}')).toEqual({
+      clientes: [
+        {
+          nome: 'Maria Consulta',
+          cidade: 'Recife/PE',
+          ficha: expect.stringMatching(/^\/clientes\/\d+\/ficha$/),
+          emAberto: 50,
+          vencido: 50,
+        },
+      ],
+    });
+    expect(await ask(`faturamento_do_periodo {"de":"${dayOffset(-30)}","ate":"${today()}"}`)).toMatchObject({
+      vendas: 50,
+      pedidos: 1,
+      faturado: 0,
+    });
+    expect(await ask('buscar_cliente {"nome":"a"}')).toEqual({ erro: 'Parâmetros inválidos.' });
+
+    const request = fake().requests.at(-1);
+    expect(request?.tools?.map((tool) => tool.name)).toEqual([
+      'faturamento_do_periodo',
+      'contas_a_receber_vencidas',
+      'contas_a_pagar_da_semana',
+      'estoque_baixo',
+      'buscar_cliente',
+    ]);
+    expect(request?.context).toContain(`Hoje: ${today()}`);
+  });
+
+  it('o usuário só usa as ferramentas do seu grupo e não vê dados de outra empresa', async () => {
+    const group = await company.post('/access-groups', {
+      name: 'Só clientes',
+      permissions: ['assistant.use', 'customers.read'],
+    });
+    const member = await addMember(app, company, group.body.id);
+    const reply = async (client: Client, tool: string) =>
+      (await client.post('/assistant/messages', { message: `Consulta [ferramenta:${tool}]` })).body
+        .reply as string;
+
+    expect(await reply(member, 'contas_a_pagar_da_semana')).toContain('Ferramenta indisponível');
+    expect(
+      fake()
+        .requests.at(-1)
+        ?.tools?.map((tool) => tool.name),
+    ).toEqual(['buscar_cliente']);
+    // Sem contas a receber, a busca de cliente não traz valores em aberto.
+    expect(await reply(member, 'buscar_cliente {"nome":"Maria"}')).not.toContain('emAberto');
+
+    const other = await signupCompany(app);
+    expect(await reply(other, 'buscar_cliente {"nome":"Maria"}')).toContain('{"clientes":[]}');
   });
 });
