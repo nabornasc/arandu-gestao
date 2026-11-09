@@ -16,6 +16,7 @@ import { authorize, authorizeAny, type Ctx } from '../lib/context.ts';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors.ts';
 import { parse } from '../lib/validate.ts';
 import { audit, personName, userName } from './audit.ts';
+import { companyIssuer } from './quoteMirror.ts';
 
 // Cada papel usa as permissões de uma área: cliente → customers; fornecedor, transportadora e
 // representante → suppliers. Mexer numa pessoa exige a permissão de todos os papéis envolvidos.
@@ -136,6 +137,13 @@ export async function getPerson(ctx: Ctx, id: number) {
     contacts: contacts.map(({ personId: _, ...contact }) => contact),
     addresses: addresses.map(({ personId: _, ...address }) => address),
   };
+}
+
+// Ficha cadastral para imprimir: o cadastro completo e o cabeçalho da empresa.
+// Mesma permissão de abrir o cadastro.
+export async function getPersonSheet(ctx: Ctx, id: number) {
+  const person = await getPerson(ctx, id);
+  return { issuer: await companyIssuer(db, ctx.companyId), person };
 }
 
 type Data = ReturnType<typeof personSchema.parse>;

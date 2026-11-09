@@ -27,6 +27,7 @@ Cadastre quem compra de você. O cliente aparece nos orçamentos, nos pedidos, n
 - O botão **Buscar** ao lado do CEP preenche o endereço.
 - Na aba **Comercial** ficam a forma de pagamento padrão, o vendedor da carteira e o limite de crédito.
 - Para ver tudo o que aconteceu com o cliente, use **Ficha do cliente** no menu **⋯** da lista.
+- Para imprimir o cadastro em A4 ou salvar em PDF, use **Imprimir ficha cadastral** no mesmo menu.
 
 ## Problemas comuns
 

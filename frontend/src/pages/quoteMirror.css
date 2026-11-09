@@ -73,6 +73,16 @@
 .mirror-title .mirror-field {
   justify-content: flex-end;
 }
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 24px;
+}
+@media (max-width: 560px) {
+  .sheet-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .mirror-field dt {
   color: #5c5368;
 }

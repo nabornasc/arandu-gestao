@@ -25,6 +25,7 @@ Cadastre quem vende mercadoria ou serviço para você. O fornecedor aparece nas 
 
 - O cadastro é único: a mesma empresa pode ser fornecedor e cliente. Marque os papéis na aba **Identificação**.
 - Na aba **Contatos e endereços** ficam as pessoas de contato e o endereço.
+- **Imprimir ficha cadastral**, no menu **⋯** da lista, gera o cadastro em A4 para imprimir ou salvar em PDF.
 - Fornecedor já usado em compra é arquivado ao excluir, para não perder o histórico.
 
 ## Problemas comuns

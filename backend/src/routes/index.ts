@@ -72,6 +72,9 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     protectedApp.get('/people/:id', (request) =>
       people.getPerson(ctxOf(request), idParamSchema.parse(request.params).id),
     );
+    protectedApp.get('/people/:id/sheet', (request) =>
+      people.getPersonSheet(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
     protectedApp.post('/people', async (request, reply) => {
       reply.status(201);
       return people.createPerson(ctxOf(request), request.body as never);

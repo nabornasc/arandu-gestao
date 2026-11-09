@@ -596,6 +596,18 @@ export const personActions: RecordAction<PersonSummary>[] = [
     run: (person, kit) => kit.open(`/clientes/${person.id}/ficha`),
   },
   {
+    id: 'person.print',
+    group: 'open',
+    label: 'Imprimir ficha cadastral',
+    icon: Printer,
+    permissions: (person) =>
+      peopleAreas(person)
+        .slice(0, 1)
+        .map((area) => `${area}.read` as const),
+    // Em outra guia, sem o menu do sistema, para imprimir ou salvar em PDF.
+    run: (person) => void window.open(`/impressao/cadastro/${person.id}`, '_blank'),
+  },
+  {
     id: 'person.delete',
     group: 'danger',
     label: 'Excluir (ou arquivar, se já foi usado)',

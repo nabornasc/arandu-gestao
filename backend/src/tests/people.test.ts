@@ -217,3 +217,28 @@ describe('consulta de CNPJ e CEP', () => {
     expect((await owner.get('/lookup/cep/123')).status).toBe(400);
   });
 });
+
+describe('ficha cadastral', () => {
+  it('traz o cadastro completo e o cabeçalho da empresa; outra empresa não abre', async () => {
+    const app2 = await createApp();
+    const owner2 = await signupCompany(app2);
+    const created = (
+      await owner2.post('/people', {
+        kind: 'company',
+        name: 'Distribuidora Ficha',
+        isSupplier: true,
+        email: 'compras@ficha.test',
+        contacts: [{ name: 'Rita', role: 'Compras', phone: '(65) 3333-0000' }],
+      })
+    ).body;
+    const sheet = await owner2.get(`/people/${created.id}/sheet`);
+    expect(sheet.status).toBe(200);
+    expect(sheet.body.person).toMatchObject({ name: 'Distribuidora Ficha', email: 'compras@ficha.test' });
+    expect(sheet.body.person.contacts[0]).toMatchObject({ name: 'Rita' });
+    expect(sheet.body.issuer.name).toBeTruthy();
+
+    const stranger = await signupCompany(app2);
+    expect((await stranger.get(`/people/${created.id}/sheet`)).status).toBe(404);
+    await app2.close();
+  });
+});

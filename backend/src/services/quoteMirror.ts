@@ -5,12 +5,8 @@ import { companies, people, products, quoteItems, users } from '../db/schema.ts'
 import { notFound } from '../lib/errors.ts';
 import { round2 } from '../lib/money.ts';
 
-// Monta os dados do espelho do cliente que vêm de outros cadastros. A API decide o que cada um vê.
-export async function buildMirrorSnapshot(
-  db: DbOrTx,
-  companyId: number,
-  quote: { id: number; customerId: number | null; createdBy: number | null },
-) {
+// Cabeçalho dos documentos impressos: dados da empresa que emite (espelho, ficha cadastral).
+export async function companyIssuer(db: DbOrTx, companyId: number) {
   const [company] = await db
     .select({
       name: companies.name,
@@ -25,6 +21,16 @@ export async function buildMirrorSnapshot(
     .from(companies)
     .where(eq(companies.id, companyId));
   if (!company) throw notFound();
+  return { ...company, cnpj: company.cnpj ? formatDocument(company.cnpj) : null };
+}
+
+// Monta os dados do espelho do cliente que vêm de outros cadastros. A API decide o que cada um vê.
+export async function buildMirrorSnapshot(
+  db: DbOrTx,
+  companyId: number,
+  quote: { id: number; customerId: number | null; createdBy: number | null },
+) {
+  const issuer = await companyIssuer(db, companyId);
 
   const [person] = quote.customerId
     ? await db.select().from(people).where(eq(people.id, quote.customerId))
@@ -51,7 +57,7 @@ export async function buildMirrorSnapshot(
     .orderBy(asc(quoteItems.id));
 
   return {
-    issuer: { ...company, cnpj: company.cnpj ? formatDocument(company.cnpj) : null },
+    issuer,
     sellerName: seller?.name ?? null,
     customer: person
       ? {

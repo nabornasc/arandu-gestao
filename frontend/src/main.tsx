@@ -35,6 +35,11 @@ const router = createBrowserRouter([
     HydrateFallback: Loading,
     lazy: async () => ({ Component: (await import('./pages/QuoteInternalMirrorPage.tsx')).default }),
   },
+  {
+    path: '/impressao/cadastro/:id',
+    HydrateFallback: Loading,
+    lazy: async () => ({ Component: (await import('./pages/PersonSheetPage.tsx')).default }),
+  },
   // Área logada: as telas abrem em abas dentro do AppLayout (workspace/pages.ts), não como rotas filhas.
   { path: '/*', Component: AppLayout, HydrateFallback: Loading },
 ]);
