@@ -12,10 +12,11 @@ import {
 
 test.beforeEach(({ page }) => login(page, OWNER));
 
+// Data de Brasília, como a tela: o CI roda em UTC e, depois das 21h, já seria o dia seguinte.
 const addDays = (days: number) => {
-  const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000 + days * 86_400_000);
-  return local.toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const [year = 0, month = 1, day = 1] = today.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 };
 
 test('validade em dias e data andam juntas', async ({ page }) => {
