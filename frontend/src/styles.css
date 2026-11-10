@@ -158,7 +158,45 @@ button {
   display: flex;
   gap: 10px;
   align-items: center;
+  font: inherit;
   font-size: 12px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.profile:hover {
+  background: #f4effe;
+}
+.profile-details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 14px;
+  margin: 0 0 18px;
+}
+.profile-details dt {
+  color: #665d7a;
+}
+.profile-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.profile-telegram {
+  border-top: 1px solid #ece6f7;
+  padding-top: 14px;
+}
+.profile-telegram h3 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 8px;
+}
+.telegram-code {
+  font-size: 22px;
+  letter-spacing: 4px;
 }
 .profile strong,
 .profile small {

@@ -1,6 +1,8 @@
 // Configuração lida do ambiente e validada na inicialização (falha cedo se faltar algo).
 import { z } from 'zod';
 
+const emptyAsUndefined = (value: unknown) => (value === '' ? undefined : value);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3001),
@@ -15,6 +17,16 @@ const envSchema = z.object({
   AI_PLATFORM_MONTHLY_BRL: z.coerce.number().positive().default(1000),
   // Maior cota mensal que uma empresa pode escolher em Configurações (ela pode baixar, nunca passar disto).
   AI_COMPANY_MAX_QUOTA_BRL: z.coerce.number().positive().default(200),
+  // Bot do Telegram (etapa 10d). Sem o token, o vínculo fica indisponível. O segredo protege o webhook.
+  // Vazio conta como ausente: os testes e2e desligam o bot assim, mesmo com o .env preenchido.
+  TELEGRAM_BOT_TOKEN: z.preprocess(emptyAsUndefined, z.string().optional()),
+  TELEGRAM_WEBHOOK_SECRET: z.preprocess(
+    emptyAsUndefined,
+    z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{16,256}$/, 'Use de 16 a 256 letras, números, _ ou -')
+      .optional(),
+  ),
   ALLOWED_ORIGINS: z
     .string()
     .default('http://localhost:5173')

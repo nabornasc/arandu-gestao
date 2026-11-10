@@ -50,6 +50,9 @@ export default defineConfig({
         DATABASE_URL,
         ALLOWED_ORIGINS: WEB_URL,
         AI_PROVIDER: 'fake',
+        // O backend lê o backend/.env: vazio aqui desliga o bot real do Telegram nos testes.
+        TELEGRAM_BOT_TOKEN: '',
+        TELEGRAM_WEBHOOK_SECRET: '',
       },
     },
     {

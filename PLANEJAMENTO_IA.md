@@ -72,10 +72,12 @@ Ferramentas sem a permissão do usuário nem são enviadas ao modelo.
 ## 6. Telegram
 
 - **Biblioteca:** grammY. Em desenvolvimento, *long polling*; em produção, webhook na Vercel que só aceita o cabeçalho `X-Telegram-Bot-Api-Secret-Token` correto.
-- **Vincular a conta:** em "Meu perfil", o usuário gera um código de 6 dígitos válido por 10 minutos e manda `/vincular 123456` ao bot. Isso grava `users.telegram_chat_id`. Chat não vinculado recebe só a instrução de vínculo.
+- **Vincular a conta:** na janela "Meu perfil" (clique no nome, no alto da tela), o usuário gera um código de 6 dígitos válido por 10 minutos. O botão **Abrir o Telegram e vincular** abre `t.me/<bot>?start=<código>` e vincula com um toque; também vale mandar `/vincular 123456`. Isso grava `users.telegram_chat_id`; o código fica só como hash. Chat não vinculado recebe só a instrução de vínculo. Depois de 5 códigos errados, a conversa espera 10 minutos.
+- **Conversa:** só em chat privado. As últimas 10 mensagens das 2 horas anteriores ficam em `telegram_messages`, para o assistente lembrar do contexto; o resto é apagado. Limite de 20 perguntas por minuto por usuário.
 - **Desvincular:** em "Meu perfil" ou com `/sair` no bot.
 - **Segredos:** `TELEGRAM_BOT_TOKEN` e `TELEGRAM_WEBHOOK_SECRET` só na Vercel e no `backend/.env`, nunca no repositório.
 - **Testes:** o webhook recebe *updates* simulados nos testes; nenhum teste fala com o Telegram de verdade.
+- **Comandos:** `npm run telegram -w backend -- polling` (desenvolvimento), `-- webhook https://<endereço>` (cadastra o webhook com o segredo e os comandos do bot) e `-- info` (webhook atual e último erro).
 
 ## 7. Segurança e LGPD
 
@@ -92,7 +94,7 @@ Ferramentas sem a permissão do usuário nem são enviadas ao modelo.
 | 10a (feita em 09/11/2026) | Núcleo, `AiProvider` com Haiku 5.5, `ai_usage`, cota em reais e chat de ajuda dentro do sistema, com o manual em cache |
 | 10b (feita em 09/11/2026) | Ferramentas de consulta (seção 5), com até 4 rodadas de ferramenta por pergunta |
 | 10c (feita em 09/11/2026) | Tela de consumo e cota em Configurações: por dia e por usuário; a empresa escolhe o limite até `AI_COMPANY_MAX_QUOTA_BRL` |
-| 10d | Bot do Telegram com vínculo de conta, usando o mesmo núcleo |
+| 10d (feita em 09/11/2026) | Bot do Telegram com vínculo de conta, usando o mesmo núcleo |
 | 10e | Ações que gravam, com confirmação no chat e no Telegram |
 
 Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.
@@ -101,7 +103,7 @@ Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.
 
 - Criar a chave da API na Anthropic e cadastrar `ANTHROPIC_API_KEY` na Vercel e no `backend/.env` (fase 10a).
 - Definir `AI_USD_BRL` e `AI_PLATFORM_MONTHLY_BRL` na Vercel (fase 10a).
-- Criar o bot no @BotFather e cadastrar `TELEGRAM_BOT_TOKEN` (fase 10d).
+- Criar o bot no @BotFather e cadastrar `TELEGRAM_BOT_TOKEN` e `TELEGRAM_WEBHOOK_SECRET` na Vercel e no `backend/.env`; depois, rodar o comando `webhook` uma vez com o endereço de produção (fase 10d).
 
 ## 10. Fora desta etapa
 

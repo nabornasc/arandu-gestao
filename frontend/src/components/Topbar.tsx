@@ -1,7 +1,9 @@
 import { CircleHelp, LogOut, Menu, Search, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { can, type Profile, useLogout } from '../lib/auth.ts';
 import { formatToday } from '../lib/format.ts';
+import { ProfileModal } from './ProfileModal.tsx';
 
 const initials = (name: string) =>
   name
@@ -22,6 +24,7 @@ interface Props {
 export function Topbar({ title, profile, onMenu, onSearch, onHelp, onAssistant }: Props) {
   const logout = useLogout();
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <header className="topbar">
@@ -58,7 +61,13 @@ export function Topbar({ title, profile, onMenu, onSearch, onHelp, onAssistant }
         >
           <CircleHelp size={16} aria-hidden="true" />
         </button>
-        <div className="profile">
+        <button
+          type="button"
+          className="profile"
+          onClick={() => setProfileOpen(true)}
+          aria-label={`Meu perfil: ${profile.name}`}
+          title="Meu perfil"
+        >
           <div className="avatar" aria-hidden="true">
             {initials(profile.name)}
           </div>
@@ -68,7 +77,7 @@ export function Topbar({ title, profile, onMenu, onSearch, onHelp, onAssistant }
               {profile.group.name} · {profile.company.name}
             </small>
           </div>
-        </div>
+        </button>
         <button
           type="button"
           className="logout"
@@ -78,6 +87,7 @@ export function Topbar({ title, profile, onMenu, onSearch, onHelp, onAssistant }
           <LogOut size={14} aria-hidden="true" /> Sair
         </button>
       </div>
+      {profileOpen && <ProfileModal profile={profile} onClose={() => setProfileOpen(false)} />}
     </header>
   );
 }

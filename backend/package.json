@@ -9,6 +9,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
     "db:seed": "node --env-file-if-exists=.env src/db/seed.ts",
+    "telegram": "node --env-file-if-exists=.env src/telegramCli.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -22,6 +23,7 @@
     "@sentry/node": "10.78.0",
     "drizzle-orm": "0.45.4",
     "fastify": "5.12.8",
+    "grammy": "1.46.0",
     "postgres": "3.4.9",
     "zod": "4.6.7"
   },

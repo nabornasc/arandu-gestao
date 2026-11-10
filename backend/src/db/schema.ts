@@ -104,10 +104,16 @@ export const users = pgTable(
       .notNull()
       .references(() => accessGroups.id, { onDelete: 'restrict' }),
     active: boolean().notNull().default(true),
+    // Conversa do Telegram vinculada (etapa 10d). O código de vínculo fica só como hash SHA-256.
+    telegramChatId: bigint({ mode: 'number' }),
+    telegramLinkCode: varchar({ length: 64 }),
+    telegramLinkExpiresAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
   },
   (t) => [
     uniqueIndex('users_email_unique').on(sql`lower(${t.email})`),
+    uniqueIndex('users_telegram_chat_unique').on(t.telegramChatId),
+    index().on(t.telegramLinkCode),
     index().on(t.companyId),
     index().on(t.groupId),
   ],
@@ -889,6 +895,34 @@ export const aiUsage = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index().on(t.companyId, t.createdAt)],
+);
+
+// Últimas mensagens do Telegram, para o assistente lembrar da conversa. O chat web manda o histórico
+// junto com a pergunta; no Telegram ele fica aqui por pouco tempo e é apagado depois.
+export const telegramMessages = pgTable(
+  'telegram_messages',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: varchar({ length: 10 }).notNull(),
+    content: text().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.userId, t.createdAt)],
+);
+
+// Códigos de vínculo errados por conversa do Telegram: depois de alguns erros, o bot para de aceitar.
+export const telegramLinkFailures = pgTable(
+  'telegram_link_failures',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    chatId: bigint({ mode: 'number' }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.chatId, t.createdAt)],
 );
 
 // ---------- Auditoria e eventos ----------

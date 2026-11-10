@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/client.ts';
+import { badRequest, notFound } from '../lib/errors.ts';
 import { ctxOf, requireAuth } from '../plugins/auth.ts';
 import * as accessGroups from '../services/accessGroups.ts';
 import * as advances from '../services/advances.ts';
@@ -35,6 +36,7 @@ import * as reports from '../services/reports.ts';
 import * as search from '../services/search.ts';
 import * as stock from '../services/stock.ts';
 import * as suppliers from '../services/suppliers.ts';
+import * as telegram from '../services/telegram.ts';
 import * as trace from '../services/trace.ts';
 import * as transactions from '../services/transactions.ts';
 import * as users from '../services/users.ts';
@@ -45,6 +47,15 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
   app.get('/health', async () => {
     await db.execute(sql`SELECT 1`);
     return { status: 'ok' };
+  });
+
+  // Webhook do bot do Telegram: público, mas só aceita o cabeçalho secreto cadastrado no setWebhook.
+  app.post('/telegram/webhook', async (request) => {
+    if (!telegram.validWebhookSecret(request.headers['x-telegram-bot-api-secret-token'])) throw notFound();
+    const update = request.body as { update_id?: unknown } | null;
+    if (typeof update?.update_id !== 'number') throw badRequest('Update inválido.');
+    await telegram.handleTelegramUpdate(update as never);
+    return { ok: true };
   });
 
   await app.register(authRoutes);
@@ -460,6 +471,13 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     protectedApp.put('/assistant/quota', (request) =>
       assistant.updateAssistantQuota(ctxOf(request), request.body as never),
     );
+    // Vínculo do Telegram, na janela Meu perfil.
+    protectedApp.get('/telegram/link', (request) => telegram.getTelegramLink(ctxOf(request)));
+    protectedApp.post('/telegram/link', (request) => telegram.createTelegramCode(ctxOf(request)));
+    protectedApp.delete('/telegram/link', async (request, reply) => {
+      await telegram.unlinkTelegram(ctxOf(request));
+      return reply.status(204).send();
+    });
     protectedApp.get('/preferences/columns', (request) => preferences.getListColumns(ctxOf(request)));
     protectedApp.put('/preferences/columns/:list', (request) =>
       preferences.saveListColumns(ctxOf(request), (request.params as { list: string }).list, request.body),

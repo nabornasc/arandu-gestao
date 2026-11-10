@@ -3,7 +3,7 @@ import { isPermission, PERMISSIONS, withRequirements } from '@arandue/shared/per
 import type { LoginInput, RegisterInput } from '@arandue/shared/schemas';
 import { loginSchema, registerSchema } from '@arandue/shared/schemas';
 import { hash, verify } from '@node-rs/argon2';
-import { and, eq, gt, lt, sql } from 'drizzle-orm';
+import { and, eq, gt, lt, type SQL, sql } from 'drizzle-orm';
 import { db } from '../db/client.ts';
 import { accessGroupPermissions, accessGroups, companies, sessions, users } from '../db/schema.ts';
 import type { Ctx } from '../lib/context.ts';
@@ -182,6 +182,19 @@ export async function resolveSession(token: string): Promise<SessionInfo | null>
 
   return { ctx: toCtx(row), renewed };
 }
+
+// Ctx de um usuário ativo fora da sessão web (Telegram), com as permissões atuais do grupo.
+async function ctxWhere(where: SQL | undefined, actor: Ctx['actor']): Promise<Ctx | null> {
+  const [row] = await db
+    .select(ctxColumns)
+    .from(users)
+    .innerJoin(accessGroups, eq(accessGroups.id, users.groupId))
+    .where(and(where, eq(users.active, true)));
+  return row ? { ...toCtx(row), actor } : null;
+}
+
+export const resolveTelegramChat = (chatId: number) => ctxWhere(eq(users.telegramChatId, chatId), 'telegram');
+export const resolveUserCtx = (userId: number, actor: Ctx['actor']) => ctxWhere(eq(users.id, userId), actor);
 
 export async function getProfile(ctx: Ctx) {
   const [row] = await db

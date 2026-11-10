@@ -32,6 +32,17 @@ O assistente só lê os dados. Ele não cadastra, altera nem exclui nada. Cada c
 
 Clique no endereço da tela na resposta para abri-la.
 
+## Usar pelo Telegram
+
+O mesmo assistente responde pelo Telegram, com as mesmas permissões que você tem no sistema.
+
+1. No topo da tela, clique no seu nome para abrir **Meu perfil**.
+2. Em **Telegram**, clique em **Gerar código**. O código vale por 10 minutos.
+3. Clique em **Abrir o Telegram e vincular** e toque em **Iniciar**. Se preferir, mande ao bot `/vincular` seguido do código.
+4. Quando o bot confirmar o vínculo, escreva as perguntas direto na conversa.
+
+Para desvincular, mande `/sair` ao bot ou clique em **Desvincular** em **Meu perfil**. O bot só responde em conversa privada, nunca em grupos, e por enquanto só entende mensagens de texto.
+
 ## Dicas e atalhos
 
 - A conversa continua enquanto o painel está aberto. Ao fechar, ela recomeça do zero.
@@ -43,6 +54,8 @@ Clique no endereço da tela na resposta para abri-la.
 
 - **"Limite mensal do assistente atingido"**: a empresa usou a cota do mês. O assistente volta no início do próximo mês.
 - **"O assistente ainda não está disponível"**: o sistema ainda não foi ligado a um serviço de IA.
+- **"Código inválido ou vencido"** no Telegram: gere um código novo em **Meu perfil**. Depois de 5 códigos errados, o bot espera 10 minutos antes de aceitar outro.
+- **O bot pede para vincular a conta de novo**: a conta foi desvinculada ou o mesmo Telegram foi vinculado a outro usuário.
 
 ## Veja também
 
