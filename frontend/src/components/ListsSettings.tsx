@@ -1,7 +1,7 @@
 import { LIST_KINDS, type ListKind, listItemSchema } from '@arandue/shared/schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useId, useState } from 'react';
 import { api } from '../lib/api.ts';
 import type { ListItem, Lists } from '../lib/lists.ts';
 import { useToast } from './Toast.tsx';
@@ -28,6 +28,7 @@ const KIND_LABELS: Record<ListKind, { title: string; help: string }> = {
 export function ListsSettings({ readOnly }: { readOnly: boolean }) {
   const lists = useQuery({ queryKey: ['/lists', 'all'], queryFn: () => api<Lists>('/lists?all=1') });
   const [kind, setKind] = useState<ListKind>('payment_method');
+  const kindId = useId();
   const items = lists.data?.[kind] ?? [];
 
   return (
@@ -38,16 +39,23 @@ export function ListsSettings({ readOnly }: { readOnly: boolean }) {
           <p>Valores sugeridos nos formulários. O campo continua aceitando digitar outro valor.</p>
         </div>
       </div>
-      <label className="lists-kind">
-        Lista
-        <select name="kind" value={kind} onChange={(event) => setKind(event.target.value as ListKind)}>
+      {/* Rótulo ligado por id, sem envolver o select: o nome acessível fica só "Lista", sem o texto das
+          opções (senão "Categorias de cliente" responde por "Cliente" em outras telas abertas). */}
+      <div className="lists-kind">
+        <label htmlFor={kindId}>Lista</label>
+        <select
+          id={kindId}
+          name="kind"
+          value={kind}
+          onChange={(event) => setKind(event.target.value as ListKind)}
+        >
           {LIST_KINDS.map((option) => (
             <option key={option} value={option}>
               {KIND_LABELS[option].title}
             </option>
           ))}
         </select>
-      </label>
+      </div>
       <p className="muted">{KIND_LABELS[kind].help}</p>
 
       {lists.isPending ? (
