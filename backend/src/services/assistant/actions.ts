@@ -95,6 +95,22 @@ function personSummary(title: string, data: z.output<typeof personSchema>) {
   );
 }
 
+// Documento já cadastrado: o aviso volta ao modelo na hora, em vez de o usuário descobrir no Confirmar.
+async function assertNewDocument(ctx: Ctx, data: z.output<typeof personSchema>) {
+  if (!data.document) return;
+  const [row] = await db
+    .select({ id: people.id, name: people.name })
+    .from(people)
+    .where(and(eq(people.companyId, ctx.companyId), eq(people.document, data.document)));
+  if (row) {
+    throw new AppError(
+      409,
+      `Já existe um cadastro com este ${data.kind === 'company' ? 'CNPJ' : 'CPF'}: ${row.name} (/pessoas/${row.id}). ` +
+        'Não proponha de novo; ofereça abrir o cadastro existente.',
+    );
+  }
+}
+
 const pick = (input: unknown, keys: string[]) =>
   Object.fromEntries(
     Object.entries((input ?? {}) as Record<string, unknown>).filter(
@@ -139,8 +155,9 @@ const ACTIONS = {
       'usuário informou ou que estão no documento enviado; não invente campos.',
     inputSchema: { type: 'object', properties: personProperties, required: ['name'] },
     permission: 'customers.create',
-    async prepare(_ctx, input) {
+    async prepare(ctx, input) {
       const payload = personSchema.parse({ ...pick(input, personPick), isCustomer: true });
+      await assertNewDocument(ctx, payload);
       return { payload, summary: personSummary('Novo cliente', payload) };
     },
     async execute(ctx, payload) {
@@ -155,8 +172,9 @@ const ACTIONS = {
       'informados ou presentes no documento.',
     inputSchema: { type: 'object', properties: personProperties, required: ['name'] },
     permission: 'suppliers.create',
-    async prepare(_ctx, input) {
+    async prepare(ctx, input) {
       const payload = personSchema.parse({ ...pick(input, personPick), isSupplier: true });
+      await assertNewDocument(ctx, payload);
       return { payload, summary: personSummary('Novo fornecedor', payload) };
     },
     async execute(ctx, payload) {

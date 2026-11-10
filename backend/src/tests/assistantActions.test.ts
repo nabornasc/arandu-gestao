@@ -62,6 +62,17 @@ describe('ações do assistente com confirmação', () => {
     expect(again.body.message).toMatch(/já foi confirmada/);
   });
 
+  it('CPF ou CNPJ já cadastrado avisa o modelo na proposta, sem criar ação', async () => {
+    await owner.post('/customers', { name: 'Já Cadastrada', kind: 'company', document: '11222333000181' });
+    const response = await propose(owner, 'propor_cadastro_fornecedor', {
+      name: 'Outra Razão',
+      kind: 'company',
+      document: '11222333000181',
+    });
+    expect(response.body.reply).toContain('Já existe um cadastro com este CNPJ: Já Cadastrada');
+    expect(response.body.actions).toEqual([]);
+  });
+
   it('dado inválido volta ao modelo como erro, sem criar ação', async () => {
     const response = await propose(owner, 'propor_cadastro_cliente', {
       name: 'Sem CPF',
