@@ -6,6 +6,9 @@ import { authorize, type Ctx } from '../lib/context.ts';
 import { getGoals } from './goals.ts';
 import { todayInBrazil } from './orders.ts';
 
+// O banco roda em UTC: depois das 21h de Brasília, CURRENT_DATE já é amanhã.
+const today = () => sql`${todayInBrazil()}::date`;
+
 interface Summary extends Record<string, unknown> {
   revenue_month: string;
   expenses_month: string;
@@ -21,7 +24,7 @@ const settlementAdjustment = (companyId: number, period: 'month' | 'year') => sq
             FROM receivable_payments p JOIN orders o ON o.id = p.order_id
             WHERE p.company_id = ${companyId} AND p.reversed_at IS NULL
               AND o.status IN ('paid', 'completed')
-              AND o.order_date >= date_trunc(${period}, CURRENT_DATE)), 0)`;
+              AND o.order_date >= date_trunc(${period}, ${today()})), 0)`;
 
 // Resumo do mês corrente. Os KPIs completos (ticket médio, conversão, funil) chegam na semana 3.
 export async function getDashboard(ctx: Ctx) {
@@ -32,11 +35,11 @@ export async function getDashboard(ctx: Ctx) {
     SELECT
       COALESCE((SELECT SUM(total) FROM orders
                 WHERE company_id = ${companyId} AND status IN ('paid', 'completed')
-                  AND order_date >= date_trunc('month', CURRENT_DATE)), 0)
+                  AND order_date >= date_trunc('month', ${today()})), 0)
       + ${settlementAdjustment(companyId, 'month')} AS revenue_month,
       COALESCE((SELECT SUM(amount) FROM expenses
                 WHERE company_id = ${companyId} AND status = 'paid'
-                  AND expense_date >= date_trunc('month', CURRENT_DATE)), 0) AS expenses_month,
+                  AND expense_date >= date_trunc('month', ${today()})), 0) AS expenses_month,
       -- Saldo = saldo inicial + movimentações, considerando só contas ativas (nos dois termos).
       COALESCE((SELECT SUM(initial_balance) FROM bank_accounts
                 WHERE company_id = ${companyId} AND active), 0)
@@ -46,7 +49,7 @@ export async function getDashboard(ctx: Ctx) {
       (SELECT COUNT(*)::int FROM orders WHERE company_id = ${companyId} AND status = 'pending') AS pending_orders,
       COALESCE((SELECT SUM(total) FROM orders
                 WHERE company_id = ${companyId} AND status IN ('paid', 'completed')
-                  AND order_date >= date_trunc('year', CURRENT_DATE)), 0)
+                  AND order_date >= date_trunc('year', ${today()})), 0)
       + ${settlementAdjustment(companyId, 'year')} AS revenue_year,
       (SELECT mei_annual_limit FROM companies WHERE id = ${companyId}) AS mei_annual_limit
   `);
@@ -115,7 +118,7 @@ async function dashboardExtras(ctx: Ctx) {
   if (allowed('receivables.read')) {
     const [row] = await db.execute<{ open: string; overdue: string }>(sql`
       SELECT COALESCE(SUM(amount - paid_amount), 0) AS open,
-             COALESCE(SUM(amount - paid_amount) FILTER (WHERE due_date < CURRENT_DATE), 0) AS overdue
+             COALESCE(SUM(amount - paid_amount) FILTER (WHERE due_date < ${today()}), 0) AS overdue
       FROM receivables WHERE company_id = ${companyId} AND status = 'open'`);
     receivables = { open: number(row?.open), overdue: number(row?.overdue) };
   }
@@ -135,8 +138,8 @@ async function dashboardExtras(ctx: Ctx) {
     // Os últimos 12 meses, com zero nos meses sem venda. Pedido cancelado não é venda.
     const rows = await db.execute<{ month: string; total: string }>(sql`
       SELECT to_char(m, 'YYYY-MM') AS month, COALESCE(SUM(o.total), 0) AS total
-      FROM generate_series(date_trunc('month', CURRENT_DATE) - interval '11 months',
-                           date_trunc('month', CURRENT_DATE), interval '1 month') AS m
+      FROM generate_series(date_trunc('month', ${today()}) - interval '11 months',
+                           date_trunc('month', ${today()}), interval '1 month') AS m
       LEFT JOIN orders o ON o.company_id = ${companyId} AND o.status <> 'cancelled'
         AND o.order_date >= m AND o.order_date < m + interval '1 month'
       GROUP BY m ORDER BY m`);
@@ -149,7 +152,7 @@ async function dashboardExtras(ctx: Ctx) {
       JOIN orders o ON o.id = i.order_id
       JOIN products pr ON pr.id = i.product_id
       WHERE o.company_id = ${companyId} AND o.status <> 'cancelled'
-        AND o.order_date >= CURRENT_DATE - 90
+        AND o.order_date >= ${today()} - 90
       GROUP BY pr.id, pr.name
       ORDER BY SUM(i.subtotal) DESC
       LIMIT 5`);

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { db } from '../db/client.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
+import { todayInBrazil } from './orders.ts';
 
 // Base do assistente de precificação: médias mensais dos últimos três meses fechados. O mês corrente
 // fica de fora porque ainda está pela metade.
@@ -8,8 +9,8 @@ const MONTHS = 3;
 
 export async function getPricingBase(ctx: Ctx) {
   authorize(ctx, 'costs.read');
-  const window = sql`date_trunc('month', CURRENT_DATE) - interval '${sql.raw(String(MONTHS))} months'`;
-  const end = sql`date_trunc('month', CURRENT_DATE)`;
+  const window = sql`date_trunc('month', ${todayInBrazil()}::date) - interval '${sql.raw(String(MONTHS))} months'`;
+  const end = sql`date_trunc('month', ${todayInBrazil()}::date)`;
 
   const [revenue] = await db.execute<{ total: string; from: string; to: string }>(sql`
     SELECT COALESCE(SUM(total), 0) AS total,
