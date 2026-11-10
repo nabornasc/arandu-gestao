@@ -1,6 +1,11 @@
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
+import {
+  ASSISTANT_ATTACHMENT_MAX_BYTES,
+  ASSISTANT_ATTACHMENT_TYPES,
+  type AssistantAttachment,
+} from '@arandue/shared/schemas';
 import { and, asc, count, eq, gt, lt, ne, sql } from 'drizzle-orm';
-import { Bot, type Context, GrammyError } from 'grammy';
+import { Bot, type Context, GrammyError, InlineKeyboard } from 'grammy';
 import type { Update } from 'grammy/types';
 import { config } from '../config.ts';
 import { db } from '../db/client.ts';
@@ -8,6 +13,7 @@ import { aiUsage, telegramLinkFailures, telegramMessages, users } from '../db/sc
 import { authorize, type Ctx } from '../lib/context.ts';
 import { AppError, notFound } from '../lib/errors.ts';
 import { reportError } from '../lib/monitoring.ts';
+import { cancelAction, confirmAction, type ProposedAction } from './assistant/actions.ts';
 import { askAssistant } from './assistant/index.ts';
 import { audit } from './audit.ts';
 import { resolveTelegramChat, resolveUserCtx } from './auth.ts';
@@ -225,6 +231,7 @@ async function history(userId: number) {
   }));
 }
 
+// O arquivo enviado não fica guardado: o histórico só registra que houve um anexo.
 async function remember(ctx: Ctx, question: string, reply: string) {
   await db.insert(telegramMessages).values([
     { companyId: ctx.companyId, userId: ctx.userId, role: 'user', content: question },
@@ -249,26 +256,73 @@ async function questionsInLastMinute(userId: number) {
   return row?.total ?? 0;
 }
 
-export async function answer(ctx: Ctx, text: string): Promise<string> {
+export interface TelegramAnswer {
+  text: string;
+  actions: ProposedAction[];
+}
+
+export async function answer(
+  ctx: Ctx,
+  text: string,
+  attachment?: AssistantAttachment,
+): Promise<TelegramAnswer> {
   if ((await questionsInLastMinute(ctx.userId)) >= MESSAGES_PER_MINUTE) {
-    return 'Muitas mensagens em pouco tempo. Espere um minuto e tente de novo.';
+    return { text: 'Muitas mensagens em pouco tempo. Espere um minuto e tente de novo.', actions: [] };
   }
   try {
-    const result = await askAssistant(ctx, { message: text, history: await history(ctx.userId) }, 'telegram');
-    await remember(ctx, text, result.reply);
+    const result = await askAssistant(
+      ctx,
+      { message: text, attachment, history: await history(ctx.userId) },
+      'telegram',
+    );
+    const question = attachment ? `${text}\n[anexo: ${attachment.name ?? attachment.mediaType}]` : text;
+    await remember(ctx, question, result.reply);
     const notes = [
       result.truncated && '(A resposta ficou longa e foi cortada. Peça só a parte que falta.)',
       result.usage.warning && 'Aviso: o assistente já usou mais de 80% do limite do mês da empresa.',
     ].filter(Boolean);
-    return [result.reply, ...notes].join('\n\n');
+    return { text: [result.reply, ...notes].join('\n\n'), actions: result.actions };
   } catch (error) {
     // Erros de negócio (sem permissão, cota, pergunta longa) viram resposta; o resto sobe para o log.
     if (error instanceof AppError) {
-      return error.status === 403 ? 'Seu grupo de acesso não inclui o assistente de IA.' : error.message;
+      const text =
+        error.status === 403 ? 'Seu grupo de acesso não inclui o assistente de IA.' : error.message;
+      return { text, actions: [] };
     }
     throw error;
   }
 }
+
+// ---------- Arquivos enviados ----------
+
+// Baixa o arquivo do Telegram. Os testes trocam por um download falso.
+let downloadFile = async (filePath: string): Promise<Buffer> => {
+  const url = `https://api.telegram.org/file/bot${config.TELEGRAM_BOT_TOKEN}/${filePath}`;
+  const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+  if (!response.ok) throw new Error(`Download do Telegram falhou: ${response.status}`);
+  return Buffer.from(await response.arrayBuffer());
+};
+export function setTelegramDownload(fn: typeof downloadFile) {
+  downloadFile = fn;
+}
+
+const TOO_BIG = 'O arquivo passa de 3 MB. Mande uma foto ou um PDF menor.';
+
+async function fetchAttachment(
+  c: Context,
+  fileId: string,
+  mediaType: AssistantAttachment['mediaType'],
+  name?: string,
+): Promise<AssistantAttachment | string> {
+  const file = await c.api.getFile(fileId);
+  if ((file.file_size ?? 0) > ASSISTANT_ATTACHMENT_MAX_BYTES || !file.file_path) return TOO_BIG;
+  const data = await downloadFile(file.file_path);
+  if (data.length > ASSISTANT_ATTACHMENT_MAX_BYTES) return TOO_BIG;
+  return { mediaType, name: name ?? null, data: data.toString('base64') };
+}
+
+const READ_DOCUMENT =
+  'Leia este documento e diga o que encontrou. Se tiver dados de cadastro, ofereça cadastrar.';
 
 // ---------- Formatação ----------
 
@@ -276,12 +330,17 @@ const escapeHtml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '
 
 // O assistente escreve em Markdown simples; o Telegram recebe HTML. Endereços do sistema (/ajuda/...)
 // viram links completos.
+// Comandos do bot citados nas mensagens: continuam como comando, não viram link do sistema.
+const BOT_COMMANDS = new Set(['/start', '/ajuda', '/vincular', '/sair']);
+
 export function toTelegramHtml(text: string, baseUrl = config.ALLOWED_ORIGINS[0] ?? '') {
   return escapeHtml(text)
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/`([^`\n]+)`/g, '<code>$1</code>')
     .replace(/^#{1,6}\s+(.+)$/gm, '<b>$1</b>')
-    .replace(/(^|[\s(])(\/[a-z][a-z0-9-]*(?:\/[a-z0-9-]+)*)/g, `$1${baseUrl}$2`);
+    .replace(/(^|[\s(])(\/[a-z][a-z0-9-]*(?:\/[a-z0-9-]+)*)/g, (match, before: string, path: string) =>
+      BOT_COMMANDS.has(path) ? match : `${before}${baseUrl}${path}`,
+    );
 }
 
 async function send(c: Context, text: string) {
@@ -297,6 +356,20 @@ async function send(c: Context, text: string) {
   }
   for (let start = 0; start < text.length; start += TELEGRAM_LIMIT) {
     await c.reply(text.slice(start, start + TELEGRAM_LIMIT), { link_preview_options: { is_disabled: true } });
+  }
+}
+
+// Resposta do assistente e, para cada ação proposta, o resumo com os botões Confirmar e Cancelar.
+async function reply(c: Context, result: TelegramAnswer) {
+  await send(c, result.text);
+  for (const action of result.actions) {
+    const keyboard = new InlineKeyboard()
+      .text('Confirmar', `acao:ok:${action.id}`)
+      .text('Cancelar', `acao:nao:${action.id}`);
+    await c.reply(`${escapeHtml(action.summary)}\n\n<i>Confira e toque em Confirmar. Vale 10 minutos.</i>`, {
+      parse_mode: 'HTML',
+      reply_markup: keyboard,
+    });
   }
 }
 
@@ -329,10 +402,51 @@ function registerHandlers(bot: Bot) {
     if (!ctx) return send(c, LINK_HELP);
     // "Digitando..." enquanto o assistente pensa; falha aqui não impede a resposta.
     await c.replyWithChatAction('typing').catch(() => undefined);
-    await send(c, await answer(ctx, c.message.text));
+    await reply(c, await answer(ctx, c.message.text));
   });
 
-  bot.on('message', (c) => send(c, 'Por enquanto, só entendo mensagens de texto.'));
+  // Foto (o Telegram manda em JPEG, em vários tamanhos; o último é o maior) ou documento (imagem ou PDF).
+  bot.on(['message:photo', 'message:document'], async (c) => {
+    const ctx = await resolveTelegramChat(c.chat.id);
+    if (!ctx) return send(c, LINK_HELP);
+    const document = c.message.document;
+    const mediaType = (document ? document.mime_type : 'image/jpeg') as AssistantAttachment['mediaType'];
+    if (!ASSISTANT_ATTACHMENT_TYPES.includes(mediaType)) {
+      return send(c, 'Envie uma foto, uma imagem (JPEG, PNG, WebP) ou um PDF.');
+    }
+    const fileId = document?.file_id ?? c.message.photo?.at(-1)?.file_id;
+    if (!fileId) return send(c, 'Não consegui ler o arquivo. Tente de novo.');
+    await c.replyWithChatAction('typing').catch(() => undefined);
+    const attachment = await fetchAttachment(c, fileId, mediaType, document?.file_name);
+    if (typeof attachment === 'string') return send(c, attachment);
+    await reply(c, await answer(ctx, c.message.caption?.trim() || READ_DOCUMENT, attachment));
+  });
+
+  // Botões das ações propostas: grava (ou cancela) sem passar pela IA.
+  bot.callbackQuery(/^acao:(ok|nao):([0-9a-f-]{36})$/, async (c) => {
+    const ctx = c.chat ? await resolveTelegramChat(c.chat.id) : null;
+    if (!ctx) {
+      await c.answerCallbackQuery({ text: 'Conta não vinculada.' });
+      return;
+    }
+    const [, choice, id] = c.match;
+    let text: string;
+    try {
+      const result = choice === 'ok' ? await confirmAction(ctx, id) : await cancelAction(ctx, id);
+      text = 'path' in result ? `${result.message} Abra em ${result.path}` : result.message;
+    } catch (error) {
+      if (!(error instanceof AppError)) throw error;
+      text = error.message;
+    }
+    await c.answerCallbackQuery();
+    // Tira os botões da mensagem do resumo: a ação não pode ser usada de novo.
+    await c.editMessageReplyMarkup().catch(() => undefined);
+    await send(c, text);
+  });
+
+  bot.on('message', (c) =>
+    send(c, 'Por enquanto, entendo texto, fotos e documentos (imagem ou PDF). Áudio ainda não.'),
+  );
 }
 
 // ---------- Webhook ----------

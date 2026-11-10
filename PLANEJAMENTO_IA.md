@@ -95,7 +95,7 @@ Ferramentas sem a permissão do usuário nem são enviadas ao modelo.
 | 10b (feita em 09/11/2026) | Ferramentas de consulta (seção 5), com até 4 rodadas de ferramenta por pergunta |
 | 10c (feita em 09/11/2026) | Tela de consumo e cota em Configurações: por dia e por usuário; a empresa escolhe o limite até `AI_COMPANY_MAX_QUOTA_BRL` |
 | 10d (feita em 09/11/2026) | Bot do Telegram com vínculo de conta, usando o mesmo núcleo |
-| 10e | Ações que gravam, com confirmação no chat e no Telegram |
+| 10e (feita em 10/11/2026) | Ações que gravam com confirmação (cliente, fornecedor, produto, oportunidade e rascunho de orçamento), leitura de imagem e PDF no chat e no Telegram |
 
 Cada fase segue o fluxo de sempre: branch, PR, CI verde e merge.
 

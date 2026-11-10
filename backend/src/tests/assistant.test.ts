@@ -178,6 +178,7 @@ describe('ferramentas de consulta do assistente', () => {
     expect(await ask('buscar_cliente {"nome":"maria"}')).toEqual({
       clientes: [
         {
+          id: expect.any(Number),
           nome: 'Maria Consulta',
           cidade: 'Recife/PE',
           ficha: expect.stringMatching(/^\/clientes\/\d+\/ficha$/),
@@ -200,6 +201,12 @@ describe('ferramentas de consulta do assistente', () => {
       'contas_a_pagar_da_semana',
       'estoque_baixo',
       'buscar_cliente',
+      'buscar_produto',
+      'propor_cadastro_cliente',
+      'propor_cadastro_fornecedor',
+      'propor_cadastro_produto',
+      'propor_oportunidade_crm',
+      'propor_rascunho_orcamento',
     ]);
     expect(request?.context).toContain(`Hoje: ${today()}`);
   });

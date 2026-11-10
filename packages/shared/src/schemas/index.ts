@@ -426,9 +426,27 @@ export const dashboardLayoutSchema = z.object({
 });
 export type DashboardLayout = z.output<typeof dashboardLayoutSchema>;
 
+// Anexo da pergunta: imagem (já reduzida pelo navegador) ou PDF, em base64. A Vercel aceita até 4,5 MB
+// por requisição; o PDF fica em 3 MB (4 MB em base64).
+export const ASSISTANT_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const;
+export const ASSISTANT_ATTACHMENT_TYPES = [...ASSISTANT_IMAGE_TYPES, 'application/pdf'] as const;
+export const ASSISTANT_ATTACHMENT_MAX_BYTES = 3 * 1024 * 1024;
+export const assistantAttachmentSchema = z.object({
+  mediaType: z.enum(ASSISTANT_ATTACHMENT_TYPES, {
+    message: 'Envie uma imagem (JPEG, PNG, WebP ou GIF) ou um PDF.',
+  }),
+  name: optionalText(160),
+  data: z
+    .string()
+    .regex(/^[A-Za-z0-9+/]+={0,2}$/, 'Arquivo inválido.')
+    .max(Math.ceil((ASSISTANT_ATTACHMENT_MAX_BYTES * 4) / 3) + 4, 'O arquivo passa de 3 MB.'),
+});
+export type AssistantAttachment = z.output<typeof assistantAttachmentSchema>;
+
 // Assistente de IA: a pergunta e as últimas mensagens da conversa (o servidor não guarda a conversa).
 export const assistantMessageSchema = z.object({
   message: requiredText(2000, 'Escreva a pergunta'),
+  attachment: assistantAttachmentSchema.optional(),
   history: z
     .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().trim().min(1).max(4000) }))
     .max(10)

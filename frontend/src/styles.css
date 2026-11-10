@@ -3227,3 +3227,37 @@ a.nav-label.active {
   margin: 0;
   font-size: 12px;
 }
+
+/* Assistente: anexo da pergunta e cartão da ação para confirmar. */
+.assistant-attachment {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #665d7a;
+}
+.assistant-attachment.pending {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+}
+.assistant-action {
+  min-width: 0;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d9cff5;
+  border-radius: 8px;
+  background: #faf8ff;
+}
+.assistant-action-summary {
+  margin: 0 0 8px;
+  white-space: pre-line;
+  font-size: 13px;
+}
+.assistant-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+.assistant-action-result {
+  margin: 0;
+  font-size: 13px;
+}

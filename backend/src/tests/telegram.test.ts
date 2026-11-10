@@ -4,7 +4,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../db/client.ts';
 import { aiUsage, auditLogs, telegramMessages, users } from '../db/schema.ts';
 import { aiProvider, type FakeProvider } from '../services/assistant/provider.ts';
-import { telegramBot, toTelegramHtml } from '../services/telegram.ts';
+import { setTelegramDownload, telegramBot, toTelegramHtml } from '../services/telegram.ts';
 import { addMember, type Client, createApp, signupCompany } from './helpers.ts';
 
 const SECRET = 'segredo-de-teste-do-webhook';
@@ -72,7 +72,13 @@ beforeAll(async () => {
   owner = await signupCompany(app);
   telegramBot().api.config.use(async (_previous, method, payload) => {
     calls.push({ method, payload: payload as Record<string, unknown> });
-    return { ok: true, result: method === 'getMe' ? ME : true } as never;
+    const result =
+      method === 'getMe'
+        ? ME
+        : method === 'getFile'
+          ? { file_id: 'grande', file_unique_id: 'b', file_size: 13, file_path: 'photos/x.jpg' }
+          : true;
+    return { ok: true, result } as never;
   });
 });
 afterAll(() => app.close());
@@ -216,11 +222,19 @@ describe('bot do Telegram', () => {
         message_id: 1,
         date: Math.floor(Date.now() / 1000),
         chat: { id: nextChat, type: 'private', first_name: 'Ana' },
-        photo: [{ file_id: 'x', file_unique_id: 'y', width: 1, height: 1 }],
+        sticker: {
+          file_id: 'x',
+          file_unique_id: 'y',
+          width: 1,
+          height: 1,
+          is_animated: false,
+          is_video: false,
+          type: 'regular',
+        },
       },
     });
     expect(response.statusCode).toBe(200);
-    expect(replies()[0]).toMatch(/só entendo mensagens de texto/);
+    expect(replies()[0]).toMatch(/entendo texto, fotos e documentos/);
   });
 });
 
@@ -235,5 +249,88 @@ describe('formatação para o Telegram', () => {
     expect(toTelegramHtml('Prazos 30/60/90 e R$ 10/mês', 'https://app.test')).toBe(
       'Prazos 30/60/90 e R$ 10/mês',
     );
+  });
+});
+
+describe('ações e arquivos pelo Telegram', () => {
+  const callback = (chatId: number, data: string) =>
+    webhook({
+      update_id: updateId++,
+      callback_query: {
+        id: `cb-${updateId}`,
+        chat_instance: 'x',
+        data,
+        from: { id: chatId, is_bot: false, first_name: 'Ana' },
+        message: {
+          message_id: 10,
+          date: Math.floor(Date.now() / 1000),
+          chat: { id: chatId, type: 'private', first_name: 'Ana' },
+          text: 'resumo',
+        },
+      },
+    });
+
+  it('proposta vem com botões; Confirmar grava com o Telegram na auditoria e tira os botões', async () => {
+    const chat = nextChat++;
+    await link(owner, chat);
+    calls = [];
+    await say(chat, `Cadastre [ferramenta:propor_cadastro_cliente {"name":"Cliente do Telegram"}]`);
+    const withButtons = calls.find((call) => call.payload.reply_markup);
+    expect(String(withButtons?.payload.text)).toContain('Novo cliente');
+    const keyboard = withButtons?.payload.reply_markup as { inline_keyboard: { callback_data: string }[][] };
+    const [confirm, cancel] = keyboard.inline_keyboard[0] ?? [];
+    expect(cancel?.callback_data).toMatch(/^acao:nao:/);
+
+    calls = [];
+    expect((await callback(chat, confirm?.callback_data ?? '')).statusCode).toBe(200);
+    expect(calls.map((call) => call.method)).toEqual(
+      expect.arrayContaining(['answerCallbackQuery', 'editMessageReplyMarkup']),
+    );
+    expect(replies().join()).toMatch(/Cliente Cliente do Telegram cadastrado/);
+    const [log] = await db
+      .select({ actor: auditLogs.actor })
+      .from(auditLogs)
+      .where(and(eq(auditLogs.companyId, owner.companyId), eq(auditLogs.entity, 'person')))
+      .orderBy(auditLogs.id);
+    expect(log?.actor).toBe('telegram');
+
+    calls = [];
+    await callback(chat, confirm?.callback_data ?? '');
+    expect(replies().join()).toMatch(/já foi confirmada/);
+  });
+
+  it('foto vira anexo da pergunta, com a legenda como texto', async () => {
+    const chat = nextChat++;
+    await link(owner, chat);
+    setTelegramDownload(async () => Buffer.from('foto-de-teste'));
+    calls = [];
+    const response = await webhook({
+      update_id: updateId++,
+      message: {
+        message_id: 1,
+        date: Math.floor(Date.now() / 1000),
+        chat: { id: chat, type: 'private', first_name: 'Ana' },
+        from: { id: chat, is_bot: false, first_name: 'Ana' },
+        caption: 'Cadastre este cliente',
+        photo: [
+          { file_id: 'pequena', file_unique_id: 'a', width: 90, height: 90 },
+          { file_id: 'grande', file_unique_id: 'b', width: 1280, height: 1280 },
+        ],
+      },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(calls.find((call) => call.method === 'getFile')?.payload).toEqual({ file_id: 'grande' });
+    const request = fake().requests.at(-1);
+    expect(request?.messages.at(-1)?.content).toBe('Cadastre este cliente');
+    expect(request?.attachment).toMatchObject({
+      mediaType: 'image/jpeg',
+      data: Buffer.from('foto-de-teste').toString('base64'),
+    });
+  });
+
+  it('comandos do bot no texto não viram link do sistema', () => {
+    expect(
+      toTelegramHtml('Mande /vincular 123456 ou /sair. Veja /ajuda/inicio/assistente', 'https://app.test'),
+    ).toBe('Mande /vincular 123456 ou /sair. Veja https://app.test/ajuda/inicio/assistente');
   });
 });

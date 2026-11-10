@@ -8,6 +8,7 @@ import { ctxOf, requireAuth } from '../plugins/auth.ts';
 import * as accessGroups from '../services/accessGroups.ts';
 import * as advances from '../services/advances.ts';
 import * as agenda from '../services/agenda.ts';
+import * as assistantActions from '../services/assistant/actions.ts';
 import * as assistant from '../services/assistant/index.ts';
 import * as bankAccounts from '../services/bankAccounts.ts';
 import * as company from '../services/company.ts';
@@ -461,8 +462,17 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
     protectedApp.put('/goals', (request) => goals.saveGoals(ctxOf(request), request.body as never));
     // Assistente de IA: limite por minuto contra abuso e laço acidental; a cota mensal fica no serviço.
     const assistantLimit = { rateLimit: { max: 20, timeWindow: '1 minute' } };
-    protectedApp.post('/assistant/messages', { config: assistantLimit }, (request) =>
-      assistant.askAssistant(ctxOf(request), request.body as never),
+    // Com anexo (imagem ou PDF em base64), a pergunta passa do limite padrão de 1 MB.
+    protectedApp.post(
+      '/assistant/messages',
+      { config: assistantLimit, bodyLimit: 5 * 1024 * 1024 },
+      (request) => assistant.askAssistant(ctxOf(request), request.body as never),
+    );
+    protectedApp.post('/assistant/actions/:id/confirm', (request) =>
+      assistantActions.confirmAction(ctxOf(request), (request.params as { id: string }).id),
+    );
+    protectedApp.post('/assistant/actions/:id/cancel', (request) =>
+      assistantActions.cancelAction(ctxOf(request), (request.params as { id: string }).id),
     );
     protectedApp.get('/assistant/usage', (request) => assistant.getAssistantUsage(ctxOf(request)));
     protectedApp.get('/assistant/report', (request) =>

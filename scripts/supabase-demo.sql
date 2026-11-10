@@ -16,7 +16,7 @@ LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
     'opportunity_items', 'interactions', 'bank_accounts', 'expenses', 'expense_payments', 'purchases',
     'purchase_items', 'quotes', 'quote_items', 'orders', 'order_items', 'stock_movements',
     'receivables', 'receivable_payments', 'customer_advances', 'cash_transactions', 'audit_logs', 'events',
-    'ai_usage'
+    'ai_usage', 'telegram_messages', 'telegram_link_failures', 'ai_pending_actions'
   ]
 $$;
 

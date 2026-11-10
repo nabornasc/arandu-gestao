@@ -9,6 +9,8 @@ export interface AiRequest {
   // Contexto que muda por empresa ou usuário: depois do cache.
   context: string;
   messages: { role: 'user' | 'assistant'; content: string }[];
+  // Imagem ou PDF que acompanha a última mensagem do usuário.
+  attachment?: { mediaType: string; data: string };
   maxTokens: number;
   // Ferramentas de consulta que este usuário pode usar. O provedor chama runTool e devolve o resultado ao
   // modelo, até MAX_STEPS rodadas.
@@ -78,6 +80,23 @@ class AnthropicProvider implements AiProvider {
         }))
       : undefined;
     const messages: Anthropic.MessageParam[] = [...request.messages];
+    const last = messages.at(-1);
+    if (request.attachment && last?.role === 'user' && typeof last.content === 'string') {
+      // O arquivo vai antes do texto da pergunta, como a documentação recomenda.
+      const { mediaType, data } = request.attachment;
+      const file: Anthropic.ContentBlockParam =
+        mediaType === 'application/pdf'
+          ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }
+          : {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mediaType as Anthropic.Base64ImageSource['media_type'],
+                data,
+              },
+            };
+      messages[messages.length - 1] = { role: 'user', content: [file, { type: 'text', text: last.content }] };
+    }
     let usage = ZERO;
     const toolCalls: string[] = [];
 
@@ -135,7 +154,7 @@ export class FakeProvider implements AiProvider {
     // "[ferramenta:nome {json}]" simula o modelo pedindo a ferramenta; o resultado entra na resposta.
     const toolCalls: string[] = [];
     let results = '';
-    for (const match of question.matchAll(/\[ferramenta:([a-z_]+)( \{.*?\})?\]/g)) {
+    for (const match of question.matchAll(/\[ferramenta:([a-z_]+)( \{.*\})?\]/g)) {
       const name = match[1] ?? '';
       toolCalls.push(name);
       const output = request.runTool ? await request.runTool(name, JSON.parse(match[2] ?? '{}')) : '';

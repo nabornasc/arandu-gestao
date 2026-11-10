@@ -3,10 +3,13 @@ import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db/client.ts';
 import type { Ctx } from '../../lib/context.ts';
+import { AppError } from '../../lib/errors.ts';
+import { reportError } from '../../lib/monitoring.ts';
 import { formatCode } from '../numbering.ts';
 import { todayInBrazil } from '../orders.ts';
+import { ACTION_TOOLS, proposeAction, type ToolSession } from './actions.ts';
 
-// Ferramentas de consulta do assistente. Só leem: nenhuma grava nada.
+// Ferramentas do assistente. As de consulta só leem; as "propor_..." (actions.ts) só criam uma ação pendente.
 // Cada uma exige a mesma permissão da tela equivalente, e a ferramenta sem permissão nem vai ao modelo.
 // Ao modelo vão só os campos necessários: CPF, CNPJ, e-mail e telefone ficam de fora.
 export interface AssistantTool {
@@ -14,7 +17,7 @@ export interface AssistantTool {
   description: string;
   inputSchema: Record<string, unknown>;
   permission: Permission;
-  run(ctx: Ctx, input: unknown): Promise<unknown>;
+  run(ctx: Ctx, input: unknown, session?: ToolSession): Promise<unknown>;
 }
 
 const LIST_LIMIT = 15;
@@ -227,6 +230,7 @@ const buscarCliente: AssistantTool = {
       LIMIT 5`);
     return {
       clientes: rows.map((row) => ({
+        id: row.id,
         nome: row.nome,
         cidade: row.cidade ? `${row.cidade}${row.uf ? `/${row.uf}` : ''}` : null,
         ficha: `/clientes/${row.id}/ficha`,
@@ -236,25 +240,95 @@ const buscarCliente: AssistantTool = {
   },
 };
 
+const productInput = z.object({ busca: z.string().trim().min(2).max(80) });
+
+const buscarProduto: AssistantTool = {
+  name: 'buscar_produto',
+  description:
+    'Procura produtos e serviços ativos pelo nome ou código (até 8). Devolve o id (para itens de orçamento), ' +
+    'o preço de venda, a unidade e o estoque.',
+  inputSchema: {
+    type: 'object',
+    properties: { busca: { type: 'string', description: 'Nome ou código do produto' } },
+    required: ['busca'],
+  },
+  permission: 'products.read',
+  async run(ctx, input) {
+    const { busca } = productInput.parse(input);
+    const like = `%${escapeLike(busca)}%`;
+    const rows = await db.execute<{
+      id: number;
+      nome: string;
+      codigo: string | null;
+      tipo: string;
+      preco: string;
+      unidade: string | null;
+      estoque: string | null;
+    }>(sql`
+      SELECT id, name AS nome, code AS codigo, type AS tipo, price AS preco, unit AS unidade, stock AS estoque
+      FROM products
+      WHERE company_id = ${ctx.companyId} AND active AND (name ILIKE ${like} OR code ILIKE ${like})
+      ORDER BY name
+      LIMIT 8`);
+    return {
+      produtos: rows.map((row) => ({
+        id: row.id,
+        nome: row.nome,
+        codigo: row.codigo,
+        tipo: row.tipo === 'service' ? 'serviço' : 'produto',
+        preco: money(row.preco),
+        unidade: row.unidade,
+        estoque: row.estoque === null ? null : Number(row.estoque),
+      })),
+    };
+  },
+};
+
+// Ferramentas que propõem gravações: criam a ação pendente; quem grava é o botão Confirmar.
+const actionTools: AssistantTool[] = ACTION_TOOLS.map((action) => ({
+  name: action.tool,
+  description: action.description,
+  inputSchema: action.inputSchema,
+  permission: action.permission,
+  run: (ctx, input, session) => {
+    if (!session) throw new Error('Ação sem sessão do assistente.');
+    return proposeAction(ctx, action.kind, input, session);
+  },
+}));
+
 export const ASSISTANT_TOOLS: AssistantTool[] = [
   faturamento,
   receberVencidas,
   pagarSemana,
   estoqueBaixo,
   buscarCliente,
+  buscarProduto,
+  ...actionTools,
 ];
 
 // Só as ferramentas que o usuário pode usar, sempre na mesma ordem (ajuda o cache de prompt).
 export const toolsFor = (ctx: Ctx) => ASSISTANT_TOOLS.filter((tool) => can(ctx.permissions, tool.permission));
 
 // Executa a ferramenta pedida pelo modelo. Erro vira texto para o modelo, nunca exceção para o usuário.
-export async function runTool(ctx: Ctx, name: string, input: unknown): Promise<string> {
+export async function runTool(
+  ctx: Ctx,
+  name: string,
+  input: unknown,
+  session?: ToolSession,
+): Promise<string> {
   const tool = toolsFor(ctx).find((item) => item.name === name);
   if (!tool) return JSON.stringify({ erro: 'Ferramenta indisponível para este usuário.' });
   try {
-    return JSON.stringify(await tool.run(ctx, input));
+    return JSON.stringify(await tool.run(ctx, input, session));
   } catch (error) {
     if (error instanceof z.ZodError) return JSON.stringify({ erro: 'Parâmetros inválidos.' });
-    throw error;
+    if (error instanceof AppError) return JSON.stringify({ erro: error.message });
+    // Falha inesperada numa ferramenta não derruba a resposta: o modelo avisa o usuário e o erro vai ao log.
+    console.error(
+      `[assistente] falha na ferramenta ${name}:`,
+      error instanceof Error ? error.message : error,
+    );
+    await reportError(error);
+    return JSON.stringify({ erro: 'Não foi possível consultar agora.' });
   }
 }

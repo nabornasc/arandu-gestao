@@ -17,6 +17,7 @@ import {
   time,
   timestamp,
   uniqueIndex,
+  uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
 
@@ -958,4 +959,28 @@ export const events = pgTable(
     readAt: timestamp({ withTimezone: true }),
   },
   (t) => [index().on(t.companyId, t.readAt), uniqueIndex().on(t.companyId, t.type, t.refId)],
+);
+
+// Ações que o assistente propõe (cadastrar cliente, rascunho de orçamento etc.). A IA só cria o pedido;
+// quem grava é o clique em Confirmar, que chama o serviço com as permissões do usuário. Vale 10 minutos.
+export const aiPendingActions = pgTable(
+  'ai_pending_actions',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    companyId: companyId(),
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    channel: varchar({ length: 20 }).notNull(),
+    kind: varchar({ length: 30 }).notNull(),
+    payload: jsonb().notNull(),
+    summary: text().notNull(),
+    // pending, confirmed, cancelled ou failed.
+    status: varchar({ length: 12 }).notNull().default('pending'),
+    resultPath: varchar({ length: 200 }),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    resolvedAt: timestamp({ withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.userId, t.status), index().on(t.createdAt)],
 );
