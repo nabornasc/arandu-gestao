@@ -6,6 +6,9 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Adicionado
 
+- **Bot do Telegram (etapa 10d):** o mesmo assistente responde no Telegram, com as permissões do usuário vinculado. O vínculo sai da janela nova **Meu perfil** (clique no nome, no topo): código de 6 dígitos válido por 10 minutos, guardado só como hash, e link `t.me` que vincula com um toque. Comandos `/start`, `/vincular` e `/sair`; só conversa privada. O webhook só aceita o cabeçalho secreto; 5 códigos errados bloqueiam a conversa por 10 minutos; vincular e desvincular entram na auditoria com ator `telegram`. As últimas mensagens ficam 2 horas em `telegram_messages` (migração `0035`). Comandos `npm run telegram -w backend -- polling | webhook <URL> | info`.
+- **Consumo do assistente em Configurações (etapa 10c):** gasto do mês por dia e por usuário, e o limite mensal escolhido pela empresa até o teto da plataforma (`AI_COMPANY_MAX_QUOTA_BRL`). Zero desliga o assistente.
+- **Consultas do assistente (etapa 10b):** faturamento do período, contas a receber vencidas, contas a pagar da semana, estoque baixo e busca de cliente, cada uma com a permissão da tela equivalente. Ferramenta sem permissão nem chega ao modelo.
 - **Assistente de IA (etapa 10a):** botão no topo abre um chat que responde dúvidas de uso com base no manual inteiro, em cache de prompt, pelo Claude Haiku 5.5. Cada chamada fica em `ai_usage` com tokens e custo em reais; cota mensal por empresa (padrão R$ 200, aviso em 80%) e teto da plataforma. Permissão nova `assistant.use`, dada a todos os grupos na migração `0034`. O texto do manual vem de `npm run manual:ia`, e um teste falha se ele ficar desatualizado.
 - **Código próprio do produto** (opcional): aparece na lista, entra na busca rápida e no histórico. É único por empresa entre os produtos ativos, sem diferenciar maiúsculas. Migração `0031`.
 - **Colunas das listas:** botão "Colunas" em pedidos, orçamentos, produtos, contas a pagar, contas bancárias e movimentações. Cada usuário esconde as colunas que não usa; a escolha fica guardada (`user_preferences.list_columns`, migração `0033`). A primeira coluna fica sempre à vista. Em produtos, "Nome" passa a ser a primeira coluna.
@@ -46,6 +49,8 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Alterado
 
+- Sentry 11 (`@sentry/node` e `@sentry/react` 11.11.0), com a coleta de dados desligada explicitamente: a versão 11 passou a coletar por padrão cookies, corpos e cabeçalhos HTTP, consultas ao banco e as conversas com a IA.
+- O nome no alto da tela abre **Meu perfil**.
 - A lista de texto "Condições de pagamento", sugerida no cadastro de clientes, passou a se chamar "Prazos no cadastro do cliente", para não se confundir com as condições que geram parcelas.
 - As listas não param mais nos 500 registros mais recentes. "Imprimir lista" virou "Imprimir página": sai a página que está na tela.
 - No cadastro, o estoque só é informado na criação; depois, muda pelo ajuste. Pela API, alterar `stock` no cadastro continua possível e entra no extrato como edição do cadastro.
@@ -60,6 +65,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - Salvar uma janela aberta de dentro de um formulário não envia mais o formulário de trás.
 - Janelas com campo marcado para foco automático abrem com o foco nesse campo, não no botão de fechar.
 - Datas do seed seguem o fuso de Brasília: à noite, as tarefas e os pedidos de exemplo não caem mais no dia seguinte.
+- Visão geral e precificação usam a data de Brasília: das 21h à meia-noite, a conta que vence hoje aparecia como vencida e o mês virava antes da hora.
 
 ## [2.5.0] — 2026-11-07
 
