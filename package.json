@@ -21,6 +21,7 @@
     "demo:setup": "node scripts/setup-demo.mjs",
     "test": "npm test -w backend",
     "test:e2e": "playwright test",
+    "test:pacote": "node scripts/testar-pacote-api.mjs",
     "manual:midia": "node scripts/manual-midia.mjs",
     "manual:ia": "node scripts/gerar-manual-ia.mjs",
     "typecheck": "tsc -p packages/shared && tsc -p backend && tsc -p frontend && tsc -p e2e",

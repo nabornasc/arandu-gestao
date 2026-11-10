@@ -50,17 +50,39 @@ let botInstance: Bot | null = null;
 export function telegramBot(): Bot {
   if (!config.TELEGRAM_BOT_TOKEN) throw new AppError(503, 'O bot do Telegram ainda não está configurado.');
   if (!botInstance) {
-    botInstance = new Bot(config.TELEGRAM_BOT_TOKEN);
+    // Cada chamada ao Telegram tem prazo curto: a função da Vercel encerra em 30 s.
+    botInstance = new Bot(config.TELEGRAM_BOT_TOKEN, { client: { timeoutSeconds: 10 } });
     registerHandlers(botInstance);
   }
   return botInstance;
+}
+
+// O bot.init() do grammY repete o getMe sem parar quando a rede falha. Com prazo, a falha vira erro
+// em vez de prender a requisição até a Vercel encerrar a função.
+const INIT_TIMEOUT_MS = 8000;
+async function initBot(bot: Bot) {
+  if (bot.isInited()) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      bot.init(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('O Telegram não respondeu a tempo (getMe).')),
+          INIT_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Nome do bot para o link t.me. Falha do Telegram aqui não impede o vínculo: a tela só mostra menos.
 async function botUsername(): Promise<string | null> {
   try {
     const bot = telegramBot();
-    await bot.init();
+    await initBot(bot);
     return bot.botInfo.username;
   } catch (error) {
     await reportError(error);
@@ -329,7 +351,7 @@ export function validWebhookSecret(header: unknown) {
 export async function handleTelegramUpdate(update: Update) {
   const bot = telegramBot();
   try {
-    await bot.init();
+    await initBot(bot);
     await bot.handleUpdate(update);
   } catch (error) {
     console.error('[telegram] falha ao tratar a mensagem:', error instanceof Error ? error.message : error);

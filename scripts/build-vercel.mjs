@@ -5,6 +5,7 @@ import { cpSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:f
 import { join } from 'node:path';
 import { sentryEsbuildPlugin } from '@sentry/esbuild-plugin';
 import { build } from 'esbuild';
+import { apiBuildOptions } from './esbuild-api.mjs';
 
 const OUTPUT = '.vercel/output';
 const FUNCTION = `${OUTPUT}/functions/api.func`;
@@ -16,26 +17,9 @@ execSync('npm run build', { stdio: 'inherit' });
 cpSync('frontend/dist', `${OUTPUT}/static`, { recursive: true });
 
 await build({
+  ...apiBuildOptions,
   entryPoints: ['backend/src/vercel.ts'],
   outfile: `${FUNCTION}/index.mjs`,
-  bundle: true,
-  platform: 'node',
-  format: 'esm',
-  target: 'node24',
-  // Binário nativo: não entra no pacote e é copiado abaixo.
-  external: ['@node-rs/argon2'],
-  // Dependências em CommonJS usam require, __dirname e __filename, que não existem em módulos ES.
-  banner: {
-    js: [
-      "import { createRequire as __createRequire } from 'node:module';",
-      "import { fileURLToPath as __fileURLToPath } from 'node:url';",
-      "import { dirname as __dirnameOf } from 'node:path';",
-      'const require = __createRequire(import.meta.url);',
-      'const __filename = __fileURLToPath(import.meta.url);',
-      'const __dirname = __dirnameOf(__filename);',
-    ].join('\n'),
-  },
-  logLevel: 'warning',
   // Com o token, os erros da API aparecem no Sentry apontando para o código original.
   sourcemap: sentryToken ? true : false,
   plugins: sentryToken

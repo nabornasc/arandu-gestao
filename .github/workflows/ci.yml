@@ -51,4 +51,5 @@ jobs:
           path: test-results/
           retention-days: 7
       - run: npm run build
+      - run: npm run test:pacote
       - run: npm audit --omit=dev --audit-level=high
