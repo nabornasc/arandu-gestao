@@ -70,7 +70,7 @@ O que mais pesa no desempenho de um SaaS deste porte não é o *framework*: é a
 | Next.js / SSR | O sistema inteiro fica atrás de login, então SEO não importa; uma SPA com *lazy loading* é mais simples e igualmente rápida aqui |
 | Prisma | *Runtime* mais pesado e mais atrito em *serverless*; o Drizzle cobre a mesma necessidade |
 | Supabase client direto no navegador | Pularia a camada de serviços, que o bot e o chat precisam (RNF08) |
-| Redis, filas, microsserviços, Kubernetes | Sem carga que justifique; ficam no `PLANEJAMENTO_ESCALABILIDADE.md` |
+| Redis, filas, microsserviços, Kubernetes | Sem carga que justifique; ficam no `02-escalabilidade.md` |
 | Tailwind / biblioteca completa de UI | O CSS atual já é responsivo e leve; migrar custaria dias sem ganho de desempenho |
 | Bun em produção | A Vercel roda Node; manter o mesmo *runtime* em desenvolvimento e produção evita surpresas |
 
@@ -484,7 +484,7 @@ Cada avanço gera um evento no histórico ("Pedido #008 recebido → Ganho"). Pe
 
 ## 10. Assistente de IA (v3.0)
 
-> **Substituída em 09/11/2026 por [PLANEJAMENTO_IA.md](PLANEJAMENTO_IA.md)** (Haiku 5.5, cota em reais por empresa, manual inteiro em cache sem RAG, só chat no sistema e Telegram). O texto abaixo fica como histórico.
+> **Substituída em 09/11/2026 por [plano do assistente de IA](08-assistente-ia.md)** (Haiku 5.5, cota em reais por empresa, manual inteiro em cache sem RAG, só chat no sistema e Telegram). O texto abaixo fica como histórico.
 
 ### 10.1 Escolhas técnicas
 
@@ -537,7 +537,7 @@ Cada avanço gera um evento no histórico ("Pedido #008 recebido → Ganho"). Pe
 
 ## 11. Roadmap contínuo (versões)
 
-> A partir de 02/11 o projeto não tem data de término. Cada versão é um ciclo: plano curto (nesta seção), implementação, testes (unitários, integração e ponta a ponta), notas da versão (`CHANGELOG.md`), tag `vX.Y.0`, push e, depois do primeiro deploy, publicação. As versões concluídas ficam abaixo. **A ordem do que falta está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md)**, e o número da versão é definido ao fechar cada etapa.
+> A partir de 02/11 o projeto não tem data de término. Cada versão é um ciclo: plano curto (nesta seção), implementação, testes (unitários, integração e ponta a ponta), notas da versão (`CHANGELOG.md`), tag `vX.Y.0`, push e, depois do primeiro deploy, publicação. As versões concluídas ficam abaixo. **A ordem do que falta está em [roteiro das etapas](00-roteiro-das-etapas.md)**, e o número da versão é definido ao fechar cada etapa.
 
 | Versão | Conteúdo | Situação |
 |---|---|---|
@@ -546,7 +546,7 @@ Cada avanço gera um evento no histórico ("Pedido #008 recebido → Ganho"). Pe
 | **v2.2** | Oportunidades e rastreio comercial (seção 9); menu ⋯ em grupos | **Concluída em 03/11** |
 | **v2.3** | **Publicação**: deploy (Supabase `sa-east-1` + Vercel `gru1`), Sentry, Playwright nos fluxos principais, demo no portfólio. A partir daqui, cada versão vai para produção | **Concluída em 05/11** |
 | **v2.4** | Espelho do cliente em A4 com dados da empresa e cópia guardada no envio, frete e outras despesas, reabrir orçamento, Sentry ligado e novo nome, Arandu Gestão | **Concluída em 05/11** |
-| **v2.5** | Espelho interno com margem, parcelas, grupos de itens e medidas no orçamento, contas a receber por parcela com baixa parcial e estorno, filtros de lista e ficha do cliente. Daqui em diante, a ordem está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md) | **Concluída em 07/11** |
+| **v2.5** | Espelho interno com margem, parcelas, grupos de itens e medidas no orçamento, contas a receber por parcela com baixa parcial e estorno, filtros de lista e ficha do cliente. Daqui em diante, a ordem está em [roteiro das etapas](00-roteiro-das-etapas.md) | **Concluída em 07/11** |
 | Etapa 6 (antiga v2.5) | Navegação e produtividade: menu por módulos e páginas de módulo, cadastro rápido, filtros avançados e paginação, busca rápida e atalhos (seção 7) | Planejada |
 | Etapa 7 (antiga v2.6) | Documentos: orçamento em seções, condições de pagamento e parcelas no contas a receber, grupos de itens, biblioteca de textos, espelho interno e DOCX. Espelho do cliente, campos de entrega e observação interna já entraram na v2.4 | Planejada |
 | Etapa 8 (antiga v2.7) | Gestão: assistente de precificação, dashboard modular com KPIs e metas de venda | Planejada |
@@ -702,4 +702,4 @@ O CRM ficou pronto em 02/11. A semana 3 passa a ter dashboard modular com KPIs e
 
 ## 14. Próximos passos imediatos
 
-A sequência está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
+A sequência está em [roteiro das etapas](00-roteiro-das-etapas.md).

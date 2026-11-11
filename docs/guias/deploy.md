@@ -34,7 +34,7 @@ Depois de uma nova migração, rode `npm run demo:setup -- --recriar` e atualize
    CREATE ROLE arandue_app LOGIN PASSWORD '<senha-forte>' NOINHERIT;
    ```
 
-5. Ainda no SQL Editor, rode [scripts/supabase-seguranca.sql](scripts/supabase-seguranca.sql).
+5. Ainda no SQL Editor, rode [scripts/supabase-seguranca.sql](../../scripts/supabase-seguranca.sql).
 6. Em **Advisors**, confira que não há alerta de segurança em aberto.
 
 Rode o passo 3 e depois o passo 5 a cada nova migração. A aplicação nunca altera a estrutura do banco.

@@ -1,6 +1,6 @@
 # Planejamento: histórico de alterações e novos orçamentos
 
-Plano de 04/11/2026, com as decisões da seção 5 aprovadas. Complementa o [PLANEJAMENTO_V2.md](PLANEJAMENTO_V2.md).
+Plano de 04/11/2026, com as decisões da seção 5 aprovadas. Complementa o [plano da v2](01-plano-v2.md).
 
 **Foco:** sistema geral para MEI. Os espelhos analisados vêm de uma empresa de mármores e granitos, então cada ideia foi generalizada para servir também a marceneiro, costureira, pintor, confeiteira e outros. O que só faz sentido para aquele setor ou para empresas maiores ficou de fora.
 

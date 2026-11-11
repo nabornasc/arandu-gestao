@@ -2,7 +2,7 @@
 
 Análise de 06/11/2026, feita a partir de 26 prints de um ERP de mercado voltado a marmorarias. **As etapas 1, 2 e 3 e o histórico do cliente, da etapa 4, foram feitos em 06/11/2026. As demais continuam guardadas, sem versão definida.**
 
-> **Ordem de trabalho:** a sequência atual está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md). Este arquivo guarda os detalhes.
+> **Ordem de trabalho:** a sequência atual está em [roteiro das etapas](00-roteiro-das-etapas.md). Este arquivo guarda os detalhes.
 
 Os prints têm dados reais de empresas e pessoas. Eles não entram no repositório, e este arquivo só registra a estrutura das telas.
 
@@ -48,7 +48,7 @@ Essa é a mudança com mais impacto, e as próximas dependem dela.
 | Alterar vencimento, valor e observação do título, com histórico | Parte existe na despesa | Com os títulos |
 | Fornecedor na despesa | A despesa tem só descrição e categoria | **Entra com os títulos.** Hoje o fornecedor fica no texto |
 | Lote de contas: lançar várias de uma vez | Não existe | Reaproveita a geração de parcelas da fase 5 |
-| Conta para categorização e natureza financeira | Categoria em texto livre | Depende de `PLANEJAMENTO_LISTAS.md` |
+| Conta para categorização e natureza financeira | Categoria em texto livre | Depende de `04-listas.md` |
 | Agrupar e renegociar títulos | Não existem | Depois. Ensina bem rastreio, mas é complexo |
 | Adiantamento, nota de crédito e nota de débito | Não existem | Depois da baixa simples |
 | E-mail de aviso de vencimento | Não existe | Depois. Depende de serviço de e-mail |
@@ -147,7 +147,7 @@ Segundo grupo de prints, também de 06/11/2026.
 
 ## 10. Ordem sugerida
 
-As etapas abaixo são as deste plano. A numeração e a ordem atuais estão em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
+As etapas abaixo são as deste plano. A numeração e a ordem atuais estão em [roteiro das etapas](00-roteiro-das-etapas.md).
 
 | Etapa | Conteúdo | Por quê |
 |---|---|---|

@@ -9,18 +9,18 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | Etapa | Conteúdo | Situação | Detalhes em |
 |---|---|---|---|
 | 1 | Fechar o que já está na `main` e resolver pendências pequenas | **Concluída em 07/11, v2.5.0** | Este arquivo |
-| 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Concluída em 07/11, em produção** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 7 e 9 |
-| 3 | Listas configuráveis e grupo do produto | **Concluída em 07/11** | [Listas](PLANEJAMENTO_LISTAS.md) |
-| 4 | Central de relatórios com exportação em CSV | **Concluída em 08/11** | [Relatórios](PLANEJAMENTO_RELATORIOS.md) |
-| 5 | Agenda: dia, semana, mês e lista | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seção 9 |
-| 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 7 |
-| 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
-| 8 | Gestão: precificação, dashboard modular e metas | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
-| 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
-| 10 | Assistente de IA: chat de ajuda e bot do Telegram | **Concluída em 10/11** (10a a 10e) | [IA](PLANEJAMENTO_IA.md) |
+| 2 | Estoque: mínimo com aviso, ajuste com motivo e unidade no produto | **Concluída em 07/11, em produção** | [Operações](06-operacoes.md), seções 7 e 9 |
+| 3 | Listas configuráveis e grupo do produto | **Concluída em 07/11** | [Listas](04-listas.md) |
+| 4 | Central de relatórios com exportação em CSV | **Concluída em 08/11** | [Relatórios](05-relatorios.md) |
+| 5 | Agenda: dia, semana, mês e lista | **Concluída em 08/11** | [Operações](06-operacoes.md), seção 9 |
+| 6 | Navegação: menu por módulos, cadastro rápido, paginação, busca e atalhos | **Concluída em 08/11** | [Plano da v2](01-plano-v2.md), seção 7 |
+| 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](01-plano-v2.md), seção 11 |
+| 8 | Gestão: precificação, dashboard modular e metas | **Concluída em 08/11** | [Plano da v2](01-plano-v2.md), seções 7.8 e 11 |
+| 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | **Concluída em 08/11** | [Operações](06-operacoes.md), seções 4, 9 e 10 |
+| 10 | Assistente de IA: chat de ajuda e bot do Telegram | **Concluída em 10/11** (10a a 10e) | [IA](08-assistente-ia.md) |
 | 11 | CRM como central: linha do tempo de todos os setores, rastreio dos pedidos e anexos (foto, vídeo, áudio, arquivo) | **Concluída em 11/11** | Esta tabela |
 
-**Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Ordem decidida pelo usuário em 08/11/2026: etapa 9 inteira, depois os manuais e, por último, a etapa 10 (IA e bot).
+**Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [plano dos manuais](07-manuais.md). Ordem decidida pelo usuário em 08/11/2026: etapa 9 inteira, depois os manuais e, por último, a etapa 10 (IA e bot).
 
 ## Por que esta ordem
 
@@ -109,7 +109,7 @@ Em quatro partes:
 
 ### Etapa 10: assistente de IA
 
-Plano completo em [PLANEJAMENTO_IA.md](PLANEJAMENTO_IA.md): Claude Haiku 5.5 direto pela API da Anthropic, cota de R$ 200 por empresa por mês, manual inteiro em cache (sem RAG), ferramentas só de consulta e depois ações com confirmação, chat no sistema e bot do Telegram. Fases 10a a 10e.
+Plano completo em [plano do assistente de IA](08-assistente-ia.md): Claude Haiku 5.5 direto pela API da Anthropic, cota de R$ 200 por empresa por mês, manual inteiro em cache (sem RAG), ferramentas só de consulta e depois ações com confirmação, chat no sistema e bot do Telegram. Fases 10a a 10e.
 
 ## Fora da sequência
 
@@ -121,7 +121,7 @@ Plano completo em [PLANEJAMENTO_IA.md](PLANEJAMENTO_IA.md): Claude Haiku 5.5 dir
 
 **Fora do escopo de estudo:** emissão real de NF-e e NFS-e, boleto e retorno bancário, ordem de produção, centro de custo separado e os demais itens marcados como fora nos planos de operações, relatórios e listas.
 
-**Só referência:** `PLANEJAMENTO_ESCALABILIDADE.md` descreve a evolução para um SaaS comercial, e o projeto não será vendido.
+**Só referência:** `02-escalabilidade.md` descreve a evolução para um SaaS comercial, e o projeto não será vendido.
 
 ## Decisões pendentes
 

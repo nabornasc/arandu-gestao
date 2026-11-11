@@ -1,6 +1,6 @@
 # Changelog
 
-Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das próximas versões está no [PLANEJAMENTO_V2.md](PLANEJAMENTO_V2.md) (seção 11).
+Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das próximas versões está no [plano da v2](docs/planejamento/01-plano-v2.md) (seção 11).
 
 ## [Não lançado]
 
@@ -81,7 +81,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - **Custo fixado no envio:** mudar o custo do produto depois não altera a margem de um orçamento já enviado.
 - **Baixa parcial e em lote:** várias contas a receber de uma vez, com juros e desconto. O estorno exige a permissão `receivables.reverse`, a senha de login e o motivo, e o mesmo vale para cancelar, excluir ou voltar para pendente um pedido com baixa.
 - **Ficha do cliente:** CRM, documentos e financeiro do cliente em uma tela, com dívida, limite e pontualidade. Todo atendimento registrado nela fica em uma oportunidade do CRM.
-- **`PLANEJAMENTO_ETAPAS.md`:** a ordem de trabalho em etapas, fonte única para as duas estações.
+- **`docs/planejamento/00-roteiro-das-etapas.md`:** a ordem de trabalho em etapas, fonte única para as duas estações.
 
 ### Alterado
 

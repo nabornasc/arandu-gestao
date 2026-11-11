@@ -38,8 +38,15 @@ export function Topbar({ title, profile, onMenu, onSearch, onHelp, onAssistant }
       </div>
 
       <div className="topbar-actions">
-        <button type="button" className="button secondary topbar-search" onClick={onSearch}>
-          <Search size={15} aria-hidden="true" /> Buscar <kbd>Ctrl+K</kbd>
+        {/* No celular, os rótulos somem e ficam só os ícones; o aria-label mantém o nome do botão. */}
+        <button
+          type="button"
+          className="button secondary topbar-search"
+          onClick={onSearch}
+          aria-label="Buscar (Ctrl+K)"
+        >
+          <Search size={15} aria-hidden="true" /> <span className="topbar-label">Buscar</span>{' '}
+          <kbd>Ctrl+K</kbd>
         </button>
         {can(profile, 'assistant.use') && (
           <button
@@ -81,10 +88,11 @@ export function Topbar({ title, profile, onMenu, onSearch, onHelp, onAssistant }
         <button
           type="button"
           className="logout"
+          aria-label="Sair"
           disabled={logout.isPending}
           onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/login', { replace: true }) })}
         >
-          <LogOut size={14} aria-hidden="true" /> Sair
+          <LogOut size={14} aria-hidden="true" /> <span className="topbar-label">Sair</span>
         </button>
       </div>
       {profileOpen && <ProfileModal profile={profile} onClose={() => setProfileOpen(false)} />}

@@ -1,6 +1,6 @@
 # Planejamento dos manuais de uso
 
-Manuais do Arandu Gestão com texto explicativo e mídia curta mostrando a ação: vídeos de poucos segundos e, quando servir melhor, GIFs ou imagens com destaque. Este arquivo define formato, ferramenta, conteúdo e ordem. A ordem geral do trabalho continua em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
+Manuais do Arandu Gestão com texto explicativo e mídia curta mostrando a ação: vídeos de poucos segundos e, quando servir melhor, GIFs ou imagens com destaque. Este arquivo define formato, ferramenta, conteúdo e ordem. A ordem geral do trabalho continua em [roteiro das etapas](00-roteiro-das-etapas.md).
 
 ## 1. Objetivo
 

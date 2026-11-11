@@ -2,7 +2,7 @@
 
 Análise de 05/11/2026, feita a partir de prints do menu "Listas" de um ERP de mercado. **Guardada para depois: nada aqui foi implementado nem tem versão definida.**
 
-> **Ordem de trabalho:** a sequência atual está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md). Este arquivo guarda os detalhes.
+> **Ordem de trabalho:** a sequência atual está em [roteiro das etapas](00-roteiro-das-etapas.md). Este arquivo guarda os detalhes.
 
 Os prints mostram 40 listas. Pode faltar alguma entre "Histórico financeiro" e "Indicações", porque esse trecho da rolagem não aparece com certeza. O conteúdo de cada lista foi deduzido pelo nome.
 
@@ -85,5 +85,5 @@ Hoje a empresa não consegue ajustar esses valores. Parte tem sugestões fixas n
 
 ## 7. Decisões em aberto
 
-- Entra na etapa 3 de [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md), antes dos relatórios, porque filtros por categoria e forma de pagamento dependem de dados padronizados.
+- Entra na etapa 3 de [roteiro das etapas](00-roteiro-das-etapas.md), antes dos relatórios, porque filtros por categoria e forma de pagamento dependem de dados padronizados.
 - Decidido em 07/11/2026: o campo sugere os valores da lista e aceita digitar outro.

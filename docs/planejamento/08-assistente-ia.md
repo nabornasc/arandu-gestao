@@ -1,6 +1,6 @@
 # Planejamento: assistente de IA (etapa 10)
 
-Assistente dentro do sistema e no Telegram, com consumo controlado por empresa. Este arquivo substitui a seção 10 do [PLANEJAMENTO_V2.md](PLANEJAMENTO_V2.md). A ordem geral continua em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
+Assistente dentro do sistema e no Telegram, com consumo controlado por empresa. Este arquivo substitui a seção 10 do [plano da v2](01-plano-v2.md). A ordem geral continua em [roteiro das etapas](00-roteiro-das-etapas.md).
 
 ## 1. Decisões (09/11/2026)
 

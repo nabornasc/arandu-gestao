@@ -6,7 +6,7 @@ Desenvolvido em alinhamento ao **ODS 1 — Erradicação da Pobreza**, com foco 
 
 > **[Demonstração no ar](https://arandu-gestao.vercel.app).** Entre com `dono@conveniencia.test` e a senha `senha-demo-123`. Os dados são fictícios e compartilhados, e voltam ao padrão às 00h e às 12h de Cuiabá.
 >
-> **Versão 2 em evolução.** A v1 (monousuário, MySQL) está preservada na tag `v1.0.0`. O andamento da v2 segue o [PLANEJAMENTO_V2.md](PLANEJAMENTO_V2.md).
+> **Projeto concluído: etapas 1 a 11.** A v1 (monousuário, MySQL) está preservada na tag `v1.0.0`. A documentação, com os planos numerados na ordem em que foram feitos, está em [docs/](docs/README.md).
 
 ## Índice
 
@@ -21,7 +21,7 @@ Desenvolvido em alinhamento ao **ODS 1 — Erradicação da Pobreza**, com foco 
 - [Regras de negócio](#regras-de-negócio)
 - [Testes](#testes)
 - [Estrutura do projeto](#estrutura-do-projeto)
-- [Publicação](DEPLOY.md)
+- [Publicação](docs/guias/deploy.md)
 - [Solução de problemas](#solução-de-problemas)
 - [Planejamento](#planejamento)
 - [Licença](#licença)
@@ -85,9 +85,9 @@ Desenvolvido em alinhamento ao **ODS 1 — Erradicação da Pobreza**, com foco 
 - **Motivo obrigatório** ao recusar orçamento e ao cancelar orçamento ou pedido.
 - Orçamento enviado ou aprovado é **cancelado** em vez de excluído; só rascunhos são excluídos. Documento excluído continua consultável no histórico.
 
-O plano completo está em [PLANEJAMENTO_ORCAMENTOS_HISTORICO.md](PLANEJAMENTO_ORCAMENTOS_HISTORICO.md).
+O plano completo está em [plano de orçamentos e histórico](docs/planejamento/03-orcamentos-e-historico.md).
 
-- **Publicada** na Vercel e no Supabase, em São Paulo, como demonstração que volta aos dados padrão a cada 12 horas ([guia](DEPLOY.md)).
+- **Publicada** na Vercel e no Supabase, em São Paulo, como demonstração que volta aos dados padrão a cada 12 horas ([guia](docs/guias/deploy.md)).
 
 **v2.4 — Espelho do cliente e reabertura de orçamento:**
 
@@ -103,7 +103,7 @@ O plano completo está em [PLANEJAMENTO_ORCAMENTOS_HISTORICO.md](PLANEJAMENTO_OR
 - **Contas a receber por parcela**, com baixa parcial e em lote, juros, desconto e estorno com senha e motivo.
 - **Filtros, totais e impressão** nas listas, e **ficha do cliente** ligada ao CRM.
 
-**Próximos passos:** a sequência está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
+**Etapas:** a sequência completa, com a situação de cada uma, está no [roteiro das etapas](docs/planejamento/00-roteiro-das-etapas.md).
 
 ## Tecnologias
 
@@ -166,7 +166,7 @@ Navegador ──> React (Vite) ──/api──> Fastify
                                  PostgreSQL (company_id em toda tabela de negócio)
 ```
 
-Toda função de serviço recebe o contexto de quem está agindo, verifica a permissão do grupo de acesso (`authorize(ctx, 'quotes.approve')`, catálogo em `packages/shared/src/permissions.ts`) e filtra pela empresa (e pelo criador, em grupos restritos aos próprios registros). É a mesma camada que o assistente de IA e o bot do Telegram vão usar na semana 4.
+Toda função de serviço recebe o contexto de quem está agindo, verifica a permissão do grupo de acesso (`authorize(ctx, 'quotes.approve')`, catálogo em `packages/shared/src/permissions.ts`) e filtra pela empresa (e pelo criador, em grupos restritos aos próprios registros). É a mesma camada que o assistente de IA e o bot do Telegram usam: eles consultam e gravam só o que o usuário já pode na tela.
 
 ## Segurança
 
@@ -276,24 +276,27 @@ Eles não tocam no banco de desenvolvimento, mas precisam do PostgreSQL ativo e 
 │   ├── pages/                  # Telas (carregadas sob demanda)
 │   └── styles.css
 ├── compose.yaml                # PostgreSQL local
-├── PLANEJAMENTO_ETAPAS.md      # Ordem de trabalho: fonte única da sequência
-├── PLANEJAMENTO_V2.md          # Plano da versão 2 (4 semanas)
-└── PLANEJAMENTO_ESCALABILIDADE.md
+├── docs/
+│   ├── README.md               # Índice da documentação
+│   ├── planejamento/           # Planos numerados na ordem em que foram feitos (00 é o roteiro)
+│   ├── guias/                  # Publicação (deploy) e ambiente local
+│   └── manual/                 # Manual do usuário (central de ajuda e assistente)
+├── README.md, CHANGELOG.md, LICENSE
 ```
 
 ## Solução de problemas
 
 - **`ECONNREFUSED` ao rodar migrações ou testes:** o Postgres não está ativo. Rode `npm run db:up` e confira com `docker compose ps`.
-- **Docker indisponível (Windows):** instale o PostgreSQL 17 nativo. Os comandos estão em [RECOMENDACOES_AMBIENTE_LOCAL.md](RECOMENDACOES_AMBIENTE_LOCAL.md).
+- **Docker indisponível (Windows):** instale o PostgreSQL 17 nativo. Os comandos estão em [guia do ambiente local](docs/guias/ambiente-local.md).
 - **Porta 5432 ocupada:** outro Postgres está rodando na máquina. Pare-o ou mude a porta em `compose.yaml` e em `backend/.env`.
 - **Volume antigo sem o banco de testes:** o banco `arandue_test` só é criado na primeira inicialização do volume. Recrie com `docker compose down -v && npm run db:up` (isso apaga os dados locais).
 - **401 em todas as telas:** a sessão expirou ou o banco foi recriado pelo seed. Faça login de novo.
 
 ## Planejamento
 
-- [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md): sequência de trabalho em etapas e decisões pendentes.
-- [PLANEJAMENTO_V2.md](PLANEJAMENTO_V2.md): escopo, stack, cronograma e riscos da versão 2.
-- [PLANEJAMENTO_ESCALABILIDADE.md](PLANEJAMENTO_ESCALABILIDADE.md): evolução de longo prazo para um SaaS comercial.
+- [roteiro das etapas](docs/planejamento/00-roteiro-das-etapas.md): sequência de trabalho em etapas e decisões pendentes.
+- [plano da v2](docs/planejamento/01-plano-v2.md): escopo, stack, cronograma e riscos da versão 2.
+- [plano de escalabilidade](docs/planejamento/02-escalabilidade.md): evolução de longo prazo para um SaaS comercial.
 
 ## Licença
 

@@ -2,7 +2,7 @@
 
 Análise de 05/11/2026, feita a partir de três prints do menu de relatórios de um ERP de mercado. **Guardada para depois: nada aqui foi implementado nem tem versão definida.**
 
-> **Ordem de trabalho:** a sequência atual está em [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md). Este arquivo guarda os detalhes.
+> **Ordem de trabalho:** a sequência atual está em [roteiro das etapas](00-roteiro-das-etapas.md). Este arquivo guarda os detalhes.
 
 Hoje o projeto tem o dashboard, o histórico geral e as listas de cada módulo, mas não tem uma tela de relatórios nem exportação em CSV ou Excel.
 
@@ -76,5 +76,5 @@ Ficam de fora por exigirem controle de fábrica ou por terem pouco uso em um sis
 
 ## 7. Decisões em aberto
 
-- Entra na etapa 4 de [PLANEJAMENTO_ETAPAS.md](PLANEJAMENTO_ETAPAS.md).
+- Entra na etapa 4 de [roteiro das etapas](00-roteiro-das-etapas.md).
 - Decidido em 08/11/2026: a exportação tem permissão própria, `reports.export`.
