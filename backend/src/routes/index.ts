@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/client.ts';
 import { badRequest, notFound } from '../lib/errors.ts';
+import { localStorage } from '../lib/storage.ts';
 import { ctxOf, requireAuth } from '../plugins/auth.ts';
 import * as accessGroups from '../services/accessGroups.ts';
 import * as advances from '../services/advances.ts';
@@ -13,6 +14,7 @@ import * as assistant from '../services/assistant/index.ts';
 import * as bankAccounts from '../services/bankAccounts.ts';
 import * as company from '../services/company.ts';
 import * as copies from '../services/copies.ts';
+import * as crm from '../services/crm.ts';
 import { getCustomerFile } from '../services/customerFile.ts';
 import * as customers from '../services/customers.ts';
 import { getDashboard } from '../services/dashboard.ts';
@@ -43,6 +45,7 @@ import * as transactions from '../services/transactions.ts';
 import * as users from '../services/users.ts';
 import { authRoutes } from './auth.ts';
 import { crudRoutes } from './crud.ts';
+import { localStorageRoutes } from './storage.ts';
 
 export async function apiRoutes(app: FastifyInstance): Promise<void> {
   app.get('/health', async () => {
@@ -60,6 +63,10 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
   });
 
   await app.register(authRoutes);
+
+  // Armazenamento local dos anexos (desenvolvimento e testes). Em produção, os arquivos vão direto ao
+  // Supabase Storage e estas rotas não existem. A assinatura na URL substitui a sessão, como no Supabase.
+  if (localStorage()) await app.register(localStorageRoutes);
 
   // Tudo abaixo exige sessão válida.
   await app.register(async (protectedApp) => {
@@ -326,6 +333,24 @@ export async function apiRoutes(app: FastifyInstance): Promise<void> {
       '/opportunities/:id/interactions',
       created((r, id) => opportunities.addInteraction(ctxOf(r), id, r.body as never)),
     );
+    // CRM como ponto de partida: linha do tempo de todos os setores e anexos da oportunidade.
+    protectedApp.get('/opportunities/:id/timeline', (request) =>
+      crm.getOpportunityTimeline(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
+    protectedApp.get('/opportunities/:id/attachments', (request) =>
+      crm.listAttachments(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
+    protectedApp.post(
+      '/opportunities/:id/attachments',
+      created((r, id) => crm.createAttachmentUpload(ctxOf(r), id, r.body as never)),
+    );
+    protectedApp.post('/attachments/:id/complete', (request) =>
+      crm.completeAttachment(ctxOf(request), idParamSchema.parse(request.params).id),
+    );
+    protectedApp.delete('/attachments/:id', async (request, reply) => {
+      await crm.deleteAttachment(ctxOf(request), idParamSchema.parse(request.params).id);
+      reply.status(204);
+    });
 
     protectedApp.get('/pipeline-stages', (request) => pipeline.listStages(ctxOf(request)));
     protectedApp.post('/pipeline-stages', async (request, reply) => {

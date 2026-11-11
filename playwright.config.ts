@@ -53,6 +53,10 @@ export default defineConfig({
         // O backend lê o backend/.env: vazio aqui desliga o bot real do Telegram nos testes.
         TELEGRAM_BOT_TOKEN: '',
         TELEGRAM_WEBHOOK_SECRET: '',
+        // Anexos no disco, numa pasta só do e2e, mesmo com o Supabase no .env.
+        SUPABASE_URL: '',
+        SUPABASE_SERVICE_ROLE_KEY: '',
+        UPLOADS_DIR: '.uploads-e2e',
       },
     },
     {

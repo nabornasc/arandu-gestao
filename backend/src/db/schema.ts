@@ -984,3 +984,26 @@ export const aiPendingActions = pgTable(
   },
   (t) => [index().on(t.userId, t.status), index().on(t.createdAt)],
 );
+
+// Anexos do CRM: fotos, vídeos, áudios e arquivos de uma oportunidade. O arquivo fica no armazenamento
+// (lib/storage.ts); aqui, só os dados. "pending" até o navegador terminar o envio.
+export const attachments = pgTable(
+  'attachments',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    companyId: companyId(),
+    opportunityId: integer()
+      .notNull()
+      .references(() => opportunities.id, { onDelete: 'cascade' }),
+    userId: integer().references(() => users.id, { onDelete: 'set null' }),
+    // image, video, audio ou file.
+    kind: varchar({ length: 10 }).notNull(),
+    name: varchar({ length: 200 }).notNull(),
+    mimeType: varchar({ length: 120 }).notNull(),
+    sizeBytes: integer().notNull(),
+    storageKey: varchar({ length: 300 }).notNull().unique(),
+    status: varchar({ length: 10 }).notNull().default('pending'),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.opportunityId, t.createdAt), index().on(t.companyId, t.status)],
+);

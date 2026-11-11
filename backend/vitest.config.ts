@@ -17,6 +17,10 @@ export default defineConfig({
       // O bot recebe updates simulados; as chamadas à API do Telegram são interceptadas nos testes.
       TELEGRAM_BOT_TOKEN: '123456:token-de-teste',
       TELEGRAM_WEBHOOK_SECRET: 'segredo-de-teste-do-webhook',
+      // Anexos no disco, numa pasta só dos testes (nunca o Supabase).
+      SUPABASE_URL: '',
+      SUPABASE_SERVICE_ROLE_KEY: '',
+      UPLOADS_DIR: '.uploads-test',
     },
   },
 });

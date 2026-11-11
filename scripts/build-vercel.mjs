@@ -55,13 +55,19 @@ writeFileSync(
   }),
 );
 
+// Anexos do CRM: o navegador envia e mostra os arquivos direto do Supabase Storage (URLs assinadas).
+const storageOrigin = process.env.SUPABASE_URL
+  ? new URL(process.env.SUPABASE_URL).origin
+  : 'https://*.supabase.co';
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   'font-src https://fonts.gstatic.com',
-  "img-src 'self' data:",
-  "connect-src 'self' https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io",
+  `img-src 'self' data: ${storageOrigin}`,
+  `media-src 'self' ${storageOrigin}`,
+  `connect-src 'self' ${storageOrigin} https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io`,
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",

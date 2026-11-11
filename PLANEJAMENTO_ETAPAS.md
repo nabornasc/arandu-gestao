@@ -17,7 +17,8 @@ Nada aqui tem data. Uma etapa só começa com pedido do dono do projeto, e a ord
 | 7 | Restante dos documentos | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seção 11 |
 | 8 | Gestão: precificação, dashboard modular e metas | **Concluída em 08/11** | [Plano da v2](PLANEJAMENTO_V2.md), seções 7.8 e 11 |
 | 9 | Operações opcionais: compras, entrega, baixa em contas a pagar e renegociação | **Concluída em 08/11** | [Operações](PLANEJAMENTO_OPERACOES.md), seções 4, 9 e 10 |
-| 10 | Assistente de IA: chat de ajuda e bot do Telegram | Planejada (replanejada em 09/11) | [IA](PLANEJAMENTO_IA.md) |
+| 10 | Assistente de IA: chat de ajuda e bot do Telegram | **Concluída em 10/11** (10a a 10e) | [IA](PLANEJAMENTO_IA.md) |
+| 11 | CRM como central: linha do tempo de todos os setores, rastreio dos pedidos e anexos (foto, vídeo, áudio, arquivo) | **Concluída em 11/11** | Esta tabela |
 
 **Manuais de uso**, com texto e vídeos curtos gerados por roteiro: planejados em [PLANEJAMENTO_MANUAIS.md](PLANEJAMENTO_MANUAIS.md). Ordem decidida pelo usuário em 08/11/2026: etapa 9 inteira, depois os manuais e, por último, a etapa 10 (IA e bot).
 

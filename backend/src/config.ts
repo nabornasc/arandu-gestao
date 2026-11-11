@@ -27,6 +27,16 @@ const envSchema = z.object({
       .regex(/^[A-Za-z0-9_-]{16,256}$/, 'Use de 16 a 256 letras, números, _ ou -')
       .optional(),
   ),
+  // Anexos do CRM (fotos, vídeos, áudios e arquivos). Em produção, no Supabase Storage: o navegador envia
+  // direto para lá (a Vercel aceita só 4,5 MB por requisição). Sem as duas variáveis, em desenvolvimento e
+  // nos testes os arquivos ficam no disco (UPLOADS_DIR); em produção, os anexos ficam indisponíveis.
+  SUPABASE_URL: z.preprocess(emptyAsUndefined, z.url().optional()),
+  SUPABASE_SERVICE_ROLE_KEY: z.preprocess(emptyAsUndefined, z.string().optional()),
+  STORAGE_BUCKET: z.string().default('anexos'),
+  UPLOADS_DIR: z.string().default('.uploads'),
+  // Tamanho máximo de um arquivo e total por empresa, em MB.
+  ATTACHMENT_MAX_MB: z.coerce.number().positive().default(50),
+  ATTACHMENTS_COMPANY_MAX_MB: z.coerce.number().positive().default(300),
   ALLOWED_ORIGINS: z
     .string()
     .default('http://localhost:5173')

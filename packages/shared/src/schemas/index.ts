@@ -912,3 +912,33 @@ export const assistantQuotaSchema = z.object({
   quotaBrl: z.coerce.number({ message: 'Informe a cota.' }).min(0, 'A cota não pode ser negativa.'),
 });
 export type AssistantQuotaInput = z.input<typeof assistantQuotaSchema>;
+
+// Anexos do CRM: o navegador informa o arquivo e recebe a URL para enviar direto ao armazenamento.
+export const ATTACHMENT_EXTRA_TYPES = [
+  'application/pdf',
+  'text/plain',
+  'text/csv',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+] as const;
+export const attachmentAllowed = (mimeType: string) =>
+  /^(image|video|audio)\/[a-z0-9.+-]+$/i.test(mimeType) ||
+  (ATTACHMENT_EXTRA_TYPES as readonly string[]).includes(mimeType);
+export const attachmentCreateSchema = z.object({
+  name: requiredText(200, 'Informe o nome do arquivo'),
+  mimeType: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(120)
+    .refine(
+      attachmentAllowed,
+      'Tipo de arquivo não aceito. Envie foto, vídeo, áudio, PDF, texto ou planilha.',
+    ),
+  size: z.number().int().positive('Arquivo vazio.'),
+});
+export type AttachmentCreateInput = z.input<typeof attachmentCreateSchema>;

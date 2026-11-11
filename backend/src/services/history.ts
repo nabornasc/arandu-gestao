@@ -7,7 +7,7 @@ import {
   type Permission,
 } from '@arandue/shared/permissions';
 import { type HistoryFilterInput, historyFilterSchema } from '@arandue/shared/schemas';
-import { and, asc, desc, eq, gte, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { db } from '../db/client.ts';
 import { auditLogs, orders, quotes, users } from '../db/schema.ts';
 import type { FieldChange, ItemChange } from '../lib/changes.ts';
@@ -545,4 +545,23 @@ export async function historyFilterOptions(ctx: Ctx) {
     .where(eq(users.companyId, ctx.companyId))
     .orderBy(asc(users.name));
   return { actors, modules: [...new Set(Object.values(ENTITIES).map((info) => info.module))] };
+}
+
+// Histórico de vários documentos de uma vez, para a linha do tempo da oportunidade no CRM. Quem chama já
+// filtrou os documentos que o usuário pode ver.
+export async function documentsHistory(ctx: Ctx, type: DocType, ids: number[]) {
+  if (!ids.length) return [];
+  const rows = await db
+    .select()
+    .from(auditLogs)
+    .where(
+      and(
+        eq(auditLogs.companyId, ctx.companyId),
+        eq(auditLogs.entity, type),
+        inArray(auditLogs.entityId, ids),
+      ),
+    )
+    .orderBy(desc(auditLogs.createdAt), desc(auditLogs.id))
+    .limit(300);
+  return rows.map((row) => ({ ...summaryOf(row), entityId: row.entityId ?? 0, action: row.action }));
 }

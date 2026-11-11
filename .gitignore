@@ -9,3 +9,6 @@ test-results/
 playwright-report/
 .omc/
 
+.uploads/
+.uploads-test/
+.uploads-e2e/

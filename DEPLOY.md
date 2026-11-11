@@ -66,6 +66,9 @@ NODE_ENV=development DATABASE_URL="<conexão do postgres>?sslmode=require" node 
    | `AI_USD_BRL` | Opcional: cotação do dólar usada no custo em reais. Padrão `5.5` |
    | `AI_PLATFORM_MONTHLY_BRL` | Opcional: teto do mês do assistente, somando todas as empresas. Padrão `1000` |
    | `AI_COMPANY_MAX_QUOTA_BRL` | Opcional: maior limite mensal que cada empresa pode escolher em Configurações. Padrão `200` |
+   | `SUPABASE_URL` | Anexos do CRM: endereço do projeto Supabase (`https://<projeto>.supabase.co`). Também usado no build, na CSP |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Anexos do CRM: chave secreta do projeto (Settings > API Keys). Só no servidor; sem ela, os anexos ficam indisponíveis em produção |
+   | `ATTACHMENT_MAX_MB` / `ATTACHMENTS_COMPANY_MAX_MB` | Opcional: limite por arquivo e por empresa, em MB. Padrão `50` e `300` |
 
 3. Faça o deploy e abra `/api/health`. A resposta esperada é `{"status":"ok"}`.
 

@@ -260,6 +260,13 @@
       "when": 1794345074027,
       "tag": "0036_assistente_acoes",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794396870716,
+      "tag": "0037_crm_anexos",
+      "breakpoints": true
     }
   ]
 }

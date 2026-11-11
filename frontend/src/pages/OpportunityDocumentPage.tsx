@@ -9,14 +9,17 @@ import { CustomerSelect } from '../components/DocumentParts.tsx';
 import { EmptyState } from '../components/EmptyState.tsx';
 import { ItemLines, type Line, linesToItems, newLine, type Product } from '../components/ItemLines.tsx';
 import { ListSuggestions } from '../components/ListSuggestions.tsx';
+import {
+  OpportunityAttachments,
+  OpportunityTimeline,
+  OpportunityTracking,
+} from '../components/OpportunityCenter.tsx';
 import { useToast } from '../components/Toast.tsx';
 import { api } from '../lib/api.ts';
 import { can, useProfile } from '../lib/auth.ts';
 import { type OpportunityDetail, useOpportunity, useStages } from '../lib/documents.ts';
-import { formatCode, formatDate, formatMoney, label, todayIso } from '../lib/format.ts';
+import { formatDate, formatMoney, label, todayIso } from '../lib/format.ts';
 import { useTab, useTabDirty, useTabTitle } from '../workspace/tab.ts';
-
-const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
 // Tela da oportunidade: etapas, resumo de valores, dados, atividades e documentos vinculados.
 export default function OpportunityDocumentPage() {
@@ -385,52 +388,12 @@ function OpportunityEditor({
         )}
       </form>
 
-      {opportunity && <LinkedDocuments opportunity={opportunity} />}
+      {opportunity && <OpportunityTracking id={opportunity.id} />}
       {opportunity && <Activities opportunity={opportunity} canAdd={can(profile, 'opportunities.update')} />}
+      {opportunity && (
+        <OpportunityAttachments id={opportunity.id} canEdit={can(profile, 'opportunities.update')} />
+      )}
     </section>
-  );
-}
-
-function LinkedDocuments({ opportunity }: { opportunity: OpportunityDetail }) {
-  if (!opportunity.quotes.length && !opportunity.orders.length) return null;
-  return (
-    <div className="panel linked-docs">
-      <h3>Documentos vinculados</h3>
-      <div className="linked-columns">
-        <section aria-label="Orçamentos">
-          <h4>Orçamentos</h4>
-          {opportunity.quotes.length ? (
-            <ul>
-              {opportunity.quotes.map((quote) => (
-                <li key={quote.id}>
-                  <Link to={`/orcamentos/${quote.id}`}>{formatCode(quote.number)}</Link>
-                  <span className={`status ${quote.status}`}>{label(quote.status)}</span>
-                  <strong>{formatMoney(quote.total)}</strong>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted">Nenhum.</p>
-          )}
-        </section>
-        <section aria-label="Pedidos">
-          <h4>Pedidos</h4>
-          {opportunity.orders.length ? (
-            <ul>
-              {opportunity.orders.map((order) => (
-                <li key={order.id}>
-                  <Link to={`/pedidos/${order.id}`}>{formatCode(order.number)}</Link>
-                  <span className={`status ${order.status}`}>{label(order.status)}</span>
-                  <strong>{formatMoney(order.total)}</strong>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted">Nenhum.</p>
-          )}
-        </section>
-      </div>
-    </div>
   );
 }
 
@@ -464,7 +427,11 @@ function Activities({ opportunity, canAdd }: { opportunity: OpportunityDetail; c
 
   return (
     <div className="panel interactions">
-      <h3>Histórico</h3>
+      <h3>Linha do tempo</h3>
+      <p className="muted">
+        Atendimentos, orçamentos, pedidos, recebimentos e anexos desta oportunidade, do mais novo ao mais
+        antigo.
+      </p>
       {canAdd && (
         <form className="interaction-form" onSubmit={submit} noValidate>
           <select
@@ -509,23 +476,7 @@ function Activities({ opportunity, canAdd }: { opportunity: OpportunityDetail; c
           {error}
         </p>
       )}
-      {opportunity.interactions.length ? (
-        <ol className="timeline">
-          {opportunity.interactions.map((item) => (
-            <li key={item.id} className={item.kind === 'event' ? 'timeline-event' : undefined}>
-              <strong>{label(item.kind)}</strong>
-              <small className="muted">
-                {dateTime.format(new Date(item.occurredAt))}
-                {item.userName && ` · ${item.userName}`}
-                {item.kind !== 'event' && ` · ${label(item.channel)}`}
-              </small>
-              <p>{item.description}</p>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <p className="muted">Nenhuma atividade registrada ainda.</p>
-      )}
+      <OpportunityTimeline id={opportunity.id} />
     </div>
   );
 }
