@@ -3437,3 +3437,9 @@ a.nav-label.active {
     align-items: stretch;
   }
 }
+
+/* Texto de apoio da linha do tempo, no tamanho do texto dos painéis. */
+.timeline-hint {
+  margin: -4px 0 12px;
+  font-size: 12px;
+}

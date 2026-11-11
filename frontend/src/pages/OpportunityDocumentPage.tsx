@@ -428,7 +428,7 @@ function Activities({ opportunity, canAdd }: { opportunity: OpportunityDetail; c
   return (
     <div className="panel interactions">
       <h3>Linha do tempo</h3>
-      <p className="muted">
+      <p className="muted timeline-hint">
         Atendimentos, orçamentos, pedidos, recebimentos e anexos desta oportunidade, do mais novo ao mais
         antigo.
       </p>
