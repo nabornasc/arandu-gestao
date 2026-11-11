@@ -1,6 +1,7 @@
 {
   "name": "arandue",
   "private": true,
+  "license": "MIT",
   "version": "2.5.0",
   "type": "module",
   "engines": {

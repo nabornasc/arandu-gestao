@@ -1,6 +1,7 @@
 {
   "name": "@arandue/backend",
   "private": true,
+  "license": "MIT",
   "version": "2.5.0",
   "type": "module",
   "scripts": {
