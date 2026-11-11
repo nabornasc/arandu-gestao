@@ -12,7 +12,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -42,10 +42,10 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      # Só o navegador: a imagem ubuntu-latest já traz as bibliotecas do Chromium.
+      # Sem `install-deps`, porque o apt do runner fica sem DNS e travava o job
+      # antes de o e2e terminar.
       - run: npx playwright install chromium
-      # O apt do runner às vezes fica sem DNS. A imagem já traz as bibliotecas do Chromium,
-      # então a falha (ou 2 min de espera) vira aviso; se faltar alguma, o e2e acusa ao abrir o navegador.
-      - run: timeout -k 10 120 npx playwright install-deps chromium || echo "::warning::apt indisponível; usando as bibliotecas da imagem"
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
