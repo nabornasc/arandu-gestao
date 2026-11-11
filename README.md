@@ -301,3 +301,5 @@ Eles não tocam no banco de desenvolvimento, mas precisam do PostgreSQL ativo e 
 ## Licença
 
 Distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE).
+
+A licença cobre o código. O nome e o logo "Arandu Gestão", os vídeos e as imagens do manual e os textos da documentação não estão sob a MIT: todos os direitos reservados.
