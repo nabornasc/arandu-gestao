@@ -168,6 +168,27 @@ describe('bot do Telegram', () => {
     expect((await member.get('/telegram/link')).body.linked).toBe(false);
   });
 
+  it('códigos errados em paralelo não furam o limite de 5', async () => {
+    const chat = nextChat++;
+    const attempt = () =>
+      webhook({
+        update_id: updateId++,
+        message: {
+          message_id: updateId,
+          date: Math.floor(Date.now() / 1000),
+          chat: { id: chat, type: 'private', first_name: 'Ana' },
+          from: { id: chat, is_bot: false, first_name: 'Ana' },
+          text: '/vincular 000000',
+          entities: [{ type: 'bot_command', offset: 0, length: 9 }],
+        },
+      });
+    calls = [];
+    await Promise.all(Array.from({ length: 10 }, attempt));
+    const answers = replies();
+    expect(answers.filter((text) => /inválido ou vencido/.test(text))).toHaveLength(5);
+    expect(answers.filter((text) => /Muitas tentativas/.test(text))).toHaveLength(5);
+  });
+
   it('código vencido não vincula', async () => {
     const member = await addMember(app, owner, 'seller');
     const created = await member.post('/telegram/link');

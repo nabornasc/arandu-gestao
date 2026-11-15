@@ -8,7 +8,7 @@ import {
 } from '@arandue/shared/schemas';
 import { and, eq, gte, sql } from 'drizzle-orm';
 import { config } from '../../config.ts';
-import { db } from '../../db/client.ts';
+import { type DbOrTx, db } from '../../db/client.ts';
 import { aiUsage, companies, users } from '../../db/schema.ts';
 import { authorize, type Ctx } from '../../lib/context.ts';
 import { AppError, notFound } from '../../lib/errors.ts';
@@ -51,14 +51,54 @@ ${MANUAL_TEXT}
 const monthStart = () =>
   sql`date_trunc('month', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo'`;
 
-async function spentThisMonth(companyId?: number) {
-  const [row] = await db
+async function spentThisMonth(companyId?: number, executor: DbOrTx = db) {
+  const [row] = await executor
     .select({ total: sql<number>`coalesce(sum(${aiUsage.costBrl}), 0)`.mapWith(Number) })
     .from(aiUsage)
     .where(
       and(gte(aiUsage.createdAt, monthStart()), companyId ? eq(aiUsage.companyId, companyId) : undefined),
     );
   return row?.total ?? 0;
+}
+
+// Reserva do custo antes de chamar a IA. A conferência da cota e a gravação da reserva acontecem com a
+// mesma trava (advisory lock, só durante esta transação curta), então perguntas simultâneas, em qualquer
+// instância, enxergam as reservas umas das outras. Sem isso, todas liam o gasto antes de qualquer gravação
+// e estouravam a cota juntas. O valor reservado é a média das últimas perguntas da empresa (com um piso);
+// depois da resposta, a reserva vira o custo real.
+const QUOTA_LOCK = 734_001;
+const RESERVATION_FLOOR_BRL = 0.01;
+
+async function reserveUsage(ctx: Ctx, channel: AssistantChannel, quota: number) {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(${QUOTA_LOCK})`);
+    const spent = await spentThisMonth(ctx.companyId, tx);
+    if (spent >= quota) {
+      throw new AppError(429, 'Limite mensal do assistente atingido. Ele volta no início do próximo mês.');
+    }
+    if ((await spentThisMonth(undefined, tx)) >= config.AI_PLATFORM_MONTHLY_BRL) {
+      throw new AppError(503, 'O assistente está em pausa. Tente de novo mais tarde.');
+    }
+    const [recent] = await tx.execute<{ average: string }>(sql`
+      SELECT coalesce(avg(cost_brl), 0) AS average
+      FROM (SELECT cost_brl FROM ai_usage WHERE company_id = ${ctx.companyId} ORDER BY id DESC LIMIT 20) AS recent`);
+    const estimate = Math.max(Number(recent?.average ?? 0), RESERVATION_FLOOR_BRL);
+    const [row] = await tx
+      .insert(aiUsage)
+      .values({
+        companyId: ctx.companyId,
+        userId: ctx.userId,
+        channel,
+        model: config.AI_MODEL,
+        inputTokens: 0,
+        outputTokens: 0,
+        costUsd: estimate / config.AI_USD_BRL,
+        costBrl: estimate,
+      })
+      .returning({ id: aiUsage.id });
+    if (!row) throw new Error('Falha ao reservar o consumo do assistente.');
+    return { id: row.id, spent };
+  });
 }
 
 // Consumo do mês da empresa, para a tela e para o aviso de 80%.
@@ -102,13 +142,8 @@ export async function askAssistant(
   const [user] = await db.select({ name: users.name }).from(users).where(eq(users.id, ctx.userId));
   if (!company) throw notFound();
 
-  const spent = await spentThisMonth(ctx.companyId);
-  if (spent >= company.quota) {
-    throw new AppError(429, 'Limite mensal do assistente atingido. Ele volta no início do próximo mês.');
-  }
-  if ((await spentThisMonth()) >= config.AI_PLATFORM_MONTHLY_BRL) {
-    throw new AppError(503, 'O assistente está em pausa. Tente de novo mais tarde.');
-  }
+  const reservation = await reserveUsage(ctx, channel, company.quota);
+  const spent = reservation.spent;
 
   const context = `Empresa: ${company.name}. Usuário: ${user?.name ?? 'não identificado'}. Hoje: ${todayInBrazil()}.
 Áreas que este usuário acessa: ${areasOf(ctx).join(', ') || 'nenhuma'}.
@@ -129,7 +164,8 @@ Se a pergunta for sobre uma área fora dessa lista, explique que o acesso depend
     });
   } catch (error) {
     // Falha do provedor (chave, crédito, limite, rede): mensagem clara para o usuário e o motivo no log.
-    // Nada é gravado em ai_usage, porque não houve consumo.
+    // A reserva é desfeita: nada fica em ai_usage, porque não houve consumo.
+    await db.delete(aiUsage).where(eq(aiUsage.id, reservation.id));
     console.error('[assistente] falha do provedor de IA:', error instanceof Error ? error.message : error);
     await reportError(error);
     throw new AppError(503, 'O assistente não conseguiu responder agora. Tente de novo em instantes.');
@@ -137,18 +173,18 @@ Se a pergunta for sobre uma área fora dessa lista, explique que o acesso depend
 
   const usd = costUsd(response.model, response.usage);
   const brl = usd * config.AI_USD_BRL;
-  await db.insert(aiUsage).values({
-    companyId: ctx.companyId,
-    userId: ctx.userId,
-    channel,
-    model: response.model,
-    inputTokens: response.usage.inputTokens,
-    outputTokens: response.usage.outputTokens,
-    cacheWriteTokens: response.usage.cacheWriteTokens,
-    cacheReadTokens: response.usage.cacheReadTokens,
-    costUsd: usd,
-    costBrl: brl,
-  });
+  await db
+    .update(aiUsage)
+    .set({
+      model: response.model,
+      inputTokens: response.usage.inputTokens,
+      outputTokens: response.usage.outputTokens,
+      cacheWriteTokens: response.usage.cacheWriteTokens,
+      cacheReadTokens: response.usage.cacheReadTokens,
+      costUsd: usd,
+      costBrl: brl,
+    })
+    .where(eq(aiUsage.id, reservation.id));
 
   const reply =
     response.stopReason === 'refusal'

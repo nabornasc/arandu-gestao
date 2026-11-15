@@ -154,43 +154,48 @@ export async function unlinkTelegram(ctx: Ctx) {
 
 // ---------- Mensagens recebidas pelo bot ----------
 
+// Tudo numa transação com trava por conversa (advisory lock): tentativas simultâneas da mesma conversa
+// esperam a anterior terminar, então a contagem de erros não fura o limite. O FOR UPDATE no usuário faz
+// duas conversas com o mesmo código disputarem a mesma linha: só a primeira vincula.
 async function linkChat(chatId: number, code: string): Promise<string> {
-  const [failures] = await db
-    .select({ total: count() })
-    .from(telegramLinkFailures)
-    .where(
-      and(
-        eq(telegramLinkFailures.chatId, chatId),
-        gt(telegramLinkFailures.createdAt, new Date(Date.now() - CODE_TTL_MS)),
-      ),
-    );
-  if ((failures?.total ?? 0) >= MAX_LINK_FAILURES) {
-    return 'Muitas tentativas com código errado. Espere 10 minutos e gere um código novo em Meu perfil.';
-  }
-
-  const [user] = /^\d{6}$/.test(code)
-    ? await db
-        .select({ id: users.id })
-        .from(users)
-        .where(
-          and(
-            eq(users.telegramLinkCode, hashCode(code)),
-            gt(users.telegramLinkExpiresAt, new Date()),
-            eq(users.active, true),
-          ),
-        )
-    : [];
-  if (!user) {
-    await db.insert(telegramLinkFailures).values({ chatId });
-    // Só os erros recentes contam: os antigos são apagados.
-    await db
-      .delete(telegramLinkFailures)
-      .where(lt(telegramLinkFailures.createdAt, new Date(Date.now() - CODE_TTL_MS)));
-    return 'Código inválido ou vencido. Gere outro em Meu perfil e mande /vincular seguido do código.';
-  }
-
-  const ctx = await resolveUserCtx(user.id, 'telegram');
   return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`telegram-link:${chatId}`}, 0))`);
+    const [failures] = await tx
+      .select({ total: count() })
+      .from(telegramLinkFailures)
+      .where(
+        and(
+          eq(telegramLinkFailures.chatId, chatId),
+          gt(telegramLinkFailures.createdAt, new Date(Date.now() - CODE_TTL_MS)),
+        ),
+      );
+    if ((failures?.total ?? 0) >= MAX_LINK_FAILURES) {
+      return 'Muitas tentativas com código errado. Espere 10 minutos e gere um código novo em Meu perfil.';
+    }
+
+    const [user] = /^\d{6}$/.test(code)
+      ? await tx
+          .select({ id: users.id })
+          .from(users)
+          .where(
+            and(
+              eq(users.telegramLinkCode, hashCode(code)),
+              gt(users.telegramLinkExpiresAt, new Date()),
+              eq(users.active, true),
+            ),
+          )
+          .for('update')
+      : [];
+    if (!user) {
+      await tx.insert(telegramLinkFailures).values({ chatId });
+      // Só os erros recentes contam: os antigos são apagados.
+      await tx
+        .delete(telegramLinkFailures)
+        .where(lt(telegramLinkFailures.createdAt, new Date(Date.now() - CODE_TTL_MS)));
+      return 'Código inválido ou vencido. Gere outro em Meu perfil e mande /vincular seguido do código.';
+    }
+
+    const ctx = await resolveUserCtx(user.id, 'telegram', tx);
     // A conversa passa para o novo usuário: um Telegram fica ligado a uma conta só.
     const previous = await tx
       .update(users)

@@ -5,7 +5,7 @@ import { loginSchema, registerSchema } from '@arandue/shared/schemas';
 import { hash, verify } from '@node-rs/argon2';
 import { and, eq, gt, lt, type SQL, sql } from 'drizzle-orm';
 import { config } from '../config.ts';
-import { db } from '../db/client.ts';
+import { type DbOrTx, db } from '../db/client.ts';
 import { accessGroupPermissions, accessGroups, companies, sessions, users } from '../db/schema.ts';
 import type { Ctx } from '../lib/context.ts';
 import { conflict, forbidden, unauthorized } from '../lib/errors.ts';
@@ -207,8 +207,12 @@ export async function resolveSession(token: string): Promise<SessionInfo | null>
 }
 
 // Ctx de um usuário ativo fora da sessão web (Telegram), com as permissões atuais do grupo.
-async function ctxWhere(where: SQL | undefined, actor: Ctx['actor']): Promise<Ctx | null> {
-  const [row] = await db
+async function ctxWhere(
+  where: SQL | undefined,
+  actor: Ctx['actor'],
+  executor: DbOrTx = db,
+): Promise<Ctx | null> {
+  const [row] = await executor
     .select(ctxColumns)
     .from(users)
     .innerJoin(accessGroups, eq(accessGroups.id, users.groupId))
@@ -217,7 +221,9 @@ async function ctxWhere(where: SQL | undefined, actor: Ctx['actor']): Promise<Ct
 }
 
 export const resolveTelegramChat = (chatId: number) => ctxWhere(eq(users.telegramChatId, chatId), 'telegram');
-export const resolveUserCtx = (userId: number, actor: Ctx['actor']) => ctxWhere(eq(users.id, userId), actor);
+// Com `executor`, lê dentro da transação de quem chama (sem pedir outra conexão ao pool).
+export const resolveUserCtx = (userId: number, actor: Ctx['actor'], executor: DbOrTx = db) =>
+  ctxWhere(eq(users.id, userId), actor, executor);
 
 export async function getProfile(ctx: Ctx) {
   const [row] = await db

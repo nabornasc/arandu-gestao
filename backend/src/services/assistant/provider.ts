@@ -151,6 +151,8 @@ export class FakeProvider implements AiProvider {
     this.requests.push(request);
     const question = request.messages.at(-1)?.content ?? '';
     if (question.includes('[falhar]')) throw new Error('Falha simulada do provedor.');
+    // "[demorar]" segura a resposta, para os testes simularem perguntas que se sobrepõem.
+    if (question.includes('[demorar]')) await new Promise((resolve) => setTimeout(resolve, 300));
     // "[ferramenta:nome {json}]" simula o modelo pedindo a ferramenta; o resultado entra na resposta.
     const toolCalls: string[] = [];
     let results = '';

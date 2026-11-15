@@ -76,6 +76,31 @@ describe('assistente de IA', () => {
     expect((await company.get('/assistant/usage')).body).toMatchObject({ quotaBrl: 1, warning: true });
   });
 
+  it('perguntas simultâneas não estouram a cota: cada uma reserva o custo antes de chamar a IA', async () => {
+    const company = await signupCompany(app);
+    await db.update(companies).set({ aiMonthlyQuota: 1 }).where(eq(companies.id, company.companyId));
+    await db.insert(aiUsage).values({
+      companyId: company.companyId,
+      channel: 'web',
+      model: 'claude-haiku-5-5',
+      inputTokens: 0,
+      outputTokens: 0,
+      costUsd: 0,
+      costBrl: 0.95,
+    });
+    const results = await Promise.all(
+      Array.from({ length: 6 }, (_, index) =>
+        company.post('/assistant/messages', { message: `Paralela ${index} [demorar]` }),
+      ),
+    );
+    const codes = results.map((result) => result.status).sort();
+    expect(codes).toEqual([200, 429, 429, 429, 429, 429]);
+    // A reserva vira o custo real: uma linha a mais, com os tokens da resposta.
+    const rows = await db.select().from(aiUsage).where(eq(aiUsage.companyId, company.companyId));
+    expect(rows).toHaveLength(2);
+    expect(rows.find((row) => row.costBrl !== 0.95)).toMatchObject({ inputTokens: 1200, outputTokens: 150 });
+  });
+
   it('recusa do modelo vira resposta neutra; histórico longo ou pergunta vazia são recusados', async () => {
     expect((await owner.post('/assistant/messages', { message: 'teste [recusar]' })).body.reply).toMatch(
       /Não posso ajudar/,
