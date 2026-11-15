@@ -174,7 +174,7 @@ Toda função de serviço recebe o contexto de quem está agindo, verifica a per
 - **Sessão** em cookie `HttpOnly`, `SameSite=Lax` (e `Secure` + prefixo `__Host-` em produção). O banco guarda só o hash do token, e o logout revoga a sessão de verdade.
 - **CSRF:** a API aceita só JSON e recusa requisições que alteram dados vindas de outras origens.
 - **Isolamento:** IDs vindos do cliente (cliente, produto, conta) são conferidos contra a empresa do usuário.
-- **Cabeçalhos** de segurança (`@fastify/helmet`) e limite de requisições, mais rígido nas rotas de login e cadastro.
+- **Cabeçalhos** de segurança (`@fastify/helmet`) e limite de requisições, mais rígido nas rotas de login e cadastro. Login e cadastro têm também um limite guardado no banco, que vale para todas as instâncias da Vercel: depois de 10 tentativas em 15 minutos, o e-mail fica bloqueado (429) até a janela passar, exista a conta ou não; o login certo zera a contagem.
 - **Banco** exposto só em `127.0.0.1` no ambiente local.
 
 ## API

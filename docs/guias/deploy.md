@@ -39,6 +39,8 @@ Depois de uma nova migração, rode `npm run demo:setup -- --recriar` e atualize
 
 Rode o passo 3 e depois o passo 5 a cada nova migração. A aplicação nunca altera a estrutura do banco.
 
+Se a demonstração estiver configurada, rode de novo [scripts/supabase-demo.sql](../../scripts/supabase-demo.sql) quando a migração criar tabela: a restauração recusa tabela que ela não conhece.
+
 ## 2. Dados de demonstração (opcional)
 
 O seed **apaga todos os dados** antes de inserir e usa uma senha pública, `senha-demo-123`. Use só em banco de demonstração:
@@ -83,5 +85,5 @@ NODE_ENV=development DATABASE_URL="<conexão do postgres>?sslmode=require" node 
 ## Limites conhecidos
 
 - O Supabase gratuito pausa projetos sem uso por cerca de uma semana. A restauração agendada pode não evitar a pausa: nesse caso, reative pelo painel.
-- O limite de requisições fica na memória de cada instância da função, então é aproximado.
+- O limite geral de requisições fica na memória de cada instância da função, então é aproximado. O login e o cadastro têm também um limite guardado no banco (tabela `rate_limits`), que vale para todas as instâncias: 10 tentativas por e-mail a cada 15 minutos, 50 logins e 5 cadastros por IP. O limite por IP depende de a Vercel informar o IP real em `X-Forwarded-For`.
 - O plano Hobby da Vercel é só para uso não comercial. Para clientes reais, passe ao plano Pro.

@@ -57,6 +57,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Corrigido
 
+- **Limite de tentativas no login e no cadastro valia por instância da Vercel:** o contador do `@fastify/rate-limit` fica na memória, então cada instância nova começava do zero. Agora há também um contador no banco (`rate_limits`, migração `0038`), atualizado num único `INSERT ... ON CONFLICT`: 10 tentativas de login por e-mail a cada 15 minutos (conta antes de conferir a senha, exista a conta ou não; o login certo zera), 50 logins e 5 cadastros por IP. Acima do limite, 429. A chave guarda só o hash do e-mail ou do IP. A restauração da demonstração esvazia a tabela em vez de copiá-la.
 - Violação de unicidade (ex.: grupo de acesso com nome repetido) respondia 500: o erro do Postgres vem embrulhado pelo Drizzle. Agora responde 409.
 - O botão da lista de transportadoras dizia "Novo transportadora".
 - Janelas abertas de uma linha da tabela (estoque, baixas) não herdam mais o texto alinhado à direita.

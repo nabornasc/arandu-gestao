@@ -7,14 +7,14 @@ const strictLimit = { rateLimit: { max: 10, timeWindow: '1 minute' } };
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   app.post('/auth/register', { config: strictLimit }, async (request, reply) => {
-    const { session, ctx } = await register(request.body as never);
+    const { session, ctx } = await register(request.body as never, { ip: request.ip });
     setSessionCookie(reply, session);
     reply.status(201);
     return getProfile(ctx);
   });
 
   app.post('/auth/login', { config: strictLimit }, async (request, reply) => {
-    const { session, ctx } = await login(request.body as never);
+    const { session, ctx } = await login(request.body as never, { ip: request.ip });
     setSessionCookie(reply, session);
     return getProfile(ctx);
   });

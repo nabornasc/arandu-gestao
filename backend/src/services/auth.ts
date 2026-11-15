@@ -4,6 +4,7 @@ import type { LoginInput, RegisterInput } from '@arandue/shared/schemas';
 import { loginSchema, registerSchema } from '@arandue/shared/schemas';
 import { hash, verify } from '@node-rs/argon2';
 import { and, eq, gt, lt, type SQL, sql } from 'drizzle-orm';
+import { config } from '../config.ts';
 import { db } from '../db/client.ts';
 import { accessGroupPermissions, accessGroups, companies, sessions, users } from '../db/schema.ts';
 import type { Ctx } from '../lib/context.ts';
@@ -14,6 +15,7 @@ import { audit } from './audit.ts';
 import { createDefaultLists } from './lists.ts';
 import { createDefaultConditions } from './paymentConditions.ts';
 import { createDefaultStages } from './pipeline.ts';
+import { cleanupLimits, consume, type Limit, limitKey, resetLimit } from './rateLimit.ts';
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const SESSION_RENEW_BEFORE_MS = 15 * 24 * 60 * 60 * 1000;
@@ -26,6 +28,19 @@ const getDummyHash = () => {
 };
 
 const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
+
+// Limites de credenciais, contados no banco (valem para todas as instâncias). Cada tentativa de login conta
+// antes de conferir a senha, então tentativas em paralelo não furam o limite; o login certo zera o e-mail.
+const LOGIN_PER_EMAIL: Limit = { max: 10, windowMs: 15 * 60 * 1000 };
+const LOGIN_PER_IP: Limit = { max: 50, windowMs: 15 * 60 * 1000 };
+const REGISTER_PER_IP: Limit = { max: 5, windowMs: 60 * 60 * 1000 };
+
+// IP de quem chama, só nas requisições HTTP. Nos testes o limite por IP fica desligado, como o
+// @fastify/rate-limit, porque todos os cenários vêm do mesmo endereço.
+export interface RequestOrigin {
+  ip?: string;
+}
+const ipLimited = (origin: RequestOrigin) => (config.NODE_ENV === 'test' ? undefined : origin.ip);
 
 export interface SessionResult {
   token: string;
@@ -78,8 +93,10 @@ async function createSession(userId: number): Promise<SessionResult> {
   return { token, expiresAt };
 }
 
-export async function register(input: RegisterInput): Promise<AuthResult> {
+export async function register(input: RegisterInput, origin: RequestOrigin = {}): Promise<AuthResult> {
   const data = parse(registerSchema, input);
+  const ip = ipLimited(origin);
+  if (ip) await consume(limitKey('register:ip', ip), REGISTER_PER_IP);
   const passwordHash = await hash(data.password);
 
   const ctx = await db.transaction(async (tx) => {
@@ -126,8 +143,12 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
   return { session: await createSession(ctx.userId), ctx };
 }
 
-export async function login(input: LoginInput): Promise<AuthResult> {
+export async function login(input: LoginInput, origin: RequestOrigin = {}): Promise<AuthResult> {
   const data = parse(loginSchema, input);
+  const ip = ipLimited(origin);
+  if (ip) await consume(limitKey('login:ip', ip), LOGIN_PER_IP);
+  const emailKey = limitKey('login:email', data.email);
+  await consume(emailKey, LOGIN_PER_EMAIL);
   const [user] = await db
     .select({ ...ctxColumns, passwordHash: users.passwordHash, active: users.active })
     .from(users)
@@ -136,6 +157,8 @@ export async function login(input: LoginInput): Promise<AuthResult> {
 
   const valid = await verify(user?.passwordHash ?? (await getDummyHash()), data.password);
   if (!user || !valid || !user.active) throw unauthorized('E-mail ou senha incorretos.');
+  await resetLimit(emailKey);
+  await cleanupLimits();
 
   // Limpeza oportunista das sessões vencidas deste usuário.
   await db.delete(sessions).where(and(eq(sessions.userId, user.userId), lt(sessions.expiresAt, new Date())));

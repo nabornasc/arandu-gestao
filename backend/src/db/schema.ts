@@ -134,6 +134,18 @@ export const sessions = pgTable(
   (t) => [index().on(t.userId), index().on(t.expiresAt)],
 );
 
+// Contadores de tentativas (login e cadastro). Ficam no banco porque, na Vercel, cada instância tem a
+// própria memória: um contador local não limitaria o conjunto. A chave guarda só hashes (sem e-mail ou IP).
+export const rateLimits = pgTable(
+  'rate_limits',
+  {
+    key: varchar({ length: 100 }).primaryKey(),
+    count: integer().notNull(),
+    resetAt: timestamp({ withTimezone: true }).notNull(),
+  },
+  (t) => [index().on(t.resetAt)],
+);
+
 // ---------- Cadastros ----------
 
 // Agenda: tarefas e compromissos lançados à mão. Próximas ações, validades e vencimentos vêm dos
