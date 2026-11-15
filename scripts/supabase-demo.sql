@@ -6,8 +6,9 @@ REVOKE ALL ON SCHEMA demo FROM PUBLIC;
 
 CREATE TABLE IF NOT EXISTS demo.meta (captured_on date NOT NULL);
 
--- Ordem em que os dados voltam, respeitando as chaves estrangeiras. Sessões e contadores de tentativas
--- (rate_limits) não entram na cópia: a restauração só os esvazia.
+-- Ordem em que os dados voltam, respeitando as chaves estrangeiras. Sessões, contadores de tentativas
+-- (rate_limits) e updates do Telegram já recebidos (telegram_updates) não entram na cópia: a
+-- restauração só os esvazia.
 CREATE OR REPLACE FUNCTION demo.table_list() RETURNS text[]
 LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
   SELECT ARRAY[
@@ -29,7 +30,7 @@ DECLARE
 BEGIN
   SELECT string_agg(tablename, ', ') INTO missing
   FROM pg_catalog.pg_tables
-  WHERE schemaname = 'public' AND tablename NOT IN ('sessions', 'rate_limits')
+  WHERE schemaname = 'public' AND tablename NOT IN ('sessions', 'rate_limits', 'telegram_updates')
     AND tablename <> ALL (demo.table_list());
   IF missing IS NOT NULL THEN
     RAISE EXCEPTION 'Tabelas fora da lista da demonstração: %', missing;
@@ -67,7 +68,7 @@ BEGIN
   END IF;
 
   EXECUTE (
-    SELECT 'TRUNCATE public.sessions, public.rate_limits, ' || string_agg(format('public.%I', item), ', ') || ' RESTART IDENTITY CASCADE'
+    SELECT 'TRUNCATE public.sessions, public.rate_limits, public.telegram_updates, ' || string_agg(format('public.%I', item), ', ') || ' RESTART IDENTITY CASCADE'
     FROM unnest(demo.table_list()) AS item
   );
 

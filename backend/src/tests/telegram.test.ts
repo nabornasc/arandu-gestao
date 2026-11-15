@@ -328,6 +328,33 @@ describe('ações e arquivos pelo Telegram', () => {
     });
   });
 
+  it('o mesmo update reenviado pelo Telegram é tratado uma vez só', async () => {
+    const member = await addMember(app, owner, 'seller');
+    const chat = nextChat++;
+    await link(member, chat);
+    const update = {
+      update_id: updateId++,
+      message: {
+        message_id: 1,
+        date: Math.floor(Date.now() / 1000),
+        chat: { id: chat, type: 'private', first_name: 'Ana' },
+        from: { id: chat, is_bot: false, first_name: 'Ana' },
+        text: 'Pergunta reenviada',
+      },
+    };
+    const asked = () =>
+      fake().requests.filter((request) => request.messages.at(-1)?.content === 'Pergunta reenviada').length;
+
+    calls = [];
+    // Reenvio em paralelo (a primeira entrega ainda não terminou) e depois de terminar.
+    const results = await Promise.all([webhook(update), webhook(update)]);
+    expect(results.map((result) => result.statusCode)).toEqual([200, 200]);
+    expect((await webhook(update)).statusCode).toBe(200);
+
+    expect(asked()).toBe(1);
+    expect(replies().filter((text) => text.includes('Pergunta reenviada'))).toHaveLength(1);
+  });
+
   it('comandos do bot no texto não viram link do sistema', () => {
     expect(
       toTelegramHtml('Mande /vincular 123456 ou /sair. Veja /ajuda/inicio/assistente', 'https://app.test'),

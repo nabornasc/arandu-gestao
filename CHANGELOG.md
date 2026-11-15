@@ -57,6 +57,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Corrigido
 
+- **Webhook do Telegram tratava duas vezes o mesmo update:** quando a resposta demorava (a função da Vercel encerra em 30 s) ou falhava, o Telegram reenviava a mensagem e o assistente era chamado de novo, com custo e resposta em dobro. Agora cada `update_id` é reservado num `INSERT ... ON CONFLICT DO NOTHING` antes de tratar (tabela `telegram_updates`, migração `0039`, guardada por um dia); o reenvio responde 200 sem fazer nada. A restauração da demonstração esvazia a tabela.
 - **Limite de tentativas no login e no cadastro valia por instância da Vercel:** o contador do `@fastify/rate-limit` fica na memória, então cada instância nova começava do zero. Agora há também um contador no banco (`rate_limits`, migração `0038`), atualizado num único `INSERT ... ON CONFLICT`: 10 tentativas de login por e-mail a cada 15 minutos (conta antes de conferir a senha, exista a conta ou não; o login certo zera), 50 logins e 5 cadastros por IP. Acima do limite, 429. A chave guarda só o hash do e-mail ou do IP. A restauração da demonstração esvazia a tabela em vez de copiá-la.
 - Violação de unicidade (ex.: grupo de acesso com nome repetido) respondia 500: o erro do Postgres vem embrulhado pelo Drizzle. Agora responde 409.
 - O botão da lista de transportadoras dizia "Novo transportadora".

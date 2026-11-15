@@ -9,7 +9,7 @@ import { Bot, type Context, GrammyError, InlineKeyboard } from 'grammy';
 import type { Update } from 'grammy/types';
 import { config } from '../config.ts';
 import { db } from '../db/client.ts';
-import { aiUsage, telegramLinkFailures, telegramMessages, users } from '../db/schema.ts';
+import { aiUsage, telegramLinkFailures, telegramMessages, telegramUpdates, users } from '../db/schema.ts';
 import { authorize, type Ctx } from '../lib/context.ts';
 import { AppError, notFound } from '../lib/errors.ts';
 import { reportError } from '../lib/monitoring.ts';
@@ -460,10 +460,25 @@ export function validWebhookSecret(header: unknown) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+// Reserva o update antes de tratar: um único INSERT ... ON CONFLICT, então dois reenvios simultâneos
+// nunca passam juntos. Falso quando o update já tinha chegado.
+async function claimUpdate(updateId: number): Promise<boolean> {
+  const claimed = await db
+    .insert(telegramUpdates)
+    .values({ updateId })
+    .onConflictDoNothing()
+    .returning({ updateId: telegramUpdates.updateId });
+  await db.delete(telegramUpdates).where(lt(telegramUpdates.createdAt, sql`now() - interval '1 day'`));
+  return claimed.length > 0;
+}
+
 // Erro ao tratar uma mensagem vai para o log, mas o webhook responde 200: senão o Telegram reenvia
-// a mesma mensagem várias vezes.
+// a mesma mensagem várias vezes. O reenvio de um update já recebido também responde 200, sem tratar
+// de novo (sem nova chamada à IA nem resposta repetida). Se a primeira entrega caiu no meio, a
+// mensagem se perde: o usuário manda de novo, o que é melhor que gravar ou cobrar duas vezes.
 export async function handleTelegramUpdate(update: Update) {
   const bot = telegramBot();
+  if (!(await claimUpdate(update.update_id))) return;
   try {
     await initBot(bot);
     await bot.handleUpdate(update);

@@ -938,6 +938,17 @@ export const telegramLinkFailures = pgTable(
   (t) => [index().on(t.chatId, t.createdAt)],
 );
 
+// Updates do webhook já recebidos. O Telegram reenvia o mesmo update quando a resposta demora ou falha;
+// a chave primária garante que cada um seja tratado uma vez só. Guardados por um dia.
+export const telegramUpdates = pgTable(
+  'telegram_updates',
+  {
+    updateId: bigint({ mode: 'number' }).primaryKey(),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.createdAt)],
+);
+
 // ---------- Auditoria e eventos ----------
 
 export const auditLogs = pgTable(

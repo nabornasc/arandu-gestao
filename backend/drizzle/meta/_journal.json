@@ -274,6 +274,13 @@
       "when": 1794780492252,
       "tag": "0038_limite_de_tentativas",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794782267709,
+      "tag": "0039_updates_do_telegram",
+      "breakpoints": true
     }
   ]
 }
