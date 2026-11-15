@@ -1,0 +1,113 @@
+# 09 — Banco de dados: segurança, backup, custo, transações, schema e índices
+
+Plano das sete frentes de revisão do banco pedidas em 15/11/2026. Cada frente tem o objetivo, o que já existe, o que será entregue, o que depende de decisão sua e o risco para o app no ar. Nenhuma frente roda nada em produção sem você: o MCP do Supabase recusa escrita, então o SQL de produção é entregue testado e você cola no SQL Editor.
+
+## Ordem de execução
+
+| Ordem | Frente | Por que nesta posição | Situação |
+|-------|--------|------------------------|----------|
+| 1 | [A. Exposição do banco](#a-exposição-do-banco) | Já auditada; os itens restantes são cliques no painel | Em andamento: B3 feito em 15/11/2026; B4 e B2 pendentes |
+| 2 | [B. Backup que volta](#b-backup-que-volta) | Maior risco hoje: os backups atuais ficam **dentro do mesmo banco** e não protegem contra perda do projeto | Scripts, workflow e guia prontos e testados; falta configurar os segredos |
+| 3 | [C. Migrations e dev x produção](#c-migrations-e-dev-x-produção) | Base para D, E e F: confirma que o banco real é igual às migrations antes de criar outras | Pendente |
+| 4 | [D. Transações](#d-transações) | O app já usa transação na maior parte; fecha as lacunas e prepara o B1 (RLS por empresa), que precisa de uma transação por requisição | Pendente |
+| 5 | [E. Schema e constraints](#e-schema-e-constraints) | Depende de C (migrations confiáveis) | Pendente |
+| 6 | [F. Índices](#f-índices) | Depende de C; aproveita o levantamento de consultas de G | Pendente |
+| 7 | [G. Custo](#g-custo) | Menor risco: os planos atuais têm teto fixo (a confirmar) | Pendente: confirmar os planos |
+
+Cada frente termina em um commit próprio, com testes, e só vai para produção com o seu OK.
+
+## Decisões tomadas (15/11/2026)
+
+1. **Destino do backup:** artefato do GitHub Actions. Como o repositório é público e qualquer pessoa logada no GitHub baixa artefatos, a cópia sai criptografada com `gpg` (AES-256).
+2. **Planos:** Supabase Free e Vercel Hobby.
+3. **RLS por empresa (B1):** fazer, em etapas e com testes, depois da frente D.
+
+## A. Exposição do banco
+
+Relatório completo: [AUDITORIA-BANCO.md](../../AUDITORIA-BANCO.md). Nenhuma chave publicada; a chave pública não lê nenhuma tabela.
+
+| Item | Ação | Derruba o app? |
+|------|------|----------------|
+| B3 | Desligar o cadastro do Supabase Auth (painel). **Feito em 15/11/2026** (`disable_signup: true` conferido pela API) | Não |
+| B4 | Tirar `public` da Data API e desativar as chaves legacy (painel); testar upload de anexo no CRM depois | Não |
+| B2 | Confirmar *Enforce SSL*; trocar as senhas de `postgres` e `arandue_app` junto com a `DATABASE_URL` da Vercel. Não ligar *Network Restrictions* sem IP fixo | Sim, se a senha mudar antes da variável |
+| B1 | RLS por empresa: entra depois da frente D | Sim, se feito fora de ordem |
+
+## B. Backup que volta
+
+**O que existe hoje.**
+- O plano gratuito do Supabase não tem backup automático diário nem restauração para um ponto no tempo (a confirmar no painel, em Database > Backups, junto com o plano da decisão 2).
+- Os schemas `backup_*` são cópias criadas antes de cada migração e ficam **no mesmo banco**: protegem contra uma migração errada, não contra perda, pausa prolongada ou exclusão do projeto. A rotina `demo.prune_backups(5)` mantém os 5 mais recentes.
+- O schema `demo` guarda a cópia usada para restaurar a demonstração a cada 12 horas. Também fica no mesmo banco.
+
+**Entregas.**
+1. `scripts/backup.sh`: `pg_dump --format=custom` do banco de produção, compressão, envio para o destino escolhido e rotação (7 diárias e 4 semanais, a semanal sendo a de domingo). A connection string vem de variável de ambiente (`BACKUP_DATABASE_URL`), nunca do arquivo.
+2. Workflow `.github/workflows/backup.yml`, diário, com a URL e as credenciais do destino em GitHub Secrets.
+3. `scripts/testar-restauracao.sh`: baixa a cópia mais recente, restaura num Postgres descartável (container no próprio GitHub Actions ou local), confere se todas as tabelas existem e compara a contagem de linhas das principais (`companies`, `users`, `people`, `products`, `orders`, `receivables`, `audit_logs`) com produção. Roda logo depois do backup; se falhar, o workflow falha e o GitHub avisa por e-mail. Nunca restaura em produção: o script recusa URL de destino que não seja local.
+4. `docs/guias/restauracao.md`: passo a passo do dia que der ruim, com tempo medido no teste e o que se perde (tudo desde o último backup, até 24 horas).
+
+**Cuidado técnico.** As tabelas têm RLS ligado. O `pg_dump` desliga o RLS na sessão e falha com usuário que não pode ignorá-lo, como `arandue_app`. O backup precisa de um usuário próprio, só leitura e com `BYPASSRLS`, criado por você no SQL Editor (o comando vai pronto).
+
+**Risco ao app:** nenhum. O dump só lê.
+
+## C. Migrations e dev x produção
+
+**O que existe hoje.** Drizzle Kit com 40 migrations em `backend/drizzle/`. Bancos separados no Docker local: `arandue` (dev), `arandue_test` e `arandue_e2e`, com travas que recusam apagar banco cujo nome não seja de teste. Produção recebe as migrations à mão, com registro em `drizzle.__drizzle_migrations`. O app em produção usa `arandue_app`, sem poder de alterar a estrutura (`scripts/supabase-seguranca.sql`).
+
+**Entregas.**
+1. Comparação do schema real de produção (via catálogo, só leitura) com o gerado pelas migrations: tabelas, colunas, tipos, defaults, índices, constraints, policies e funções. Lista do que foi criado à mão; a função `public.rls_auto_enable` já aparece como candidata.
+2. Migration de alinhamento, se houver diferença, sem apagar nada que exista só em produção sem perguntar.
+3. Revisão de `.env.example` e de `config.ts`: `DATABASE_URL` padrão sempre local; produção só na Vercel. Regra escrita no `CLAUDE.md` do projeto para o agente de IA usar só o banco local.
+4. Os `GRANT`s atuais de `arandue_app` (hoje `SELECT, INSERT, UPDATE, DELETE` em todas as tabelas do `public`), com a lista do que o app realmente usa. Possível ajuste: tirar `UPDATE`/`DELETE` de tabelas só de inserção, como `audit_logs`.
+
+**Risco ao app:** nenhum até a migration de alinhamento, que vai com o SQL testado.
+
+## D. Transações
+
+**O que existe hoje.** 38 arquivos de `backend/src/services` usam transação. Venda, baixa, estorno, renegociação, conversão de orçamento, cadastro de empresa e ajuste de estoque já rodam numa transação só, com `FOR UPDATE` onde há disputa.
+
+**Entregas.**
+1. Lista de toda operação que grava em mais de uma tabela ou registro, com o que fica inconsistente se o servidor cair no meio. Candidatos já vistos: `confirmAction` do assistente (a ação e a marcação de "confirmada" são gravações separadas), `completeAttachment` do CRM (arquivo no Storage e linha no banco), a troca da reserva pelo custo real no assistente e a criação de sessão depois do cadastro.
+2. Ajuste de cada lacuna para uma transação, sem mudar regra nem valor.
+3. Teste por operação que força erro no meio e prova que nada foi gravado.
+4. Chamadas externas (IA, Telegram, Storage) ficam fora da transação, com a explicação de onde cada uma entra e o que acontece se falhar.
+
+**Risco ao app:** baixo; cada mudança vem com teste.
+
+## E. Schema e constraints
+
+**O que existe hoje.** Nenhuma coluna `real`/`double precision` (dinheiro em `numeric(12,2)`) e nenhum `timestamp without time zone`. 95 foreign keys declaradas.
+
+**Entregas.**
+1. Inventário de tabelas, colunas e tipos, apontando texto que guarda número ou data e dado repetido (ex.: nome copiado em `audit_logs`, que é intencional e será justificado).
+2. Colunas que referenciam outra tabela sem foreign key.
+3. Constraints equivalentes às validações Zod de `packages/shared` (`NOT NULL`, `UNIQUE`, `CHECK`, `FOREIGN KEY`), cada uma com a consulta que conta quantas linhas atuais quebram a regra, em dev e em produção (só leitura).
+4. Uma migration por assunto, cada uma com o SQL de volta em comentário.
+
+Nenhum dado é alterado para a constraint passar: linha que quebra a regra vira pergunta para você.
+
+**Risco ao app:** médio. Constraint nova recusa gravação que hoje passa; cada uma é testada com a suíte e o e2e antes.
+
+## F. Índices
+
+**O que existe hoje.** Pela consulta no catálogo local, cerca de 34 das 95 foreign keys não têm índice que comece por elas (número aproximado, a confirmar coluna a coluna).
+
+**Entregas.**
+1. Lista de foreign keys sem índice, cruzada com as consultas que filtram ou juntam por elas.
+2. Consultas com função na coluna do `WHERE` (`lower()`, `date()`, `cast`), `count` usado só para saber se existe, `OFFSET` alto e consulta dentro de loop. Já existem índices funcionais para `lower(email)` e para nomes únicos.
+3. `EXPLAIN ANALYZE` das 5 consultas mais usadas num banco de dev com volume parecido com o de produção (gerado por script), mostrando onde aparece `Seq Scan` em tabela grande.
+4. Migration só com os índices que uma consulta real usa, cada um com a consulta que acelera. Em produção, `CREATE INDEX CONCURRENTLY` fora de transação, avisado antes.
+
+**Risco ao app:** baixo; `CONCURRENTLY` não trava escrita.
+
+## G. Custo
+
+**O que existe hoje.** Supabase cobra por plano e uso (banco, tráfego, armazenamento), não por leitura; não há listener em tempo real no app (Realtime não é usado). A Vercel cobra por invocação e tempo de função.
+
+**Entregas.**
+1. Confirmação dos planos (decisão 2).
+2. Lista de consultas em loop, consultas sem limite de linhas e paginação por `OFFSET` (as listas usam `OFFSET` em `orders`, `quotes`, `expenses`, `transactions` e `history`), com a estimativa de leituras por usuário por dia e o efeito de 10 vezes mais usuários, mostrando a conta. Feita junto com a frente F para não levantar as consultas duas vezes.
+3. A correção mais simples para cada uma (JOIN ou IN, limite, cursor), sem mudar regra de negócio.
+4. Corte de gasto real: no Supabase Free os limites são fixos e o projeto é restringido ao estourar, sem cobrança extra; no Pro existe o *Spend Cap*, ligado por padrão. Na Vercel Hobby não há cobrança; no Pro, *Spend Management* pausa os projetos ao atingir o valor. Se o plano não tiver corte automático, a alternativa proposta é o teto já existente no app para a IA (`AI_PLATFORM_MONTHLY_BRL`) e um alerta com ação manual.
+
+**Risco ao app:** nenhum no levantamento; as correções seguem o fluxo normal.

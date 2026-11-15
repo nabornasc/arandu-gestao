@@ -12,7 +12,7 @@ Os pontos abertos são de defesa em profundidade: o Postgres aceita conexão com
 |---|--------|-------|----------------------------|
 | B1 | Policies `USING (true) WITH CHECK (true)` para `arandue_app` em todas as tabelas: o banco não separa as empresas | Médio | Sim, se feito errado. Exige mudança no backend antes |
 | B2 | Postgres aceita login com senha de qualquer IP (conexão direta em IPv6 e pooler em IPv4). Restrição de rede não verificada | Médio | Sim: a Vercel não tem IP fixo; restringir a rede bloqueia a API |
-| B3 | Cadastro do Supabase Auth aberto por e-mail, sem uso pelo app | Baixo | Não |
+| B3 | Cadastro do Supabase Auth aberto por e-mail, sem uso pelo app. **Corrigido em 15/11/2026** | Baixo | Não |
 | B4 | API REST do Supabase (Data API) publica o schema `public` sem uso pelo app; o erro confirma o nome das tabelas. Chave legacy `anon` (JWT) ainda ativa | Baixo | Não (o backend conecta direto no Postgres; o upload de anexos usa a API de Storage, que é outro serviço) |
 | B5 | Permissões padrão do Supabase em `realtime`, `storage` e `extensions` para `anon` | Baixo | Não |
 | B6 | Sete schemas `backup_*` com cópia de dados da demonstração | Baixo | Não |

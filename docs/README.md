@@ -17,11 +17,13 @@ Os planos estão numerados na ordem em que foram escritos. O **00** é o roteiro
 | 06 | [Operações](planejamento/06-operacoes.md) | Compras, entrega, contas a pagar e renegociação |
 | 07 | [Manuais](planejamento/07-manuais.md) | Central de ajuda com vídeos gravados pelos testes |
 | 08 | [Assistente de IA](planejamento/08-assistente-ia.md) | Chat, consultas, ações com confirmação e Telegram |
+| 09 | [Banco de dados](planejamento/09-banco-de-dados.md) | Exposição, backup, migrations, transações, schema, índices e custo |
 
 ## Guias
 
 - [Publicação](guias/deploy.md): Vercel, Supabase, variáveis de ambiente e demonstração.
 - [Ambiente local](guias/ambiente-local.md): PostgreSQL sem Docker no Windows.
+- [Backup e restauração](guias/restauracao.md): backup diário criptografado, teste de restauração e o passo a passo do dia que der ruim.
 
 ## Manual do usuário
 

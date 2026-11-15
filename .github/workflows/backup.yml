@@ -1,0 +1,72 @@
+name: Backup do banco
+
+# Backup diário do banco de produção, guardado como artefato desta execução, e teste de restauração da
+# cópia num Postgres descartável. Guia do dia que der ruim: docs/guias/restauracao.md.
+#
+# O repositório é público e qualquer pessoa logada no GitHub baixa artefatos: a cópia sai criptografada
+# (gpg, AES-256) com BACKUP_PASSPHRASE. Sem essa senha nenhum backup volta; guarde-a também fora do GitHub.
+#
+# Retenção pela validade do artefato: a cópia de cada dia fica 7 dias; a de domingo, 28. São sempre
+# as 7 últimas diárias e as 4 últimas semanais.
+
+on:
+  schedule:
+    # 06h UTC (03h em Brasília): depois da restauração da demonstração das 04h UTC.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      name: ${{ steps.meta.outputs.name }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Conferir segredos
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          [ -n "$BACKUP_DATABASE_URL" ] || { echo "::error::Falta o segredo BACKUP_DATABASE_URL."; exit 1; }
+          [ -n "$BACKUP_PASSPHRASE" ] || { echo "::error::Falta o segredo BACKUP_PASSPHRASE."; exit 1; }
+      - name: Nome e validade
+        id: meta
+        run: |
+          echo "name=backup-$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+          # Domingo (7) é a cópia semanal.
+          echo "days=$([ "$(date -u +%u)" = 7 ] && echo 28 || echo 7)" >> "$GITHUB_OUTPUT"
+      - name: Backup
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: scripts/backup/backup.sh backup
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.name }}
+          path: backup/
+          retention-days: ${{ steps.meta.outputs.days }}
+          if-no-files-found: error
+
+  restauracao:
+    needs: backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      # Baixa o artefato que acabou de subir: testa a cópia como ela será usada no dia que der ruim.
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.backup.outputs.name }}
+          path: backup/
+      - name: Restaurar num banco descartável e conferir
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: scripts/backup/testar-restauracao.sh backup/*.dump.gpg backup/*.contagens
