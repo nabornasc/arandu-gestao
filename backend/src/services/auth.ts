@@ -9,6 +9,7 @@ import { type DbOrTx, db } from '../db/client.ts';
 import { accessGroupPermissions, accessGroups, companies, sessions, users } from '../db/schema.ts';
 import type { Ctx } from '../lib/context.ts';
 import { conflict, forbidden, unauthorized } from '../lib/errors.ts';
+import { asSystem, setTenantCompany } from '../lib/tenant.ts';
 import { parse } from '../lib/validate.ts';
 import { createDefaultGroups } from './accessGroups.ts';
 import { audit } from './audit.ts';
@@ -222,7 +223,13 @@ async function ctxWhere(
   return row ? { ...toCtx(row), actor } : null;
 }
 
-export const resolveTelegramChat = (chatId: number) => ctxWhere(eq(users.telegramChatId, chatId), 'telegram');
+// A conversa do Telegram é procurada entre todas as empresas (modo sistema); achado o usuário, o resto do
+// tratamento da mensagem fica no escopo da empresa dele.
+export async function resolveTelegramChat(chatId: number): Promise<Ctx | null> {
+  const ctx = await asSystem(() => ctxWhere(eq(users.telegramChatId, chatId), 'telegram'));
+  if (ctx) setTenantCompany(ctx.companyId);
+  return ctx;
+}
 // Com `executor`, lê dentro da transação de quem chama (sem pedir outra conexão ao pool).
 export const resolveUserCtx = (userId: number, actor: Ctx['actor'], executor: DbOrTx = db) =>
   ctxWhere(eq(users.id, userId), actor, executor);

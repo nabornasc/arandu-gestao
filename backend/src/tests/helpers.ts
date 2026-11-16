@@ -1,9 +1,18 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
+import postgres from 'postgres';
 import { buildApp } from '../app.ts';
 import { todayInBrazil } from '../services/orders.ts';
 
 export const PASSWORD = 'senha-de-teste-123';
+
+// A aplicação conecta como arandue_app, que não altera a estrutura do banco. Os testes que criam trigger
+// ou constraint temporária usam esta conexão de dono.
+let owner: postgres.Sql | null = null;
+export function ownerExecute(statement: string) {
+  owner ??= postgres(process.env.TEST_OWNER_DATABASE_URL ?? '', { max: 1, onnotice: () => {} });
+  return owner.unsafe(statement);
+}
 
 export async function createApp(): Promise<FastifyInstance> {
   const app = await buildApp();

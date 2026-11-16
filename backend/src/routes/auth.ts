@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { asSystem, setTenantCompany } from '../lib/tenant.ts';
 import { clearSessionCookie, ctxOf, requireAuth, SESSION_COOKIE, setSessionCookie } from '../plugins/auth.ts';
 import { getProfile, login, logout, register } from '../services/auth.ts';
 
@@ -7,21 +8,24 @@ const strictLimit = { rateLimit: { max: 10, timeWindow: '1 minute' } };
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   app.post('/auth/register', { config: strictLimit }, async (request, reply) => {
-    const { session, ctx } = await register(request.body as never, { ip: request.ip });
+    // Login e cadastro procuram e criam usuários antes de haver empresa na requisição: modo sistema.
+    const { session, ctx } = await asSystem(() => register(request.body as never, { ip: request.ip }));
     setSessionCookie(reply, session);
+    setTenantCompany(ctx.companyId);
     reply.status(201);
     return getProfile(ctx);
   });
 
   app.post('/auth/login', { config: strictLimit }, async (request, reply) => {
-    const { session, ctx } = await login(request.body as never, { ip: request.ip });
+    const { session, ctx } = await asSystem(() => login(request.body as never, { ip: request.ip }));
     setSessionCookie(reply, session);
+    setTenantCompany(ctx.companyId);
     return getProfile(ctx);
   });
 
   app.post('/auth/logout', async (request, reply) => {
     const token = request.cookies[SESSION_COOKIE];
-    if (token) await logout(token);
+    if (token) await asSystem(() => logout(token));
     clearSessionCookie(reply);
     return reply.status(204).send();
   });

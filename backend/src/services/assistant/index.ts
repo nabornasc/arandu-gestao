@@ -76,7 +76,14 @@ async function reserveUsage(ctx: Ctx, channel: AssistantChannel, quota: number) 
     if (spent >= quota) {
       throw new AppError(429, 'Limite mensal do assistente atingido. Ele volta no início do próximo mês.');
     }
-    if ((await spentThisMonth(undefined, tx)) >= config.AI_PLATFORM_MONTHLY_BRL) {
+    // O teto da plataforma soma todas as empresas: a leitura sai do escopo da empresa só nesta consulta.
+    const [previous] = await tx.execute<{ bypass: string | null }>(
+      sql`SELECT current_setting('app.bypass', true) AS bypass`,
+    );
+    await tx.execute(sql`SELECT set_config('app.bypass', 'on', true)`);
+    const platformSpent = await spentThisMonth(undefined, tx);
+    await tx.execute(sql`SELECT set_config('app.bypass', ${previous?.bypass ?? 'off'}, true)`);
+    if (platformSpent >= config.AI_PLATFORM_MONTHLY_BRL) {
       throw new AppError(503, 'O assistente está em pausa. Tente de novo mais tarde.');
     }
     const [recent] = await tx.execute<{ average: string }>(sql`

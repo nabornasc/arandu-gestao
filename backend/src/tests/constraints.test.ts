@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '../db/client.ts';
@@ -12,7 +12,7 @@ import {
   users,
 } from '../db/schema.ts';
 import { pgCode } from '../lib/pgError.ts';
-import { type Client, createApp, signupCompany, today } from './helpers.ts';
+import { type Client, createApp, ownerExecute, signupCompany, today } from './helpers.ts';
 
 // As regras das validações da tela também moram no banco (migrations 0040 a 0043): uma gravação que
 // pule a API, um script ou um bug não deixa valor fora das regras.
@@ -53,8 +53,11 @@ describe('regras no banco', () => {
     expect(
       await rejected(() => db.update(products).set({ stock: -1 }).where(eq(products.id, productId))),
     ).toBe(CHECK);
+    // Itens de pedido só aceitam inserção (permissões do arandue_app): a regra vale na inserção.
     expect(
-      await rejected(() => db.update(orderItems).set({ quantity: 0 }).where(eq(orderItems.orderId, orderId))),
+      await rejected(() =>
+        db.insert(orderItems).values({ orderId, productId, quantity: 0, unitPrice: 30, subtotal: 0 }),
+      ),
     ).toBe(CHECK);
     expect(
       await rejected(() =>
@@ -86,10 +89,8 @@ describe('regras no banco', () => {
   });
 
   it('valor recusado por uma regra do banco chega à tela como 400, não como erro interno', async () => {
-    await db.execute(
-      sql.raw(
-        "ALTER TABLE bank_accounts ADD CONSTRAINT teste_banco_recusado CHECK (bank_name <> 'Recusado')",
-      ),
+    await ownerExecute(
+      "ALTER TABLE bank_accounts ADD CONSTRAINT teste_banco_recusado CHECK (bank_name <> 'Recusado')",
     );
     try {
       const response = await owner.post('/bank-accounts', {
@@ -101,12 +102,17 @@ describe('regras no banco', () => {
       expect(response.status).toBe(400);
       expect(response.body.message).toBe('Valor fora das regras do sistema.');
     } finally {
-      await db.execute(sql.raw('ALTER TABLE bank_accounts DROP CONSTRAINT teste_banco_recusado'));
+      await ownerExecute('ALTER TABLE bank_accounts DROP CONSTRAINT teste_banco_recusado');
     }
   });
 
   it('dois usuários nunca ficam com o mesmo código de vínculo do Telegram', async () => {
-    const all = await db.select({ id: users.id }).from(users).limit(2);
+    const other = await signupCompany(app);
+    const all = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(inArray(users.companyId, [owner.companyId, other.companyId]))
+      .limit(2);
     const [first, second] = all;
     if (!first || !second) throw new Error('São precisos dois usuários.');
     const later = new Date(Date.now() + 60_000);

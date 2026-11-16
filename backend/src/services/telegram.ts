@@ -14,6 +14,7 @@ import { authorize, type Ctx } from '../lib/context.ts';
 import { AppError, notFound } from '../lib/errors.ts';
 import { reportError } from '../lib/monitoring.ts';
 import { isUniqueViolation } from '../lib/pgError.ts';
+import { asSystem } from '../lib/tenant.ts';
 import { cancelAction, confirmAction, type ProposedAction } from './assistant/actions.ts';
 import { askAssistant } from './assistant/index.ts';
 import { audit } from './audit.ts';
@@ -113,11 +114,13 @@ export async function createTelegramCode(ctx: Ctx) {
   authorize(ctx, 'assistant.use');
   telegramBot();
   const expiresAt = new Date(Date.now() + CODE_TTL_MS);
-  // Códigos vencidos não servem para nada e ocupariam valores no índice único.
-  await db
-    .update(users)
-    .set({ telegramLinkCode: null, telegramLinkExpiresAt: null })
-    .where(lt(users.telegramLinkExpiresAt, new Date()));
+  // Códigos vencidos não servem para nada e ocupariam valores no índice único (de todas as empresas).
+  await asSystem(() =>
+    db
+      .update(users)
+      .set({ telegramLinkCode: null, telegramLinkExpiresAt: null })
+      .where(lt(users.telegramLinkExpiresAt, new Date())),
+  );
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
     // Dois usuários nunca têm o mesmo código: o índice único recusa, e o laço tenta outro.
@@ -157,6 +160,11 @@ export async function unlinkTelegram(ctx: Ctx) {
 // esperam a anterior terminar, então a contagem de erros não fura o limite. O FOR UPDATE no usuário faz
 // duas conversas com o mesmo código disputarem a mesma linha: só a primeira vincula.
 async function linkChat(chatId: number, code: string): Promise<string> {
+  // O código é procurado entre todas as empresas: modo sistema.
+  return asSystem(() => linkChatAsSystem(chatId, code));
+}
+
+async function linkChatAsSystem(chatId: number, code: string): Promise<string> {
   return db.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`telegram-link:${chatId}`}, 0))`);
     const [failures] = await tx

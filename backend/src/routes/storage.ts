@@ -6,6 +6,7 @@ import { db } from '../db/client.ts';
 import { attachments } from '../db/schema.ts';
 import { badRequest, notFound } from '../lib/errors.ts';
 import { localStorage, validLocalSignature } from '../lib/storage.ts';
+import { asSystem } from '../lib/tenant.ts';
 
 // Rotas do armazenamento local, com URLs assinadas e de prazo curto (mesmo papel das URLs do Supabase).
 export async function localStorageRoutes(app: FastifyInstance) {
@@ -42,10 +43,13 @@ export async function localStorageRoutes(app: FastifyInstance) {
   app.get('/storage/file', async (request, reply) => {
     const key = signed(request.query, 'file');
     if (!key) throw notFound();
-    const [row] = await db
-      .select({ mimeType: attachments.mimeType, name: attachments.name })
-      .from(attachments)
-      .where(eq(attachments.storageKey, key));
+    // O link assinado é o que autoriza (sem sessão, como a URL do Supabase): modo sistema.
+    const [row] = await asSystem(() =>
+      db
+        .select({ mimeType: attachments.mimeType, name: attachments.name })
+        .from(attachments)
+        .where(eq(attachments.storageKey, key)),
+    );
     if (!row) throw notFound();
     const data = await readFile(storage.filePath(key)).catch(() => null);
     if (!data) throw notFound();

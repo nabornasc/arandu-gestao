@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { and, count, eq, sql } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '../db/client.ts';
@@ -15,7 +15,7 @@ import {
   type stockMovements,
   users,
 } from '../db/schema.ts';
-import { type Client, createApp, login, PASSWORD, signupCompany, today } from './helpers.ts';
+import { type Client, createApp, login, ownerExecute, PASSWORD, signupCompany, today } from './helpers.ts';
 
 // Operações que gravam em várias tabelas acontecem inteiras ou não acontecem. Cada teste faz o banco
 // recusar um passo do meio (trigger temporário que levanta erro) e confere que nada ficou gravado.
@@ -43,19 +43,17 @@ afterAll(() => app.close());
 // Faz o banco recusar `operation` em `table` enquanto `run` executa.
 async function failingOn(table: string, operation: 'INSERT' | 'UPDATE', run: () => Promise<void>) {
   const name = `falha_simulada_${table}`;
-  await db.execute(
-    sql.raw(
-      `CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'falha simulada em ${table}'; END $$`,
-    ),
+  await ownerExecute(
+    `CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'falha simulada em ${table}'; END $$`,
   );
-  await db.execute(
-    sql.raw(`CREATE TRIGGER ${name} BEFORE ${operation} ON ${table} FOR EACH ROW EXECUTE FUNCTION ${name}()`),
+  await ownerExecute(
+    `CREATE TRIGGER ${name} BEFORE ${operation} ON ${table} FOR EACH ROW EXECUTE FUNCTION ${name}()`,
   );
   try {
     await run();
   } finally {
-    await db.execute(sql.raw(`DROP TRIGGER ${name} ON ${table}`));
-    await db.execute(sql.raw(`DROP FUNCTION ${name}()`));
+    await ownerExecute(`DROP TRIGGER ${name} ON ${table}`);
+    await ownerExecute(`DROP FUNCTION ${name}()`);
   }
 }
 

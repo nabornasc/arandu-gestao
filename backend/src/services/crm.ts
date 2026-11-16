@@ -10,6 +10,7 @@ import { authorize, type Ctx } from '../lib/context.ts';
 import { AppError, notFound } from '../lib/errors.ts';
 import { reportError } from '../lib/monitoring.ts';
 import { fileStorage } from '../lib/storage.ts';
+import { asSystem } from '../lib/tenant.ts';
 import { parse } from '../lib/validate.ts';
 import { audit } from './audit.ts';
 import { documentsHistory } from './history.ts';
@@ -81,7 +82,8 @@ export async function createAttachmentUpload(ctx: Ctx, opportunityId: number, in
     );
   }
   try {
-    await cleanupAttachments();
+    // A limpeza percorre os anexos de todas as empresas: modo sistema.
+    await asSystem(() => cleanupAttachments());
   } catch (error) {
     // Limpeza é manutenção: falha aqui não impede o envio.
     await reportError(error);
