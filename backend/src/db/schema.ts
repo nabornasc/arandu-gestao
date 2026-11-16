@@ -386,6 +386,7 @@ export const people = pgTable(
     check('people_credit_limit_nao_negativo', sql`${t.creditLimit} >= 0`),
     check('people_document_digitos', sql`${t.document} ~ '^([0-9]{11}|[0-9]{14})$'`),
     check('people_zip_digitos', sql`${t.zip} ~ '^[0-9]{1,8}$'`),
+    index().on(t.carrierId),
   ],
 );
 
@@ -510,6 +511,7 @@ export const opportunityItems = pgTable(
     index().on(t.opportunityId),
     check('opportunity_items_unit_price_nao_negativo', sql`${t.unitPrice} >= 0`),
     check('opportunity_items_quantity_positiva', sql`${t.quantity} > 0`),
+    index().on(t.productId),
   ],
 );
 
@@ -582,6 +584,7 @@ export const quotes = pgTable(
     check('quotes_total_nao_negativo', sql`${t.total} >= 0`),
     check('quotes_freight_nao_negativo', sql`${t.freight} >= 0`),
     check('quotes_other_charges_nao_negativo', sql`${t.otherCharges} >= 0`),
+    index().on(t.customerId),
   ],
 );
 
@@ -614,6 +617,7 @@ export const quoteItems = pgTable(
     check('quote_items_subtotal_nao_negativo', sql`${t.subtotal} >= 0`),
     check('quote_items_unit_cost_nao_negativo', sql`${t.unitCost} >= 0`),
     check('quote_items_quantity_positiva', sql`${t.quantity} > 0`),
+    index().on(t.productId),
   ],
 );
 
@@ -657,6 +661,7 @@ export const orders = pgTable(
     check('orders_total_nao_negativo', sql`${t.total} >= 0`),
     check('orders_freight_nao_negativo', sql`${t.freight} >= 0`),
     check('orders_other_charges_nao_negativo', sql`${t.otherCharges} >= 0`),
+    index().on(t.customerId),
   ],
 );
 
@@ -717,6 +722,8 @@ export const stockMovements = pgTable(
   (t) => [
     index().on(t.companyId, t.productId, t.createdAt),
     check('stock_movements_balance_nao_negativo', sql`${t.balance} >= 0`),
+    index().on(t.orderId),
+    index().on(t.productId),
   ],
 );
 
@@ -1007,6 +1014,7 @@ export const aiUsage = pgTable(
     index().on(t.companyId, t.createdAt),
     check('ai_usage_cost_usd_nao_negativo', sql`${t.costUsd} >= 0`),
     check('ai_usage_cost_brl_nao_negativo', sql`${t.costBrl} >= 0`),
+    index().on(t.userId, t.createdAt),
   ],
 );
 

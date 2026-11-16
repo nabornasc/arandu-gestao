@@ -11,7 +11,7 @@ Plano das sete frentes de revisão do banco pedidas em 15/11/2026. Cada frente t
 | 3 | [C. Migrations e dev x produção](#c-migrations-e-dev-x-produção) | Base para D, E e F: confirma que o banco real é igual às migrations antes de criar outras | Feita no código; SQL de produção aguardando você |
 | 4 | [D. Transações](#d-transações) | O app já usa transação na maior parte; fecha as lacunas e prepara o B1 (RLS por empresa), que precisa de uma transação por requisição | Concluída em 15/11/2026 |
 | 5 | [E. Schema e constraints](#e-schema-e-constraints) | Depende de C (migrations confiáveis) | Feita no código; SQL de produção aguardando você |
-| 6 | [F. Índices](#f-índices) | Depende de C; aproveita o levantamento de consultas de G | Pendente |
+| 6 | [F. Índices](#f-índices) | Depende de C; aproveita o levantamento de consultas de G | Feita no código; SQL de produção aguardando você |
 | 7 | [G. Custo](#g-custo) | Menor risco: os planos atuais têm teto fixo (a confirmar) | Pendente: confirmar os planos |
 
 Cada frente termina em um commit próprio, com testes, e só vai para produção com o seu OK.
@@ -110,6 +110,8 @@ Nenhum dado é alterado para a constraint passar: linha que quebra a regra vira 
 4. Migration só com os índices que uma consulta real usa, cada um com a consulta que acelera. Em produção, `CREATE INDEX CONCURRENTLY` fora de transação, avisado antes.
 
 **Risco ao app:** baixo; `CONCURRENTLY` não trava escrita.
+
+**Resultado (16/11/2026).** As 5 consultas mais executadas em produção (sessão, perfil, listas de pedidos e clientes, estoque baixo, pelo `pg_stat_statements`) já usam índice e ficam abaixo de 1,3 ms num banco de dev com 100 mil pedidos e 500 mil linhas de auditoria. `Seq Scan` em tabela grande só aparecia nas verificações de chave estrangeira e de "em uso" ao excluir pedido, produto, cliente ou transportadora, e no limite por minuto da IA: 8 índices na migração `0044`. Ficaram de fora as chaves para `users` (usuário nunca é excluído), a paginação por `OFFSET` (cursor mudaria a navegação por página), a consulta em laço da baixa em lote (trava os títulos em ordem) e as funções na coluna de relatórios raros e da busca de telefone (curinga no começo, que índice comum não resolve).
 
 ## G. Custo
 
