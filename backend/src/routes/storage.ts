@@ -44,11 +44,12 @@ export async function localStorageRoutes(app: FastifyInstance) {
     const key = signed(request.query, 'file');
     if (!key) throw notFound();
     // O link assinado é o que autoriza (sem sessão, como a URL do Supabase): modo sistema.
-    const [row] = await asSystem(() =>
-      db
-        .select({ mimeType: attachments.mimeType, name: attachments.name })
-        .from(attachments)
-        .where(eq(attachments.storageKey, key)),
+    const [row] = await asSystem(
+      async () =>
+        await db
+          .select({ mimeType: attachments.mimeType, name: attachments.name })
+          .from(attachments)
+          .where(eq(attachments.storageKey, key)),
     );
     if (!row) throw notFound();
     const data = await readFile(storage.filePath(key)).catch(() => null);

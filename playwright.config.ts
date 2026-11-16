@@ -5,6 +5,8 @@ const API_PORT = 3101;
 const WEB_PORT = 5174;
 const WEB_URL = `http://localhost:${WEB_PORT}`;
 const DATABASE_URL = process.env.E2E_DATABASE_URL ?? 'postgres://arandue:arandue@127.0.0.1:5432/arandue_e2e';
+// O backend roda como arandue_app, igual à produção (GRANTs e RLS por empresa); o setup do banco, como dono.
+const APP_DATABASE_URL = `${DATABASE_URL}${DATABASE_URL.includes('?') ? '&' : '?'}options=-c%20role%3Darandue_app`;
 
 export default defineConfig({
   testDir: 'e2e',
@@ -47,7 +49,8 @@ export default defineConfig({
       env: {
         NODE_ENV: 'test',
         PORT: String(API_PORT),
-        DATABASE_URL,
+        DATABASE_URL: APP_DATABASE_URL,
+        E2E_SETUP_DATABASE_URL: DATABASE_URL,
         ALLOWED_ORIGINS: WEB_URL,
         AI_PROVIDER: 'fake',
         // O backend lê o backend/.env: vazio aqui desliga o bot real do Telegram nos testes.

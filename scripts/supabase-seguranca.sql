@@ -41,16 +41,14 @@ TO arandue_app;
 -- Só inserção: o histórico não é alterado nem apagado pela aplicação.
 GRANT SELECT, INSERT ON audit_logs, interactions, order_items, stock_movements TO arandue_app;
 
+-- RLS ligado em toda tabela. As policies (cada empresa só vê as próprias linhas) vêm das migrações,
+-- a partir da 0045: tabela nova sem policy fica fechada para a aplicação até a migração dela criar uma.
+-- O teste backend/src/tests/appGrants.test.ts falha se alguma tabela ficar sem policy.
 DO $$
 DECLARE
   item record;
 BEGIN
   FOR item IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', item.tablename);
-    EXECUTE format('DROP POLICY IF EXISTS arandue_app_all ON public.%I', item.tablename);
-    EXECUTE format(
-      'CREATE POLICY arandue_app_all ON public.%I TO arandue_app USING (true) WITH CHECK (true)',
-      item.tablename
-    );
   END LOOP;
 END $$;

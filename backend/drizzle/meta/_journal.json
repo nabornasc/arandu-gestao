@@ -316,6 +316,13 @@
       "when": 1794792989476,
       "tag": "0044_indices_de_chaves_estrangeiras",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1794795059051,
+      "tag": "0045_rls_por_empresa",
+      "breakpoints": true
     }
   ]
 }

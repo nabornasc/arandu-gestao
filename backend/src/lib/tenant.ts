@@ -32,9 +32,11 @@ export function setTenantCompany(companyId: number): void {
 }
 
 // Roda `fn` em modo sistema: para o que, por natureza, não tem empresa (login, sessão, limpezas).
-export function asSystem<T>(fn: () => Promise<T>): Promise<T> {
+// O `await` fica dentro do trecho: uma consulta do Drizzle só executa quando é aguardada, e precisa
+// executar ainda em modo sistema (asSystem(() => db.select()...) funciona).
+export function asSystem<T>(fn: () => PromiseLike<T>): Promise<T> {
   const store = storage.getStore();
-  return storage.run({ companyId: store?.companyId ?? null, system: true }, fn);
+  return storage.run({ companyId: store?.companyId ?? null, system: true }, async () => await fn());
 }
 
 export function currentTenantScope(): TenantScope {

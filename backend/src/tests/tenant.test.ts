@@ -69,6 +69,15 @@ describe('empresa de cada consulta', () => {
     expect(result.after).toMatchObject({ company: '5', bypass: 'off' });
   });
 
+  it('asSystem também vale para a consulta do Drizzle devolvida sem await', async () => {
+    const result = await inRequest(() =>
+      asSystem(() =>
+        db.execute<{ bypass: string }>(sql`SELECT current_setting('app.bypass', true) AS bypass`),
+      ),
+    );
+    expect(result[0]?.bypass).toBe('on');
+  });
+
   it('requisições simultâneas não misturam as empresas', async () => {
     const results = await Promise.all(
       [11, 12, 13, 14, 15].map((id) =>

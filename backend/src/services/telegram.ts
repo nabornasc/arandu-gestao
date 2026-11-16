@@ -115,11 +115,12 @@ export async function createTelegramCode(ctx: Ctx) {
   telegramBot();
   const expiresAt = new Date(Date.now() + CODE_TTL_MS);
   // Códigos vencidos não servem para nada e ocupariam valores no índice único (de todas as empresas).
-  await asSystem(() =>
-    db
-      .update(users)
-      .set({ telegramLinkCode: null, telegramLinkExpiresAt: null })
-      .where(lt(users.telegramLinkExpiresAt, new Date())),
+  await asSystem(
+    async () =>
+      await db
+        .update(users)
+        .set({ telegramLinkCode: null, telegramLinkExpiresAt: null })
+        .where(lt(users.telegramLinkExpiresAt, new Date())),
   );
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');

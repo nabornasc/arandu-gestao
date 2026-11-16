@@ -30,4 +30,17 @@ describe('permissões do usuário da aplicação', () => {
     expect(existing.filter((table) => !granted.has(table) && !UNUSED.includes(table))).toEqual([]);
     expect([...granted].filter((table) => !existing.includes(table))).toEqual([]);
   });
+
+  it('toda tabela tem RLS ligado e uma policy (migração 0045 em diante)', async () => {
+    const rows = await db.execute<{ name: string; rls: boolean; policies: number }>(sql`
+      SELECT c.relname AS name, c.relrowsecurity AS rls,
+             (SELECT count(*)::int FROM pg_policies p WHERE p.schemaname = 'public' AND p.tablename = c.relname) AS policies
+      FROM pg_class c WHERE c.relnamespace = 'public'::regnamespace AND c.relkind = 'r' ORDER BY 1`);
+    expect(rows.filter((row) => !row.rls || row.policies === 0).map((row) => row.name)).toEqual([]);
+    // A permissiva antiga não pode voltar.
+    const [old] = await db.execute<{ total: number }>(
+      sql`SELECT count(*)::int AS total FROM pg_policies WHERE policyname = 'arandue_app_all'`,
+    );
+    expect(old?.total).toBe(0);
+  });
 });

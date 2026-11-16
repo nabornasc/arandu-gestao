@@ -34,7 +34,7 @@ Depois de uma nova migração, rode `npm run demo:setup -- --recriar` e atualize
    CREATE ROLE arandue_app LOGIN PASSWORD '<senha-forte>' NOINHERIT;
    ```
 
-5. Ainda no SQL Editor, rode [scripts/supabase-seguranca.sql](../../scripts/supabase-seguranca.sql). Ele liga o RLS, tira o acesso da API pública e dá ao `arandue_app` só as permissões que o código usa em cada tabela.
+5. Ainda no SQL Editor, rode [scripts/supabase-seguranca.sql](../../scripts/supabase-seguranca.sql). Ele liga o RLS, tira o acesso da API pública e dá ao `arandue_app` só as permissões que o código usa em cada tabela. As policies de RLS (cada empresa só vê as próprias linhas) vêm das migrações, a partir da `0045`.
 6. Em **Advisors**, confira que não há alerta de segurança em aberto.
 
 Rode o passo 3 e depois o passo 5 a cada nova migração. A aplicação nunca altera a estrutura do banco. Migração que cria tabela precisa de uma linha nova de `GRANT` no script; o teste `backend/src/tests/appGrants.test.ts` falha se faltar.
