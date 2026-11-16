@@ -31,7 +31,7 @@ Relatório completo: [AUDITORIA-BANCO.md](../../AUDITORIA-BANCO.md). Nenhuma cha
 | B3 | Desligar o cadastro do Supabase Auth (painel). **Feito em 15/11/2026** (`disable_signup: true` conferido pela API) | Não |
 | B4 | Tirar `public` da Data API e desativar as chaves legacy (painel); testar upload de anexo no CRM depois | Não |
 | B2 | Confirmar *Enforce SSL*; trocar as senhas de `postgres` e `arandue_app` junto com a `DATABASE_URL` da Vercel. Não ligar *Network Restrictions* sem IP fixo | Sim, se a senha mudar antes da variável |
-| B1 | RLS por empresa, em 4 etapas. **Etapas 1 e 2 feitas em 16/11/2026:** empresa de cada consulta levada ao banco (`lib/tenant.ts`, `db/client.ts`) e testes rodando como `arandue_app` com o RLS de produção. Etapa 3 feita: migration `0045` com as policies por empresa, suíte (339) e e2e (90) passando como `arandue_app`. Falta a produção | Sim, se feito fora de ordem |
+| B1 | RLS por empresa, em 4 etapas. **Etapas 1 e 2 feitas em 16/11/2026:** empresa de cada consulta levada ao banco (`lib/tenant.ts`, `db/client.ts`) e testes rodando como `arandue_app` com o RLS de produção. Etapa 3 feita: migration `0045` com as policies por empresa, suíte (339) e e2e (90) passando como `arandue_app`. **Em produção desde 16/11/2026:** policies idênticas às testadas, as duas empresas da demo isoladas pela API e o backup diário funcionando | Sim, se feito fora de ordem |
 
 ## B. Backup que volta
 
