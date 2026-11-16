@@ -55,6 +55,10 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 - As listas não param mais nos 500 registros mais recentes. "Imprimir lista" virou "Imprimir página": sai a página que está na tela.
 - No cadastro, o estoque só é informado na criação; depois, muda pelo ajuste. Pela API, alterar `stock` no cadastro continua possível e entra no extrato como edição do cadastro.
 
+### Alterado
+
+- **Permissões mínimas do usuário da aplicação no banco:** `scripts/supabase-seguranca.sql` deixa de dar `SELECT, INSERT, UPDATE, DELETE` em todas as tabelas ao `arandue_app` e lista, tabela por tabela, só o que o código usa (histórico, como `audit_logs` e `stock_movements`, fica só com inserção; `events`, sem uso, fica sem acesso). O teste `appGrants.test.ts` falha se uma tabela nova ficar sem permissão.
+
 ### Corrigido
 
 - **Cota mensal do assistente estourava com perguntas simultâneas:** todas liam o gasto antes de qualquer uma gravar. Agora cada pergunta reserva o custo estimado em `ai_usage` antes de chamar a IA (média das últimas 20 perguntas da empresa, mínimo de R$ 0,01), com a conferência da cota e a reserva sob a mesma trava do banco (`pg_advisory_xact_lock`). A resposta troca a reserva pelo custo real; falha do provedor apaga a reserva. Vale também para o teto da plataforma.

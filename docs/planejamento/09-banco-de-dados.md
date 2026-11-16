@@ -8,7 +8,7 @@ Plano das sete frentes de revisão do banco pedidas em 15/11/2026. Cada frente t
 |-------|--------|------------------------|----------|
 | 1 | [A. Exposição do banco](#a-exposição-do-banco) | Já auditada; os itens restantes são cliques no painel | Em andamento: B3 feito em 15/11/2026; B4 e B2 pendentes |
 | 2 | [B. Backup que volta](#b-backup-que-volta) | Maior risco hoje: os backups atuais ficam **dentro do mesmo banco** e não protegem contra perda do projeto | Concluída em 15/11/2026: primeira execução em produção restaurou 43 tabelas com as contagens batendo |
-| 3 | [C. Migrations e dev x produção](#c-migrations-e-dev-x-produção) | Base para D, E e F: confirma que o banco real é igual às migrations antes de criar outras | Pendente |
+| 3 | [C. Migrations e dev x produção](#c-migrations-e-dev-x-produção) | Base para D, E e F: confirma que o banco real é igual às migrations antes de criar outras | Feita no código; SQL de produção aguardando você |
 | 4 | [D. Transações](#d-transações) | O app já usa transação na maior parte; fecha as lacunas e prepara o B1 (RLS por empresa), que precisa de uma transação por requisição | Pendente |
 | 5 | [E. Schema e constraints](#e-schema-e-constraints) | Depende de C (migrations confiáveis) | Pendente |
 | 6 | [F. Índices](#f-índices) | Depende de C; aproveita o levantamento de consultas de G | Pendente |
@@ -61,6 +61,13 @@ Relatório completo: [AUDITORIA-BANCO.md](../../AUDITORIA-BANCO.md). Nenhuma cha
 4. Os `GRANT`s atuais de `arandue_app` (hoje `SELECT, INSERT, UPDATE, DELETE` em todas as tabelas do `public`), com a lista do que o app realmente usa. Possível ajuste: tirar `UPDATE`/`DELETE` de tabelas só de inserção, como `audit_logs`.
 
 **Risco ao app:** nenhum até a migration de alinhamento, que vai com o SQL testado.
+
+**Resultado (15/11/2026).**
+- Colunas, constraints, enums e índices de produção são idênticos aos gerados pelas 40 migrations; RLS e policies são idênticos ao `scripts/supabase-seguranca.sql`. Não há tabela, coluna ou índice criado à mão, e não foi preciso migration de alinhamento.
+- Só em produção: o event trigger `ensure_rls` e a função `public.rls_auto_enable`, de uma opção do Supabase que liga o RLS em tabela nova. Mantidos e documentados em `docs/guias/deploy.md`.
+- As migrations `0000` a `0009` foram registradas em produção com o hash do arquivo em CRLF (aplicadas de uma cópia do Windows). O schema é o mesmo; o SQL de produção corrige os 10 hashes.
+- `arandue_app` passa a ter só as permissões que o código usa, tabela por tabela, no próprio `supabase-seguranca.sql`. Validado rodando a suíte inteira (314 testes) conectada como esse usuário, com RLS e policies iguais às de produção. O teste `appGrants.test.ts` falha se uma tabela nova ficar sem permissão.
+- Regra para agentes de IA em `CLAUDE.md`: banco local por padrão; produção só por SQL entregue ao dono do projeto.
 
 ## D. Transações
 
