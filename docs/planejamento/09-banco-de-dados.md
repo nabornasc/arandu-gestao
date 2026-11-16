@@ -12,7 +12,7 @@ Plano das sete frentes de revisão do banco pedidas em 15/11/2026. Cada frente t
 | 4 | [D. Transações](#d-transações) | O app já usa transação na maior parte; fecha as lacunas e prepara o B1 (RLS por empresa), que precisa de uma transação por requisição | Concluída em 15/11/2026 |
 | 5 | [E. Schema e constraints](#e-schema-e-constraints) | Depende de C (migrations confiáveis) | Feita no código; SQL de produção aguardando você |
 | 6 | [F. Índices](#f-índices) | Depende de C; aproveita o levantamento de consultas de G | Feita no código; SQL de produção aguardando você |
-| 7 | [G. Custo](#g-custo) | Menor risco: os planos atuais têm teto fixo (a confirmar) | Pendente: confirmar os planos |
+| 7 | [G. Custo](#g-custo) | Menor risco: os planos atuais têm teto fixo | Concluída em 16/11/2026, sem mudança de código |
 
 Cada frente termina em um commit próprio, com testes, e só vai para produção com o seu OK.
 
@@ -124,3 +124,11 @@ Nenhum dado é alterado para a constraint passar: linha que quebra a regra vira 
 4. Corte de gasto real: no Supabase Free os limites são fixos e o projeto é restringido ao estourar, sem cobrança extra; no Pro existe o *Spend Cap*, ligado por padrão. Na Vercel Hobby não há cobrança; no Pro, *Spend Management* pausa os projetos ao atingir o valor. Se o plano não tiver corte automático, a alternativa proposta é o teto já existente no app para a IA (`AI_PLATFORM_MONTHLY_BRL`) e um alerta com ação manual.
 
 **Risco ao app:** nenhum no levantamento; as correções seguem o fluxo normal.
+
+**Resultado (16/11/2026).** Supabase Free e Vercel Hobby não cobram por leitura: ao estourar um limite, o serviço é restringido, sem cobrança. O único custo por uso é a IA. Produção fez cerca de 1.360 consultas por dia (`pg_stat_statements`, desde 05/11), com banco de 20 MB e nenhuma pergunta à IA registrada. Itens avaliados e mantidos:
+- leitura dos tipos do banco a cada conexão nova (35% do tempo de banco, mas cerca de 37 vezes por dia): desligar faria o driver devolver arrays como texto e quebraria as permissões (`array_agg`) e os dias das condições de pagamento (`int4[]`);
+- lista de produtos sem limite: centenas de linhas por empresa; paginar se algum cliente passar de cerca de 2.000 produtos;
+- listas com até 500 linhas quando chamadas sem página (média de 4,7 linhas em produção), paginação por `OFFSET`, consulta em laço da baixa em lote e atualização a cada 3 s do vínculo do Telegram: custo limitado;
+- nenhuma assinatura em tempo real.
+
+Estimativa com 10 vezes mais usuários (20): cerca de 1,1 GB por mês de tráfego (abaixo dos 5 GB do Free) e cerca de R$ 60 por mês de IA (R$ 0,002 a R$ 0,005 por pergunta, 20 perguntas por usuário por dia). Corte de gasto real: na IA, a cota por empresa e o teto da plataforma (`AI_PLATFORM_MONTHLY_BRL`) já recusam perguntas acima do limite; fora do app, o dono do projeto define o limite de gasto mensal no workspace da chave na Console da Anthropic. Se passar para Pro: Spend Cap ligado no Supabase e Spend Management com pausa na Vercel.
