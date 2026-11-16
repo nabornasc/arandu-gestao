@@ -86,10 +86,10 @@ function toCtx(row: CtxRow): Ctx {
   };
 }
 
-async function createSession(userId: number): Promise<SessionResult> {
+async function createSession(userId: number, executor: DbOrTx = db): Promise<SessionResult> {
   const token = randomBytes(32).toString('base64url');
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-  await db.insert(sessions).values({ id: hashToken(token), userId, expiresAt });
+  await executor.insert(sessions).values({ id: hashToken(token), userId, expiresAt });
   return { token, expiresAt };
 }
 
@@ -99,7 +99,8 @@ export async function register(input: RegisterInput, origin: RequestOrigin = {})
   if (ip) await consume(limitKey('register:ip', ip), REGISTER_PER_IP);
   const passwordHash = await hash(data.password);
 
-  const ctx = await db.transaction(async (tx) => {
+  // Empresa, grupos, listas, dono, auditoria e sessão numa transação só: nada fica pela metade.
+  return db.transaction(async (tx) => {
     const [existing] = await tx
       .select({ id: users.id })
       .from(users)
@@ -137,10 +138,8 @@ export async function register(input: RegisterInput, origin: RequestOrigin = {})
       permissions: [],
     });
     await audit(tx, ctx, 'create', 'company', company.id, { label: data.companyName });
-    return ctx;
+    return { session: await createSession(ctx.userId, tx), ctx };
   });
-
-  return { session: await createSession(ctx.userId), ctx };
 }
 
 export async function login(input: LoginInput, origin: RequestOrigin = {}): Promise<AuthResult> {
@@ -163,8 +162,11 @@ export async function login(input: LoginInput, origin: RequestOrigin = {}): Prom
   // Limpeza oportunista das sessões vencidas deste usuário.
   await db.delete(sessions).where(and(eq(sessions.userId, user.userId), lt(sessions.expiresAt, new Date())));
   const ctx = toCtx(user);
-  await audit(db, ctx, 'login', 'user', user.userId);
-  return { session: await createSession(user.userId), ctx };
+  // A auditoria do login e a sessão andam juntas: sem sessão, não há registro de login.
+  return db.transaction(async (tx) => {
+    await audit(tx, ctx, 'login', 'user', user.userId);
+    return { session: await createSession(user.userId, tx), ctx };
+  });
 }
 
 // Confirma a senha de quem está logado antes de uma operação sensível.

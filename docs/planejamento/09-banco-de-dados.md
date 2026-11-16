@@ -9,7 +9,7 @@ Plano das sete frentes de revisão do banco pedidas em 15/11/2026. Cada frente t
 | 1 | [A. Exposição do banco](#a-exposição-do-banco) | Já auditada; os itens restantes são cliques no painel | Em andamento: B3 feito em 15/11/2026; B4 e B2 pendentes |
 | 2 | [B. Backup que volta](#b-backup-que-volta) | Maior risco hoje: os backups atuais ficam **dentro do mesmo banco** e não protegem contra perda do projeto | Concluída em 15/11/2026: primeira execução em produção restaurou 43 tabelas com as contagens batendo |
 | 3 | [C. Migrations e dev x produção](#c-migrations-e-dev-x-produção) | Base para D, E e F: confirma que o banco real é igual às migrations antes de criar outras | Feita no código; SQL de produção aguardando você |
-| 4 | [D. Transações](#d-transações) | O app já usa transação na maior parte; fecha as lacunas e prepara o B1 (RLS por empresa), que precisa de uma transação por requisição | Pendente |
+| 4 | [D. Transações](#d-transações) | O app já usa transação na maior parte; fecha as lacunas e prepara o B1 (RLS por empresa), que precisa de uma transação por requisição | Concluída em 15/11/2026 |
 | 5 | [E. Schema e constraints](#e-schema-e-constraints) | Depende de C (migrations confiáveis) | Pendente |
 | 6 | [F. Índices](#f-índices) | Depende de C; aproveita o levantamento de consultas de G | Pendente |
 | 7 | [G. Custo](#g-custo) | Menor risco: os planos atuais têm teto fixo (a confirmar) | Pendente: confirmar os planos |
@@ -80,6 +80,8 @@ Relatório completo: [AUDITORIA-BANCO.md](../../AUDITORIA-BANCO.md). Nenhuma cha
 4. Chamadas externas (IA, Telegram, Storage) ficam fora da transação, com a explicação de onde cada uma entra e o que acontece se falhar.
 
 **Risco ao app:** baixo; cada mudança vem com teste.
+
+**Resultado (15/11/2026).** Venda, baixa, estorno, renegociação, cancelamento, conversão, compras, estoque, contas a pagar, cadastros e oportunidades já eram atômicos, e o front faz uma chamada por ação. Lacunas corrigidas: cadastro de empresa (sessão na mesma transação), login (auditoria e sessão juntas) e exclusão de anexo (banco antes do arquivo). A confirmação de ação do assistente continua em dois passos, porque juntar exigiria os serviços aceitarem `tx`; o estado intermediário não grava de novo e agora tem mensagem própria. `backend/src/tests/atomicity.test.ts` força erro no meio de 7 operações com um trigger temporário e prova que nada fica gravado.
 
 ## E. Schema e constraints
 

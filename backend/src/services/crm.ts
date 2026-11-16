@@ -179,7 +179,8 @@ export async function listAttachments(ctx: Ctx, opportunityId: number) {
 export async function deleteAttachment(ctx: Ctx, id: number) {
   authorize(ctx, 'opportunities.update');
   const { row, opportunity } = await ownAttachment(ctx, id);
-  await fileStorage().remove([row.storageKey]);
+  // Primeiro o banco, depois o arquivo: se cair no meio, sobra só um arquivo sem linha, que
+  // cleanupAttachments apaga. Na ordem inversa, o anexo ficaria na tela apontando para um arquivo apagado.
   await db.transaction(async (tx) => {
     await tx.delete(attachments).where(eq(attachments.id, id));
     if (row.status === 'ready') {
@@ -189,6 +190,7 @@ export async function deleteAttachment(ctx: Ctx, id: number) {
       });
     }
   });
+  await fileStorage().remove([row.storageKey]);
 }
 
 // ---------- Linha do tempo e rastreio ----------

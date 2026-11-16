@@ -432,6 +432,13 @@ async function explainMissing(ctx: Ctx, id: string): Promise<never> {
   if (row.status === 'cancelled') throw new AppError(409, 'Esta ação foi cancelada.');
   if (row.status === 'failed')
     throw new AppError(409, 'Esta ação falhou. Peça ao assistente para preparar de novo.');
+  // A gravação e a marcação de "confirmada" são passos separados: se o servidor cair entre os dois, a ação
+  // fica em "confirming". Ela não grava de novo; o usuário confere na tela se o registro foi criado.
+  if (row.status === 'confirming')
+    throw new AppError(
+      409,
+      'Esta ação já foi enviada para gravação. Confira na tela se o registro foi criado.',
+    );
   throw new AppError(409, 'A ação venceu (10 minutos). Peça ao assistente para preparar de novo.');
 }
 
