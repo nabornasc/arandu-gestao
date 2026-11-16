@@ -281,6 +281,34 @@
       "when": 1794782267709,
       "tag": "0039_updates_do_telegram",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794790444489,
+      "tag": "0040_valores_nao_negativos",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794790452319,
+      "tag": "0041_quantidades_e_estoque",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1794790454045,
+      "tag": "0042_titulos_e_parametros",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1794790461437,
+      "tag": "0043_formatos",
+      "breakpoints": true
     }
   ]
 }

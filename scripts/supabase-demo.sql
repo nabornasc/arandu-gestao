@@ -75,9 +75,12 @@ BEGIN
   FOREACH name IN ARRAY demo.table_list() LOOP
     EXECUTE format('INSERT INTO public.%I OVERRIDING SYSTEM VALUE SELECT * FROM demo.%I', name, name);
 
+    -- O mês da meta anda junto, mas continua no dia 1 (constraint sales_goals_month_dia_1).
     SELECT string_agg(
-      CASE data_type
-        WHEN 'date' THEN format('%I = %I + %s', column_name, column_name, days)
+      CASE
+        WHEN name = 'sales_goals' AND column_name = 'month'
+          THEN format('%I = date_trunc(''month'', %I + %s)::date', column_name, column_name, days)
+        WHEN data_type = 'date' THEN format('%I = %I + %s', column_name, column_name, days)
         ELSE format('%I = %I + interval ''%s days''', column_name, column_name, days)
       END,
       ', '

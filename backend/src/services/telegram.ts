@@ -13,6 +13,7 @@ import { aiUsage, telegramLinkFailures, telegramMessages, telegramUpdates, users
 import { authorize, type Ctx } from '../lib/context.ts';
 import { AppError, notFound } from '../lib/errors.ts';
 import { reportError } from '../lib/monitoring.ts';
+import { isUniqueViolation } from '../lib/pgError.ts';
 import { cancelAction, confirmAction, type ProposedAction } from './assistant/actions.ts';
 import { askAssistant } from './assistant/index.ts';
 import { audit } from './audit.ts';
@@ -112,25 +113,23 @@ export async function createTelegramCode(ctx: Ctx) {
   authorize(ctx, 'assistant.use');
   telegramBot();
   const expiresAt = new Date(Date.now() + CODE_TTL_MS);
+  // Códigos vencidos não servem para nada e ocupariam valores no índice único.
+  await db
+    .update(users)
+    .set({ telegramLinkCode: null, telegramLinkExpiresAt: null })
+    .where(lt(users.telegramLinkExpiresAt, new Date()));
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
-    const hash = hashCode(code);
-    // Dois usuários nunca têm o mesmo código válido ao mesmo tempo.
-    const [taken] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(
-        and(
-          eq(users.telegramLinkCode, hash),
-          gt(users.telegramLinkExpiresAt, new Date()),
-          ne(users.id, ctx.userId),
-        ),
-      );
-    if (taken) continue;
-    await db
-      .update(users)
-      .set({ telegramLinkCode: hash, telegramLinkExpiresAt: expiresAt })
-      .where(eq(users.id, ctx.userId));
+    // Dois usuários nunca têm o mesmo código: o índice único recusa, e o laço tenta outro.
+    try {
+      await db
+        .update(users)
+        .set({ telegramLinkCode: hashCode(code), telegramLinkExpiresAt: expiresAt })
+        .where(eq(users.id, ctx.userId));
+    } catch (error) {
+      if (isUniqueViolation(error)) continue;
+      throw error;
+    }
     return { code, expiresAt: expiresAt.toISOString(), botUsername: await botUsername() };
   }
   throw new AppError(503, 'Não foi possível gerar o código agora. Tente de novo.');

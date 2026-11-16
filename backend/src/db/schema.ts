@@ -5,6 +5,7 @@ import {
   type AnyPgColumn,
   bigint,
   boolean,
+  check,
   date,
   index,
   integer,
@@ -40,30 +41,37 @@ export const actorEnum = pgEnum('actor', ['web', 'telegram', 'assistant', 'syste
 
 // ---------- Empresas, usuários e sessões ----------
 
-export const companies = pgTable('companies', {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar({ length: 160 }).notNull(),
-  cnpj: varchar({ length: 18 }),
-  // Dados impressos no cabeçalho dos documentos enviados ao cliente.
-  legalName: varchar({ length: 160 }),
-  address: varchar({ length: 255 }),
-  phone: varchar({ length: 30 }),
-  email: varchar({ length: 160 }),
-  logo: text(),
-  quoteTerms: varchar({ length: 2000 }),
-  // Limite anual do MEI: cada empresa informa o valor vigente nas configurações (muda por lei).
-  meiAnnualLimit: money(),
-  // Cota mensal do assistente de IA, em reais.
-  aiMonthlyQuota: money().notNull().default(200),
-  // Mostra largura e comprimento nos itens do orçamento.
-  useMeasures: boolean().notNull().default(false),
-  measureUnit: varchar({ length: 2 }).notNull().default('m'),
-  // Contadores da numeração por empresa (#001, #002...), para o número não revelar o volume de outras.
-  orderSeq: integer().notNull().default(0),
-  quoteSeq: integer().notNull().default(0),
-  purchaseSeq: integer().notNull().default(0),
-  createdAt: createdAt(),
-});
+export const companies = pgTable(
+  'companies',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar({ length: 160 }).notNull(),
+    cnpj: varchar({ length: 18 }),
+    // Dados impressos no cabeçalho dos documentos enviados ao cliente.
+    legalName: varchar({ length: 160 }),
+    address: varchar({ length: 255 }),
+    phone: varchar({ length: 30 }),
+    email: varchar({ length: 160 }),
+    logo: text(),
+    quoteTerms: varchar({ length: 2000 }),
+    // Limite anual do MEI: cada empresa informa o valor vigente nas configurações (muda por lei).
+    meiAnnualLimit: money(),
+    // Cota mensal do assistente de IA, em reais.
+    aiMonthlyQuota: money().notNull().default(200),
+    // Mostra largura e comprimento nos itens do orçamento.
+    useMeasures: boolean().notNull().default(false),
+    measureUnit: varchar({ length: 2 }).notNull().default('m'),
+    // Contadores da numeração por empresa (#001, #002...), para o número não revelar o volume de outras.
+    orderSeq: integer().notNull().default(0),
+    quoteSeq: integer().notNull().default(0),
+    purchaseSeq: integer().notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check('companies_ai_monthly_quota_nao_negativo', sql`${t.aiMonthlyQuota} >= 0`),
+    check('companies_mei_annual_limit_positivo', sql`${t.meiAnnualLimit} > 0`),
+  ],
+);
 
 // Grupos de acesso da empresa. As permissões do grupo Proprietário (isOwner) não ficam na tabela:
 // ele tem sempre todas, inclusive as que forem criadas no futuro.
@@ -114,7 +122,8 @@ export const users = pgTable(
   (t) => [
     uniqueIndex('users_email_unique').on(sql`lower(${t.email})`),
     uniqueIndex('users_telegram_chat_unique').on(t.telegramChatId),
-    index().on(t.telegramLinkCode),
+    // Dois usuários nunca têm o mesmo código de vínculo do Telegram (createTelegramCode tenta outro).
+    uniqueIndex('users_telegram_link_code_unique').on(t.telegramLinkCode),
     index().on(t.companyId),
     index().on(t.groupId),
   ],
@@ -206,7 +215,10 @@ export const paymentConditions = pgTable(
     active: boolean().notNull().default(true),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex('payment_conditions_name_unique').on(t.companyId, sql`lower(${t.name})`)],
+  (t) => [
+    uniqueIndex('payment_conditions_name_unique').on(t.companyId, sql`lower(${t.name})`),
+    check('payment_conditions_down_payment_percent_faixa', sql`${t.downPaymentPercent} BETWEEN 0 AND 100`),
+  ],
 );
 
 // Metas de venda por mês. Sem vendedor, é a meta da empresa.
@@ -221,7 +233,11 @@ export const salesGoals = pgTable(
     amount: money().notNull(),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex('sales_goals_month_unique').on(t.companyId, t.month, sql`coalesce(${t.userId}, 0)`)],
+  (t) => [
+    uniqueIndex('sales_goals_month_unique').on(t.companyId, t.month, sql`coalesce(${t.userId}, 0)`),
+    check('sales_goals_amount_positivo', sql`${t.amount} > 0`),
+    check('sales_goals_month_dia_1', sql`extract(day from ${t.month}) = 1`),
+  ],
 );
 
 // Preferências de cada usuário. Hoje, só o dashboard; vazio usa o padrão.
@@ -296,6 +312,10 @@ export const products = pgTable(
     uniqueIndex('products_code_unique')
       .on(t.companyId, sql`lower(${t.code})`)
       .where(sql`${t.code} IS NOT NULL AND ${t.active}`),
+    check('products_price_nao_negativo', sql`${t.price} >= 0`),
+    check('products_cost_nao_negativo', sql`${t.cost} >= 0`),
+    check('products_stock_nao_negativo', sql`${t.stock} >= 0`),
+    check('products_min_stock_nao_negativo', sql`${t.minStock} >= 0`),
   ],
 );
 
@@ -363,6 +383,9 @@ export const people = pgTable(
     index().on(t.companyId, t.name),
     index().on(t.companyId, t.city),
     uniqueIndex().on(t.companyId, t.document).where(sql`${t.document} IS NOT NULL`),
+    check('people_credit_limit_nao_negativo', sql`${t.creditLimit} >= 0`),
+    check('people_document_digitos', sql`${t.document} ~ '^([0-9]{11}|[0-9]{14})$'`),
+    check('people_zip_digitos', sql`${t.zip} ~ '^[0-9]{1,8}$'`),
   ],
 );
 
@@ -391,7 +414,7 @@ export const personAddresses = pgTable(
     kind: addressKindEnum().notNull(),
     ...addressColumns(),
   },
-  (t) => [index().on(t.personId)],
+  (t) => [index().on(t.personId), check('person_addresses_zip_digitos', sql`${t.zip} ~ '^[0-9]{1,8}$'`)],
 );
 
 // ---------- CRM ----------
@@ -426,6 +449,7 @@ export const pipelineStages = pgTable(
     uniqueIndex().on(t.companyId, t.name),
     // No máximo uma etapa por marco em cada empresa.
     uniqueIndex().on(t.companyId, t.milestone).where(sql`${t.milestone} IS NOT NULL`),
+    check('pipeline_stages_position_nao_negativa', sql`${t.position} >= 0`),
   ],
 );
 
@@ -464,6 +488,7 @@ export const opportunities = pgTable(
     index().on(t.companyId, t.source),
     index().on(t.companyId, t.ownerId),
     index().on(t.customerId),
+    check('opportunities_estimated_value_nao_negativo', sql`${t.estimatedValue} >= 0`),
   ],
 );
 
@@ -481,7 +506,11 @@ export const opportunityItems = pgTable(
     quantity: quantity().notNull(),
     unitPrice: money(),
   },
-  (t) => [index().on(t.opportunityId)],
+  (t) => [
+    index().on(t.opportunityId),
+    check('opportunity_items_unit_price_nao_negativo', sql`${t.unitPrice} >= 0`),
+    check('opportunity_items_quantity_positiva', sql`${t.quantity} > 0`),
+  ],
 );
 
 export const interactions = pgTable(
@@ -549,6 +578,10 @@ export const quotes = pgTable(
     index().on(t.opportunityId),
     index().on(t.originQuoteId),
     index().on(t.originOrderId),
+    check('quotes_discount_nao_negativo', sql`${t.discount} >= 0`),
+    check('quotes_total_nao_negativo', sql`${t.total} >= 0`),
+    check('quotes_freight_nao_negativo', sql`${t.freight} >= 0`),
+    check('quotes_other_charges_nao_negativo', sql`${t.otherCharges} >= 0`),
   ],
 );
 
@@ -575,7 +608,13 @@ export const quoteItems = pgTable(
     // Entra no total, mas não aparece no espelho do cliente (ex.: material embutido no serviço).
     hiddenInMirror: boolean().notNull().default(false),
   },
-  (t) => [index().on(t.quoteId)],
+  (t) => [
+    index().on(t.quoteId),
+    check('quote_items_unit_price_nao_negativo', sql`${t.unitPrice} >= 0`),
+    check('quote_items_subtotal_nao_negativo', sql`${t.subtotal} >= 0`),
+    check('quote_items_unit_cost_nao_negativo', sql`${t.unitCost} >= 0`),
+    check('quote_items_quantity_positiva', sql`${t.quantity} > 0`),
+  ],
 );
 
 export const orders = pgTable(
@@ -614,6 +653,10 @@ export const orders = pgTable(
     index().on(t.opportunityId),
     index().on(t.originQuoteId),
     index().on(t.originOrderId),
+    check('orders_discount_nao_negativo', sql`${t.discount} >= 0`),
+    check('orders_total_nao_negativo', sql`${t.total} >= 0`),
+    check('orders_freight_nao_negativo', sql`${t.freight} >= 0`),
+    check('orders_other_charges_nao_negativo', sql`${t.otherCharges} >= 0`),
   ],
 );
 
@@ -631,7 +674,13 @@ export const orderItems = pgTable(
     unitPrice: money().notNull(),
     subtotal: money().notNull(),
   },
-  (t) => [index().on(t.orderId), index().on(t.productId)],
+  (t) => [
+    index().on(t.orderId),
+    index().on(t.productId),
+    check('order_items_unit_price_nao_negativo', sql`${t.unitPrice} >= 0`),
+    check('order_items_subtotal_nao_negativo', sql`${t.subtotal} >= 0`),
+    check('order_items_quantity_positiva', sql`${t.quantity} > 0`),
+  ],
 );
 
 // ---------- Financeiro ----------
@@ -665,7 +714,10 @@ export const stockMovements = pgTable(
     userId: integer().references(() => users.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
-  (t) => [index().on(t.companyId, t.productId, t.createdAt)],
+  (t) => [
+    index().on(t.companyId, t.productId, t.createdAt),
+    check('stock_movements_balance_nao_negativo', sql`${t.balance} >= 0`),
+  ],
 );
 
 export const bankAccounts = pgTable(
@@ -699,7 +751,14 @@ export const expenses = pgTable(
     supplierId: integer().references(() => people.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
-  (t) => [index().on(t.companyId, t.expenseDate), index().on(t.bankAccountId), index().on(t.supplierId)],
+  (t) => [
+    index().on(t.companyId, t.expenseDate),
+    index().on(t.bankAccountId),
+    index().on(t.supplierId),
+    check('expenses_amount_nao_negativo', sql`${t.amount} >= 0`),
+    check('expenses_paid_amount_nao_negativo', sql`${t.paidAmount} >= 0`),
+    check('expenses_paid_ate_amount', sql`${t.paidAmount} <= ${t.amount}`),
+  ],
 );
 
 // Cada baixa de uma despesa: abate o principal, com juros e desconto, e gera a saída no caixa.
@@ -725,7 +784,14 @@ export const expensePayments = pgTable(
     reversedBy: integer().references(() => users.id, { onDelete: 'set null' }),
     reversalReason: varchar({ length: 255 }),
   },
-  (t) => [index().on(t.expenseId), index().on(t.bankAccountId)],
+  (t) => [
+    index().on(t.expenseId),
+    index().on(t.bankAccountId),
+    check('expense_payments_principal_nao_negativo', sql`${t.principal} >= 0`),
+    check('expense_payments_interest_nao_negativo', sql`${t.interest} >= 0`),
+    check('expense_payments_discount_nao_negativo', sql`${t.discount} >= 0`),
+    check('expense_payments_paid_nao_negativo', sql`${t.paid} >= 0`),
+  ],
 );
 
 export const purchaseStatusEnum = pgEnum('purchase_status', ['draft', 'received', 'cancelled']);
@@ -749,7 +815,12 @@ export const purchases = pgTable(
     createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex().on(t.companyId, t.number), index().on(t.companyId, t.purchaseDate)],
+  (t) => [
+    uniqueIndex().on(t.companyId, t.number),
+    index().on(t.companyId, t.purchaseDate),
+    check('purchases_freight_nao_negativo', sql`${t.freight} >= 0`),
+    check('purchases_total_nao_negativo', sql`${t.total} >= 0`),
+  ],
 );
 
 export const purchaseItems = pgTable(
@@ -766,7 +837,13 @@ export const purchaseItems = pgTable(
     unitCost: money().notNull(),
     subtotal: money().notNull(),
   },
-  (t) => [index().on(t.purchaseId), index().on(t.productId)],
+  (t) => [
+    index().on(t.purchaseId),
+    index().on(t.productId),
+    check('purchase_items_unit_cost_nao_negativo', sql`${t.unitCost} >= 0`),
+    check('purchase_items_subtotal_nao_negativo', sql`${t.subtotal} >= 0`),
+    check('purchase_items_quantity_positiva', sql`${t.quantity} > 0`),
+  ],
 );
 
 // Renegociada: parcela substituída por outras (fica só no histórico, fora das somas do pedido).
@@ -795,7 +872,13 @@ export const receivables = pgTable(
     status: receivableStatusEnum().notNull().default('open'),
     createdAt: createdAt(),
   },
-  (t) => [index().on(t.companyId, t.status, t.dueDate), uniqueIndex().on(t.orderId, t.position)],
+  (t) => [
+    index().on(t.companyId, t.status, t.dueDate),
+    uniqueIndex().on(t.orderId, t.position),
+    check('receivables_amount_nao_negativo', sql`${t.amount} >= 0`),
+    check('receivables_paid_amount_nao_negativo', sql`${t.paidAmount} >= 0`),
+    check('receivables_paid_ate_amount', sql`${t.paidAmount} <= ${t.amount}`),
+  ],
 );
 
 // Cada baixa de uma conta. principal é o que sai do saldo: received = principal + interest - discount.
@@ -827,7 +910,15 @@ export const receivablePayments = pgTable(
     // Paga com o adiantamento do cliente: não entra de novo no caixa.
     fromAdvance: boolean().notNull().default(false),
   },
-  (t) => [index().on(t.receivableId), index().on(t.orderId), index().on(t.bankAccountId)],
+  (t) => [
+    index().on(t.receivableId),
+    index().on(t.orderId),
+    index().on(t.bankAccountId),
+    check('receivable_payments_principal_nao_negativo', sql`${t.principal} >= 0`),
+    check('receivable_payments_interest_nao_negativo', sql`${t.interest} >= 0`),
+    check('receivable_payments_discount_nao_negativo', sql`${t.discount} >= 0`),
+    check('receivable_payments_received_nao_negativo', sql`${t.received} >= 0`),
+  ],
 );
 
 export const advanceKindEnum = pgEnum('advance_kind', ['advance', 'use']);
@@ -854,7 +945,11 @@ export const customerAdvances = pgTable(
     reversedBy: integer().references(() => users.id, { onDelete: 'set null' }),
     reversalReason: varchar({ length: 255 }),
   },
-  (t) => [index().on(t.companyId, t.customerId), index().on(t.paymentId)],
+  (t) => [
+    index().on(t.companyId, t.customerId),
+    index().on(t.paymentId),
+    check('customer_advances_amount_positivo', sql`${t.amount} > 0`),
+  ],
 );
 
 export const cashTransactions = pgTable(
@@ -885,6 +980,7 @@ export const cashTransactions = pgTable(
     index().on(t.expenseId),
     uniqueIndex().on(t.expensePaymentId),
     uniqueIndex().on(t.advanceId),
+    check('cash_transactions_amount_nao_negativo', sql`${t.amount} >= 0`),
   ],
 );
 
@@ -907,7 +1003,11 @@ export const aiUsage = pgTable(
     costBrl: numeric({ precision: 12, scale: 6, mode: 'number' }).notNull(),
     createdAt: createdAt(),
   },
-  (t) => [index().on(t.companyId, t.createdAt)],
+  (t) => [
+    index().on(t.companyId, t.createdAt),
+    check('ai_usage_cost_usd_nao_negativo', sql`${t.costUsd} >= 0`),
+    check('ai_usage_cost_brl_nao_negativo', sql`${t.costBrl} >= 0`),
+  ],
 );
 
 // Últimas mensagens do Telegram, para o assistente lembrar da conversa. O chat web manda o histórico

@@ -57,6 +57,7 @@ Todas as mudanças relevantes do Arandu Gestão, por versão. O roadmap das pró
 
 ### Alterado
 
+- **Regras de valores no banco (migrações `0040` a `0043`):** as validações da tela agora também são constraints `CHECK` do Postgres: dinheiro nunca negativo; quantidade dos itens maior que zero; estoque e saldo do extrato nunca negativos; valor pago até o valor do título; entrada entre 0 e 100%; meta no dia 1 do mês; CPF/CNPJ e CEP só com dígitos. O código de vínculo do Telegram ganhou índice único. Nenhuma linha existente quebrava as regras. Valor recusado por uma regra do banco responde 400 ("Valor fora das regras do sistema."), não 500.
 - **Permissões mínimas do usuário da aplicação no banco:** `scripts/supabase-seguranca.sql` deixa de dar `SELECT, INSERT, UPDATE, DELETE` em todas as tabelas ao `arandue_app` e lista, tabela por tabela, só o que o código usa (histórico, como `audit_logs` e `stock_movements`, fica só com inserção; `events`, sem uso, fica sem acesso). O teste `appGrants.test.ts` falha se uma tabela nova ficar sem permissão.
 
 ### Corrigido

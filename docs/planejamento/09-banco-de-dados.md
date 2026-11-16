@@ -10,7 +10,7 @@ Plano das sete frentes de revisão do banco pedidas em 15/11/2026. Cada frente t
 | 2 | [B. Backup que volta](#b-backup-que-volta) | Maior risco hoje: os backups atuais ficam **dentro do mesmo banco** e não protegem contra perda do projeto | Concluída em 15/11/2026: primeira execução em produção restaurou 43 tabelas com as contagens batendo |
 | 3 | [C. Migrations e dev x produção](#c-migrations-e-dev-x-produção) | Base para D, E e F: confirma que o banco real é igual às migrations antes de criar outras | Feita no código; SQL de produção aguardando você |
 | 4 | [D. Transações](#d-transações) | O app já usa transação na maior parte; fecha as lacunas e prepara o B1 (RLS por empresa), que precisa de uma transação por requisição | Concluída em 15/11/2026 |
-| 5 | [E. Schema e constraints](#e-schema-e-constraints) | Depende de C (migrations confiáveis) | Pendente |
+| 5 | [E. Schema e constraints](#e-schema-e-constraints) | Depende de C (migrations confiáveis) | Feita no código; SQL de produção aguardando você |
 | 6 | [F. Índices](#f-índices) | Depende de C; aproveita o levantamento de consultas de G | Pendente |
 | 7 | [G. Custo](#g-custo) | Menor risco: os planos atuais têm teto fixo (a confirmar) | Pendente: confirmar os planos |
 
@@ -96,6 +96,8 @@ Relatório completo: [AUDITORIA-BANCO.md](../../AUDITORIA-BANCO.md). Nenhuma cha
 Nenhum dado é alterado para a constraint passar: linha que quebra a regra vira pergunta para você.
 
 **Risco ao app:** médio. Constraint nova recusa gravação que hoje passa; cada uma é testada com a suíte e o e2e antes.
+
+**Resultado (15/11/2026).** Tipos corretos (dinheiro em `numeric`, datas com fuso; documento, CEP e telefone como texto de propósito). Nenhuma coluna de referência sem foreign key que precise de uma (`audit_logs.entity_id` e `events.ref_id` são polimórficas; os IDs do Telegram são externos). Dado repetido só onde é intencional (`audit_logs.actor_name`, `quotes.mirror_snapshot`). Tabela `events` sem uso no código, mantida. A regra "parcela a partir de 1" ficou de fora: a renegociação grava posições negativas temporárias para renumerar sem bater no índice único. `demo.reset` passou a manter o mês da meta no dia 1. 58 regras contadas em dev e em produção, com zero violações; 56 viraram constraints `CHECK`, mais um índice único, em 4 migrations (`0040` a `0043`), cada uma com o SQL de volta em comentário. `constraints.test.ts` prova que o banco recusa gravação direta fora das regras e que o erro chega à tela como 400.
 
 ## F. Índices
 

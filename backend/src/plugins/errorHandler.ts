@@ -20,6 +20,8 @@ export function registerErrorHandler(app: FastifyInstance): void {
     const code = pgCode(error);
     if (code) {
       if (code === '23505') return reply.status(409).send({ message: 'Registro duplicado.' });
+      // Constraint CHECK do banco: a mesma regra das validações da tela, conferida de novo no banco.
+      if (code === '23514') return reply.status(400).send({ message: 'Valor fora das regras do sistema.' });
       if (code === '23503') {
         return reply
           .status(409)
