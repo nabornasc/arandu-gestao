@@ -30,9 +30,9 @@
     "format": "biome check --write ."
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.6",
-    "@playwright/test": "1.65.0",
-    "@sentry/esbuild-plugin": "11.11.0",
+    "@biomejs/biome": "2.6.8",
+    "@playwright/test": "1.65.1",
+    "@sentry/esbuild-plugin": "11.14.0",
     "@types/node": "26.6.6",
     "concurrently": "^10.0.7",
     "esbuild": "0.28.2",
